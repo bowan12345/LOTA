@@ -12,22 +12,33 @@ using System.Threading.Tasks;
 
 namespace LOTA.DataAccess.Repository
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class Repository<T> : IRepository<T,string> where T : class
     {
-        private readonly ApplicationDbContext _db;
-        internal DbSet<T> dbset;
+        protected readonly ApplicationDbContext _db;
+        protected readonly DbSet<T> dbset;
         public Repository(ApplicationDbContext db)
         {
             this._db = db;
             dbset = _db.Set<T>();
            /* _db.Movies.Include(u => u.Category).Include(u=>u.CategoryId);*/
         }
-        void IRepository<T>.Add(T entity)
+
+        public async Task AddAsync(T entity)
         {
-            dbset.Add(entity);
+            await dbset.AddAsync(entity);
         }
 
-        T IRepository<T>.Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await dbset.AddRangeAsync(entities);
+        }
+
+        public async Task<T> GetByIdAsync(string id)
+        {
+            return await dbset.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null)
         {
             IQueryable<T> query = dbset;
             if (!string.IsNullOrEmpty(includeProperties))
@@ -39,10 +50,10 @@ namespace LOTA.DataAccess.Repository
             }
 
             query = query.Where(filter);
-            return query.FirstOrDefault();
+            return await query.ToListAsync();
         }
 
-        IEnumerable<T> IRepository<T>.GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<T> query = dbset;
             if (filter != null)
@@ -58,17 +69,25 @@ namespace LOTA.DataAccess.Repository
                 }
             }
 
-            return query.ToList();
+            List<T> ts = await query.ToListAsync();
+            return ts;
         }
 
-        void IRepository<T>.Remove(T entity)
+        public void Update(T entity)
+        {
+            dbset.Update(entity);
+        }
+
+        public void Remove(T entity)
         {
             dbset.Remove(entity);
         }
 
-        void IRepository<T>.RemoveRange(IEnumerable<T> entities)
+        public void RemoveRange(IEnumerable<T> entities)
         {
             dbset.RemoveRange(entities);
         }
+
+
     }
 }

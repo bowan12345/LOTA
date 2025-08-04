@@ -7,18 +7,61 @@ using System.Threading.Tasks;
 
 namespace LOTA.DataAccess.Repository.IRepository
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T, TKey> where T : class
     {
-        IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties= null);
+        /// <summary>
+        /// get object by id
+        /// </summary>
+        /// <param name="id"> id of object </param>
+        /// <returns> object </returns>
+        Task<T> GetByIdAsync(TKey id);
 
-        T Get(Expression<Func<T, bool>> filter, string? includeProperties = null);
+        /// <summary>
+        /// get all objects
+        /// </summary>
+        /// <param name="filter"> filter expression </param>
+        /// <param name="includeProperties"> include properties </param>
+        /// <returns> objects </returns>
+        Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties= null);
 
-        void Add(T entity);
+        /// <summary>
+        /// get objects by filter
+        /// </summary>
+        /// <param name="filter"> filter expression </param>
+        /// <param name="includeProperties"> include properties </param>
+        /// <returns> objects </returns>
+        Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null);
 
+        /// <summary>
+        /// add object
+        /// </summary>
+        /// <param name="entity"> object to add </param>
+        /// <returns></returns>
+        Task AddAsync(T entity);
+
+        /// <summary>
+        /// add range of objects
+        /// </summary>
+        /// <param name="entities"> objects to add </param>
+        /// <returns></returns>
+        Task AddRangeAsync(IEnumerable<T> entities);
+
+        /// <summary>
+        /// remove object
+        /// </summary>
+        /// <param name="entity"> object to remove </param>
         void Remove(T entity);
 
+        /// <summary>
+        ///  remove range of objects
+        /// </summary>
+        /// <param name="entities"> objects to remove </param>
         void RemoveRange(IEnumerable<T> entities);
 
-        //void Update(T entity);
+        /// <summary>
+        /// update object
+        /// </summary>
+        /// <param name="entity"> object to update </param>
+        void Update(T entity);
     }
 }

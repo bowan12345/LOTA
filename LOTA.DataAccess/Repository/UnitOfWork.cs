@@ -1,5 +1,7 @@
 ﻿using LOTA.DataAccess.Data;
+using LOTA.DataAccess.Repository;
 using LOTA.DataAccess.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,18 +13,18 @@ namespace MovieApp.DataAccess.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _db;
-        /*public ICategoryRepository categoryRepository { get; private set; }*/
+        public ICourseRepository courseRepo { get; private set; }
 
 
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
-            /*categoryRepository = new CategoryRepository(_db);*/
+            courseRepo = new CourseRepository(_db);
         }
 
-        public void Save()
+        public async Task<int> SaveAsync()
         {
-            _db.SaveChanges();
+            return await _db.SaveChangesAsync();
         }
     }
 }

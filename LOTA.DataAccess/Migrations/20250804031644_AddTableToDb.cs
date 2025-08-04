@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LOTA.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class addTableToDb : Migration
+    public partial class AddTableToDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -331,33 +331,33 @@ namespace LOTA.DataAccess.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Discriminator", "Email", "EmailConfirmed", "FirstName", "IsActive", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "StudentNo", "TutorNo", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { "STUDENT-001", 0, "55d7c3ee-a951-452c-b9e1-cb10e263a3a7", "ApplicationUser", "student1@lota.com", true, "Alice", true, "Brown", false, null, "STUDENT1@LOTA.COM", "STUDENT1@LOTA.COM", null, null, false, "4af1d234-e57b-4b63-a3c5-38cd9336e4ea", "STUDENT-001", null, false, "student1@lota.com" },
-                    { "TUTOR-001", 0, "61836ad8-7226-4b8d-b14a-d6e2a5fee299", "ApplicationUser", "tutor1@lota.com", true, "John", true, "Smith", false, null, "TUTOR1@LOTA.COM", "TUTOR1@LOTA.COM", null, null, false, "de8549b6-125a-4306-b983-71366b474cea", null, "TUTOR-001", false, "tutor1@lota.com" }
+                    { "STUDENT-001", 0, "8e501a41-8e62-4b3d-b117-9bc0035ab818", "ApplicationUser", "student1@lota.com", true, "Alice", true, "Brown", false, null, "STUDENT1@LOTA.COM", "STUDENT1@LOTA.COM", null, null, false, "aa351826-61aa-450c-a022-d7b896bad6a9", "STUDENT-001", null, false, "student1@lota.com" },
+                    { "TUTOR-001", 0, "3a0ce219-e5b6-459e-a7c9-ec7fee551442", "ApplicationUser", "tutor1@lota.com", true, "John", true, "Smith", false, null, "TUTOR1@LOTA.COM", "TUTOR1@LOTA.COM", null, null, false, "e5556106-28fd-48d2-af9a-3333f51cbf54", null, "TUTOR-001", false, "tutor1@lota.com" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Course",
                 columns: new[] { "Id", "CourseCode", "CourseName", "CreatedDate", "Description", "IsActive", "TutorNo", "UpdatedDate" },
-                values: new object[] { "COURSE-001", "SE101", "Software Engineering", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5299), "Introduction to software development processes and methodologies.", true, "TUTOR-001", null });
+                values: new object[] { "COURSE-001", "SE101", "Software Engineering", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(5945), "Introduction to software development processes and methodologies.", true, "TUTOR-001", null });
 
             migrationBuilder.InsertData(
                 table: "Assignment",
                 columns: new[] { "Id", "AssignmentName", "CourseId", "CreatedBy", "CreatedDate", "IsActive", "TotalScore", "TotalWeight", "UpdatedDate" },
-                values: new object[] { "ASSIGN-001", "Project Proposal", "COURSE-001", "TUTOR-001", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5388), true, 100m, 30m, null });
+                values: new object[] { "ASSIGN-001", "Project Proposal", "COURSE-001", "TUTOR-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6070), true, 100m, 30m, null });
 
             migrationBuilder.InsertData(
                 table: "LearningOutcome",
                 columns: new[] { "Id", "CourseId", "CreatedDate", "Description", "LOName", "MaxScore", "UpdatedDate", "Weight" },
                 values: new object[,]
                 {
-                    { "LO-001", "COURSE-001", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5366), "Understand and document software requirements effectively.", "Requirement Analysis", 100m, null, 0.3m },
-                    { "LO-002", "COURSE-001", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5369), "Apply design principles to create robust software architectures.", "System Design", 100m, null, 0.4m }
+                    { "LO-001", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6045), "Understand and document software requirements effectively.", "Requirement Analysis", 100m, null, 0.3m },
+                    { "LO-002", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6048), "Apply design principles to create robust software architectures.", "System Design", 100m, null, 0.4m }
                 });
 
             migrationBuilder.InsertData(
                 table: "StudentCourse",
                 columns: new[] { "Id", "CourseId", "CreatedDate", "IsActive", "RegistrationDate", "StudentNo", "UpdatedDate" },
-                values: new object[] { "STCOURSE-001", "COURSE-001", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5419), true, new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5418), "STUDENT-001", null });
+                values: new object[] { "STCOURSE-001", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6101), true, new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6100), "STUDENT-001", null });
 
             migrationBuilder.InsertData(
                 table: "AssignmentLearningOutcome",
@@ -371,7 +371,7 @@ namespace LOTA.DataAccess.Migrations
             migrationBuilder.InsertData(
                 table: "StudentScore",
                 columns: new[] { "Id", "AssignmentId", "CreatedDate", "IsRetake", "LOId", "RetakeDate", "Score", "Status", "StudentNo", "UpdatedDate" },
-                values: new object[] { "SCORE-001", "ASSIGN-001", new DateTime(2025, 8, 3, 17, 24, 6, 794, DateTimeKind.Local).AddTicks(5434), false, "LO-001", null, 80m, "Pass", "STUDENT-001", null });
+                values: new object[] { "SCORE-001", "ASSIGN-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6118), false, "LO-001", null, 80m, "Pass", "STUDENT-001", null });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
