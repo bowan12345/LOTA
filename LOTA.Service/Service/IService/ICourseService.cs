@@ -14,12 +14,12 @@ namespace LOTA.Service.Service.IService
         /// </summary>
         /// <param name="course"> The course to create </param>
         /// <returns> The created course </returns>
-        Task<Course> CreateCourseAsync(Course course);
+         Task<Course> CreateCourseAsync(Course course);
 
         /// <summary>
         /// Get all courses
         /// </summary>
         /// <returns> All courses </returns>
-        Task<IEnumerable<Course>> GetAllCoursesAsync();
+         Task<IEnumerable<Course>> GetAllCoursesAsync();
     }
 }

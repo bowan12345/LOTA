@@ -25,11 +25,16 @@ namespace LOTA.Service.Service
             return course;
         }
 
+        /*public async Task<IEnumerable<Course>> GetAllCoursesAsync()
+        {
+            throw new NotImplementedException("TDD Red phase: method not implemented yet");
+        }*/
+
         public async Task<IEnumerable<Course>> GetAllCoursesAsync()
         {
             IEnumerable<Course> courses = await _unitOfWork.courseRepo.GetAllAsync();
             return courses;
-             
+
         }
     }
 }
