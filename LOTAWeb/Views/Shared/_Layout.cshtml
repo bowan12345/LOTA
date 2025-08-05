@@ -3,47 +3,211 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LOTAWeb</title>
+    <title>@ViewData["Title"] - LOTA Administrator System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/LOTAWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">LOTAWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <!-- Top Header -->
+    <header class="bg-success text-white shadow-sm d-flex align-items-center" style="min-height: 80px;">
+        <nav class="navbar navbar-expand-lg navbar-dark w-100">
+            <div class="container-fluid d-flex align-items-center">
+                 <!-- Logo and Brand -->
+                 <div class="d-flex align-items-center">
+                     <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                         <img src="~/image/logo.jpg" alt="LOTA Logo" class="me-3" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                         LOTA Administrator System
+                     </a>
+                 </div>
+
+                <!-- Right side content -->
+                <div class="d-flex align-items-center">
+                    <span class="me-3">Welcome, Administrator</span>
+                    <button class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="fas fa-sign-out-alt me-1"></i>
+                        Logout
+                    </button>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <div class="d-flex">
+         <!-- Sidebar -->
+         <nav id="sidebar" class="bg-white shadow-sm" style="width: 280px; min-height: calc(100vh - 80px);">
+            <div class="p-3">
+                <h5 class="fw-bold text-dark mb-3">Navigation</h5>
+                <hr class="my-3">
+                
+                  <ul class="nav flex-column">
+                      <li class="nav-item mb-2">
+                          <a class="nav-link bg-primary text-white d-flex align-items-center py-2 px-3 rounded active" href="#">
+                              <i class="fas fa-user-tie me-3"></i>
+                              Tutor Management
+                          </a>
+                      </li>
+                      <li class="nav-item mb-2">
+                          <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                              <i class="fas fa-book me-3"></i>
+                              Course Management
+                          </a>
+                      </li>
+                     <li class="nav-item mb-2">
+                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                             <i class="fas fa-graduation-cap me-3"></i>
+                             Student Management
+                         </a>
+                     </li>
+                     <li class="nav-item mb-2">
+                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                             <i class="fas fa-file-alt me-3"></i>
+                             Assignment & Exam
+                         </a>
+                     </li>
+                     <li class="nav-item mb-2">
+                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                             <i class="fas fa-list me-3"></i>
+                             LO Mark
+                         </a>
+                     </li>
+                     <li class="nav-item mb-2">
+                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                             <i class="fas fa-chart-line me-3"></i>
+                             LO Results
+                         </a>
+                     </li>
+                 </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-grow-1">
+            <main role="main" class="p-4">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - LOTAWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+         <!-- Mobile Sidebar Toggle -->
+     <button id="sidebarToggle" class="btn btn-success d-lg-none position-fixed" style="top: 90px; left: 10px; z-index: 1030;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="d-lg-none position-fixed w-100 h-100 bg-dark bg-opacity-50" style="top: 0; left: 0; z-index: 1020; display: none;"></div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // Sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
+            });
+            
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.style.display = 'none';
+            });
+            
+            // Close sidebar on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* Custom styles for the layout */
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        /* Sidebar styles */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        #sidebar .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        #sidebar .nav-link:hover {
+            background-color: #e9ecef !important;
+            transform: translateX(5px);
+        }
+        
+        #sidebar .nav-link.active {
+            background-color: #0d6efd !important;
+            color: white !important;
+        }
+        
+         /* Mobile sidebar */
+         @@media (max-width: 991.98px) {
+             #sidebar {
+                 position: fixed;
+                 top: 80px;
+                 left: -280px;
+                 z-index: 1030;
+                 height: calc(100vh - 80px);
+                 transform: translateX(0);
+             }
+            
+            #sidebar.show {
+                transform: translateX(280px);
+            }
+            
+            #sidebarToggle {
+                display: block !important;
+            }
+        }
+        
+        @@media (min-width: 992px) {
+            #sidebarToggle {
+                display: none !important;
+            }
+        }
+        
+          /* Header styles */
+         .navbar-brand {
+             font-size: 1.25rem;
+         }
+         
+         /* Ensure header content is vertically centered */
+         header .navbar {
+             padding-top: 0;
+             padding-bottom: 0;
+         }
+        
+         /* Content area */
+         main {
+             min-height: calc(100vh - 80px);
+         }
+        
+        /* Button hover effects */
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
