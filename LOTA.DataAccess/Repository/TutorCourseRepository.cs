@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace LOTA.DataAccess.Repository
 {
-    public class TutorRepository : Repository<ApplicationUser>, ITutorRepository
+    public class TutorCourseRepository : Repository<TutorCourse>, ITutorCourseRepository
     {
-        public TutorRepository(ApplicationDbContext db) : base(db)
+        public TutorCourseRepository(ApplicationDbContext db) : base(db)
         {
         }
-
-
     }
 }

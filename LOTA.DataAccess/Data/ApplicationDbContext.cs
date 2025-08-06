@@ -17,6 +17,7 @@ namespace LOTA.DataAccess.Data
         public DbSet<LearningOutcome> LearningOutcome { get; set; }
         public DbSet<StudentCourse> StudentCourse { get; set; }
         public DbSet<StudentScore> StudentScore { get; set; }
+        public DbSet<TutorCourse> TutorCourse { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,8 +52,13 @@ namespace LOTA.DataAccess.Data
             modelBuilder.Entity<TutorCourse>()
                 .HasOne(tc => tc.Tutor)
                 .WithMany(u => u.TutorCourse)
-                .HasPrincipalKey(u => u.Id)
-                .HasForeignKey(tc => tc.TutorId) // FK is ApplicationUser.TutorIdentifier
+                .HasForeignKey(tc => tc.TutorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TutorCourse>()
+                .HasOne(tc => tc.Course)
+                .WithMany(c => c.TutorCourses)
+                .HasForeignKey(tc => tc.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ApplicationUser>().HasData(

@@ -15,12 +15,14 @@ namespace LOTA.DataAccess.Repository
         private ApplicationDbContext _db;
         public ICourseRepository courseRepository { get; private set; }
         public ITutorRepository tutorRepository { get; private set; }
+        public ITutorCourseRepository tutorCourseRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
             courseRepository = new CourseRepository(_db);
             tutorRepository = new TutorRepository(_db);
+            tutorCourseRepository = new TutorCourseRepository(_db);
         }
 
         public async Task<int> SaveAsync()

@@ -23,10 +23,11 @@ namespace LOTA.Service.Service.IService
         Task<IEnumerable<ApplicationUser>> GetAllTutorsAsync();
 
         /// <summary>
-        /// add a new tutor
+        /// add assigned courses to a tutor
         /// </summary>
-        /// <param name="user"> an object of tutor </param>
+        /// <param name="TutorId"> id of tutor </param>
+        /// <param name="AssignedCourses"> a list of assigned courses </param>
         /// <returns></returns>
-        Task AddTutorAsync(ApplicationUser user);
+        Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses);
     }
 }

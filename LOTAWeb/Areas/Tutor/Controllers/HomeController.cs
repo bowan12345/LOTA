@@ -24,7 +24,7 @@ namespace LOTAWeb.Controllers
         }*/
         public async Task<IActionResult> Index()
         {
-            var courses = await _courseService.GetAllCoursesAsync();
+            var courses = await _courseService.GetAllCoursesAsync(null);
             return View(courses);
         }
         public IActionResult Privacy()

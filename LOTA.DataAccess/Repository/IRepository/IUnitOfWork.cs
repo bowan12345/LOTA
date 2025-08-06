@@ -10,6 +10,7 @@ namespace LOTA.DataAccess.Repository.IRepository
     {
         ICourseRepository courseRepository { get; }
         ITutorRepository tutorRepository { get; }
+        ITutorCourseRepository tutorCourseRepository { get; }
 
         Task<int> SaveAsync();
     }

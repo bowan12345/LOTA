@@ -1,4 +1,5 @@
 ﻿using LOTA.Model;
+using LOTA.Model.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,13 @@ namespace LOTA.Service.Service.IService
         /// Get all courses
         /// </summary>
         /// <returns> All courses </returns>
-         Task<IEnumerable<Course>> GetAllCoursesAsync();
+         Task<IEnumerable<Course>> GetAllCoursesAsync(CourseQueryDTO courseQueryDTO);
+        
+        /// <summary>
+        ///  Get a course by course name or course code
+        /// </summary>
+        /// <param name="courseSearchItem"> course name or course code</param>
+        /// <returns> a list courses </returns>
+         Task<IEnumerable<Course>> GetCoursesByNameOrCodeAsync(string courseSearchItem);
     }
 }

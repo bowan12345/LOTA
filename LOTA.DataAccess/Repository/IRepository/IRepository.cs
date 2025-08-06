@@ -37,14 +37,14 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// </summary>
         /// <param name="entity"> object to add </param>
         /// <returns></returns>
-        Task AddAsync(T entity);
+        Task<T> AddAsync(T entity);
 
         /// <summary>
         /// add range of objects
         /// </summary>
         /// <param name="entities"> objects to add </param>
         /// <returns></returns>
-        Task AddRangeAsync(IEnumerable<T> entities);
+        Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities);
 
         /// <summary>
         /// remove object

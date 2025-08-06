@@ -3,6 +3,7 @@ using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Service.Service.IService;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +19,6 @@ namespace LOTA.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task AddTutorAsync(ApplicationUser user)
-        {
-            throw new NotImplementedException("TDD Red phase: method not implemented yet");
-        }
-
         public async Task<ApplicationUser> GetTutorByEmailAsync(string email)
         {
             throw new NotImplementedException("TDD Red phase: method not implemented yet");
@@ -30,10 +26,31 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<ApplicationUser>> GetAllTutorsAsync()
         {
-            // Get only users who have TutorNo (i.e., are tutors)
+            // Get only users who have TutorNo (i.e., are tutors) and include their courses
             return await _unitOfWork.tutorRepository.GetAllAsync(
-                filter: u => !string.IsNullOrEmpty(u.TutorNo)
+                filter: u => !string.IsNullOrEmpty(u.TutorNo),
+                includeProperties: "TutorCourse.Course"
             );
         }
+
+        public async Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses)
+        {
+            //throw new NotImplementedException();
+            List<TutorCourse> tutorCourses = new List<TutorCourse>();
+            foreach (string course in AssignedCourses)
+            {
+                TutorCourse tutorCourse = new TutorCourse()
+                {
+                    // Generate unique ID
+                    Id = Guid.NewGuid().ToString(), 
+                    TutorId = TutorId,
+                    CourseId = course
+                };
+                tutorCourses.Add(tutorCourse);
+            }
+            await _unitOfWork.tutorCourseRepository.AddRangeAsync(tutorCourses);
+            await _unitOfWork.SaveAsync(); 
+        }
+          
     }
 }

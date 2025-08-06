@@ -23,14 +23,16 @@ namespace LOTA.DataAccess.Repository
            /* _db.Movies.Include(u => u.Category).Include(u=>u.CategoryId);*/
         }
 
-        public async Task AddAsync(T entity)
+        public async Task<T> AddAsync(T entity)
         {
             await dbset.AddAsync(entity);
+            return entity;
         }
 
-        public async Task AddRangeAsync(IEnumerable<T> entities)
+        public async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities)
         {
             await dbset.AddRangeAsync(entities);
+            return entities;
         }
 
         public async Task<T> GetByIdAsync(string id)

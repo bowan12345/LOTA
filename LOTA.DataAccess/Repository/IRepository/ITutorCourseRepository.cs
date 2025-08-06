@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace LOTA.DataAccess.Repository.IRepository
 {
-    public interface ITutorRepository: IRepository<ApplicationUser, string>
-    { 
-    
+    public interface ITutorCourseRepository: IRepository<TutorCourse, string>
+    {
+
     }
 }
