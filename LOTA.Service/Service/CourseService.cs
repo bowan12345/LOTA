@@ -20,7 +20,7 @@ namespace LOTA.Service.Service
 
         public async Task<Course> CreateCourseAsync(Course course)
         {
-            await _unitOfWork.courseRepo.AddAsync(course);
+            await _unitOfWork.courseRepository.AddAsync(course);
             await _unitOfWork.SaveAsync();  
             return course;
         }
@@ -32,7 +32,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<Course>> GetAllCoursesAsync()
         {
-            IEnumerable<Course> courses = await _unitOfWork.courseRepo.GetAllAsync();
+            IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync();
             return courses;
 
         }

@@ -8,7 +8,8 @@ namespace LOTA.DataAccess.Repository.IRepository
 {
     public interface IUnitOfWork
     {
-        ICourseRepository courseRepo { get; }
+        ICourseRepository courseRepository { get; }
+        ITutorRepository tutorRepository { get; }
 
         Task<int> SaveAsync();
     }

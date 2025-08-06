@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.DataAccess.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -32,7 +32,7 @@ namespace LOTA.DataAccess.Data
             modelBuilder.Entity<StudentCourse>()
                 .HasOne(sc => sc.Student)
                 .WithMany(s => s.StudentCourses)
-                .HasForeignKey(sc => sc.StudentNo)
+                .HasForeignKey(sc => sc.StudentId)
                 .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<StudentScore>()
@@ -44,9 +44,16 @@ namespace LOTA.DataAccess.Data
             modelBuilder.Entity<StudentScore>()
                 .HasOne(ss => ss.Student)
                 .WithMany(s => s.StudentScores)
-                .HasForeignKey(ss => ss.StudentNo)
+                .HasForeignKey(ss => ss.StudentId)// FK is ApplicationUser.StudentIdentifier
                 .OnDelete(DeleteBehavior.Restrict);
 
+
+            modelBuilder.Entity<TutorCourse>()
+                .HasOne(tc => tc.Tutor)
+                .WithMany(u => u.TutorCourse)
+                .HasPrincipalKey(u => u.Id)
+                .HasForeignKey(tc => tc.TutorId) // FK is ApplicationUser.TutorIdentifier
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ApplicationUser>().HasData(
                new ApplicationUser
@@ -59,7 +66,7 @@ namespace LOTA.DataAccess.Data
                    EmailConfirmed = true,
                    FirstName = "John",
                    LastName = "Smith",
-                   TutorNo = "TUTOR-001",
+                   TutorNo = "tutor1@lota.com",
                    IsActive = true,
                    SecurityStamp = Guid.NewGuid().ToString()
                },
@@ -73,7 +80,7 @@ namespace LOTA.DataAccess.Data
                    EmailConfirmed = true,
                    FirstName = "Alice",
                    LastName = "Brown",
-                   StudentNo = "STUDENT-001",
+                   StudentNo= "STUDENT-001",
                    IsActive = true,
                    SecurityStamp = Guid.NewGuid().ToString()
                }
@@ -86,11 +93,36 @@ namespace LOTA.DataAccess.Data
                     CourseName = "Software Engineering",
                     CourseCode = "SE101",
                     Description = "Introduction to software development processes and methodologies.",
-                    TutorNo = "TUTOR-001",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                }, 
+                new Course
+                {
+                    Id = "COURSE-002",
+                    CourseName = "Software Testing",
+                    CourseCode = "ST102",
+                    Description = "Introduction to software Testing processes and methodologies.",
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }
             );
+
+            // tutors and courses
+            modelBuilder.Entity<TutorCourse>().HasData(
+                new TutorCourse
+                {
+                    Id = "TCO1001",
+                    TutorId = "TUTOR-001",
+                    CourseId = "COURSE-001"
+                },
+                new TutorCourse
+                {
+                    Id = "TCO1002",
+                    TutorId = "TUTOR-001",
+                    CourseId = "COURSE-002"
+                }
+            );
+
             // Learning Outcome
             modelBuilder.Entity<LearningOutcome>().HasData(
                 new LearningOutcome
@@ -151,7 +183,7 @@ namespace LOTA.DataAccess.Data
                 new StudentCourse
                 {
                     Id = "STCOURSE-001",
-                    StudentNo = "STUDENT-001",
+                    StudentId = "STUDENT-001",
                     CourseId = "COURSE-001",
                     IsActive = true,
                     RegistrationDate = DateTime.Now,
@@ -166,7 +198,7 @@ namespace LOTA.DataAccess.Data
                 new StudentScore
                 {
                     Id = "SCORE-001",
-                    StudentNo = "STUDENT-001",
+                    StudentId = "STUDENT-001",
                     AssignmentId = "ASSIGN-001",
                     LOId = "LO-001",
                     Score = 80,

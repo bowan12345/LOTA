@@ -3,7 +3,6 @@ using LOTA.DataAccess.Repository;
 using LOTA.Service.Service.IService;
 using LOTA.Service.Service;
 using Microsoft.Extensions.DependencyInjection;
-using MovieApp.DataAccess.Repository;
 
 namespace LOTA.Service
 {
@@ -21,6 +20,7 @@ namespace LOTA.Service
 
             // register Services
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<ITutorService, TutorService>();
 
             return services;
         }

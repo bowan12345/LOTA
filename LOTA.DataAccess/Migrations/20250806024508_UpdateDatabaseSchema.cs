@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LOTA.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTableToDb : Migration
+    public partial class UpdateDatabaseSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,12 +32,11 @@ namespace LOTA.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     TutorNo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     StudentNo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -56,6 +55,23 @@ namespace LOTA.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Course",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CourseName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CourseCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Course", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,30 +181,6 @@ namespace LOTA.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Course",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CourseName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CourseCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TutorNo = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Course", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Course_AspNetUsers_TutorNo",
-                        column: x => x.TutorNo,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Assignment",
                 columns: table => new
                 {
@@ -241,7 +233,7 @@ namespace LOTA.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    StudentNo = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: true),
                     RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -252,8 +244,8 @@ namespace LOTA.DataAccess.Migrations
                 {
                     table.PrimaryKey("PK_StudentCourse", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StudentCourse_AspNetUsers_StudentNo",
-                        column: x => x.StudentNo,
+                        name: "FK_StudentCourse_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -263,6 +255,30 @@ namespace LOTA.DataAccess.Migrations
                         principalTable: "Course",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TutorCourse",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TutorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CourseId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TutorCourse", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TutorCourse_AspNetUsers_TutorId",
+                        column: x => x.TutorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TutorCourse_Course_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Course",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -293,7 +309,7 @@ namespace LOTA.DataAccess.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    StudentNo = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AssignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     LOId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Score = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
@@ -307,8 +323,8 @@ namespace LOTA.DataAccess.Migrations
                 {
                     table.PrimaryKey("PK_StudentScore", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StudentScore_AspNetUsers_StudentNo",
-                        column: x => x.StudentNo,
+                        name: "FK_StudentScore_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -328,36 +344,49 @@ namespace LOTA.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Discriminator", "Email", "EmailConfirmed", "FirstName", "IsActive", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "StudentNo", "TutorNo", "TwoFactorEnabled", "UserName" },
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "FirstName", "IsActive", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "StudentNo", "TutorNo", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { "STUDENT-001", 0, "8e501a41-8e62-4b3d-b117-9bc0035ab818", "ApplicationUser", "student1@lota.com", true, "Alice", true, "Brown", false, null, "STUDENT1@LOTA.COM", "STUDENT1@LOTA.COM", null, null, false, "aa351826-61aa-450c-a022-d7b896bad6a9", "STUDENT-001", null, false, "student1@lota.com" },
-                    { "TUTOR-001", 0, "3a0ce219-e5b6-459e-a7c9-ec7fee551442", "ApplicationUser", "tutor1@lota.com", true, "John", true, "Smith", false, null, "TUTOR1@LOTA.COM", "TUTOR1@LOTA.COM", null, null, false, "e5556106-28fd-48d2-af9a-3333f51cbf54", null, "TUTOR-001", false, "tutor1@lota.com" }
+                    { "STUDENT-001", 0, "704456d4-132a-40c7-80ed-c47938143816", "student1@lota.com", true, "Alice", true, "Brown", false, null, "STUDENT1@LOTA.COM", "STUDENT1@LOTA.COM", null, null, false, "c78d5bf3-3271-4734-9946-14f0a127323d", "STUDENT-001", "tutor1@lota.com", false, "student1@lota.com" },
+                    { "TUTOR-001", 0, "7695b517-e8af-4285-b423-29aa39982ea9", "tutor1@lota.com", true, "John", true, "Smith", false, null, "TUTOR1@LOTA.COM", "TUTOR1@LOTA.COM", null, null, false, "cfb7713c-70f8-4dc5-bb68-9f95ab3cc2a4", null, "tutor1@lota.com", false, "tutor1@lota.com" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Course",
-                columns: new[] { "Id", "CourseCode", "CourseName", "CreatedDate", "Description", "IsActive", "TutorNo", "UpdatedDate" },
-                values: new object[] { "COURSE-001", "SE101", "Software Engineering", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(5945), "Introduction to software development processes and methodologies.", true, "TUTOR-001", null });
+                columns: new[] { "Id", "CourseCode", "CourseName", "CreatedDate", "Description", "IsActive", "UpdatedDate" },
+                values: new object[,]
+                {
+                    { "COURSE-001", "SE101", "Software Engineering", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8810), "Introduction to software development processes and methodologies.", true, null },
+                    { "COURSE-002", "ST102", "Software Testing", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8854), "Introduction to software Testing processes and methodologies.", true, null }
+                });
 
             migrationBuilder.InsertData(
                 table: "Assignment",
                 columns: new[] { "Id", "AssignmentName", "CourseId", "CreatedBy", "CreatedDate", "IsActive", "TotalScore", "TotalWeight", "UpdatedDate" },
-                values: new object[] { "ASSIGN-001", "Project Proposal", "COURSE-001", "TUTOR-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6070), true, 100m, 30m, null });
+                values: new object[] { "ASSIGN-001", "Project Proposal", "COURSE-001", "TUTOR-001", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8912), true, 100m, 30m, null });
 
             migrationBuilder.InsertData(
                 table: "LearningOutcome",
                 columns: new[] { "Id", "CourseId", "CreatedDate", "Description", "LOName", "MaxScore", "UpdatedDate", "Weight" },
                 values: new object[,]
                 {
-                    { "LO-001", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6045), "Understand and document software requirements effectively.", "Requirement Analysis", 100m, null, 0.3m },
-                    { "LO-002", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6048), "Apply design principles to create robust software architectures.", "System Design", 100m, null, 0.4m }
+                    { "LO-001", "COURSE-001", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8892), "Understand and document software requirements effectively.", "Requirement Analysis", 100m, null, 0.3m },
+                    { "LO-002", "COURSE-001", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8896), "Apply design principles to create robust software architectures.", "System Design", 100m, null, 0.4m }
                 });
 
             migrationBuilder.InsertData(
                 table: "StudentCourse",
-                columns: new[] { "Id", "CourseId", "CreatedDate", "IsActive", "RegistrationDate", "StudentNo", "UpdatedDate" },
-                values: new object[] { "STCOURSE-001", "COURSE-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6101), true, new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6100), "STUDENT-001", null });
+                columns: new[] { "Id", "CourseId", "CreatedDate", "IsActive", "RegistrationDate", "StudentId", "UpdatedDate" },
+                values: new object[] { "STCOURSE-001", "COURSE-001", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8941), true, new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8940), "STUDENT-001", null });
+
+            migrationBuilder.InsertData(
+                table: "TutorCourse",
+                columns: new[] { "Id", "CourseId", "TutorId" },
+                values: new object[,]
+                {
+                    { "TCO1001", "COURSE-001", "TUTOR-001" },
+                    { "TCO1002", "COURSE-002", "TUTOR-001" }
+                });
 
             migrationBuilder.InsertData(
                 table: "AssignmentLearningOutcome",
@@ -370,8 +399,8 @@ namespace LOTA.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "StudentScore",
-                columns: new[] { "Id", "AssignmentId", "CreatedDate", "IsRetake", "LOId", "RetakeDate", "Score", "Status", "StudentNo", "UpdatedDate" },
-                values: new object[] { "SCORE-001", "ASSIGN-001", new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6118), false, "LO-001", null, 80m, "Pass", "STUDENT-001", null });
+                columns: new[] { "Id", "AssignmentId", "CreatedDate", "IsRetake", "LOId", "RetakeDate", "Score", "Status", "StudentId", "UpdatedDate" },
+                values: new object[] { "SCORE-001", "ASSIGN-001", new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8955), false, "LO-001", null, 80m, "Pass", "STUDENT-001", null });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -428,11 +457,6 @@ namespace LOTA.DataAccess.Migrations
                 column: "LOId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Course_TutorNo",
-                table: "Course",
-                column: "TutorNo");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_LearningOutcome_CourseId",
                 table: "LearningOutcome",
                 column: "CourseId");
@@ -443,9 +467,9 @@ namespace LOTA.DataAccess.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentCourse_StudentNo",
+                name: "IX_StudentCourse_StudentId",
                 table: "StudentCourse",
-                column: "StudentNo");
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentScore_AssignmentId",
@@ -458,9 +482,19 @@ namespace LOTA.DataAccess.Migrations
                 column: "LOId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentScore_StudentNo",
+                name: "IX_StudentScore_StudentId",
                 table: "StudentScore",
-                column: "StudentNo");
+                column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TutorCourse_CourseId",
+                table: "TutorCourse",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TutorCourse_TutorId",
+                table: "TutorCourse",
+                column: "TutorId");
         }
 
         /// <inheritdoc />
@@ -491,6 +525,9 @@ namespace LOTA.DataAccess.Migrations
                 name: "StudentScore");
 
             migrationBuilder.DropTable(
+                name: "TutorCourse");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
@@ -500,10 +537,10 @@ namespace LOTA.DataAccess.Migrations
                 name: "LearningOutcome");
 
             migrationBuilder.DropTable(
-                name: "Course");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Course");
         }
     }
 }

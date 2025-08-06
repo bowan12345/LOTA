@@ -1,0 +1,217 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Welcome Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-success text-white p-4 rounded-3 shadow-sm">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 col-md-7">
+                        <h1 class="display-6 mb-2 fw-bold">Welcome to LOTA Admin Portal!</h1>
+                        <p class="mb-0 opacity-75 fs-5">Today is @DateTime.Now.ToString("yyyy MMMM dd, dddd", new CultureInfo("en-US"))</p>
+                    </div>
+                    <div class="col-lg-4 col-md-5 text-center text-md-end">
+                        <i class="fas fa-user-shield fa-4x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-user-tie text-primary fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title text-muted mb-1 fw-semibold">Total Tutors</h6>
+                            <h2 class="mb-0 fw-bold text-primary">9</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-book text-success fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title text-muted mb-1 fw-semibold">Total Courses</h6>
+                            <h2 class="mb-0 fw-bold text-success">8</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-graduation-cap text-warning fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title text-muted mb-1 fw-semibold">Total Students</h6>
+                            <h2 class="mb-0 fw-bold text-warning">156</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-bolt text-warning me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-xl-3 col-lg-6 col-md-6">
+                            <a asp-area="Admin" asp-controller="Tutor" asp-action="Index" class="btn btn-outline-primary btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                                <i class="fas fa-user-tie fa-3x mb-3"></i>
+                                <span class="fw-bold fs-5">Manage Tutors</span>
+                                <small class="text-muted mt-2 text-center">Add, edit, and manage tutor information</small>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-lg-6 col-md-6">
+                            <a href="#" class="btn btn-outline-success btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                                <i class="fas fa-book fa-3x mb-3"></i>
+                                <span class="fw-bold fs-5">Manage Courses</span>
+                                <small class="text-muted mt-2 text-center">Create and manage course details</small>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-lg-6 col-md-6">
+                            <a href="#" class="btn btn-outline-info btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                                <i class="fas fa-graduation-cap fa-3x mb-3"></i>
+                                <span class="fw-bold fs-5">Manage Students</span>
+                                <small class="text-muted mt-2 text-center">Handle student registrations and data</small>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-lg-6 col-md-6">
+                            <a href="#" class="btn btn-outline-warning btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                <span class="fw-bold fs-5">Manage Assignments</span>
+                                <small class="text-muted mt-2 text-center">Create and track assignments</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        transition: all 0.3s ease-in-out;
+        border-radius: 12px;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+    
+    .action-card {
+        transition: all 0.3s ease-in-out;
+        border-radius: 16px;
+        min-height: 220px;
+        border-width: 2px;
+        text-decoration: none;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        text-decoration: none;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
+    }
+    
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+    
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: white;
+    }
+    
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+    
+    .card {
+        border-radius: 12px;
+    }
+    
+         @@media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.5rem;
+        }
+        
+        .fa-4x {
+            font-size: 2.5em;
+        }
+        
+        .fa-3x {
+            font-size: 2em;
+        }
+        
+        .action-card {
+            min-height: 180px;
+        }
+        
+        .fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+    
+         @@media (max-width: 576px) {
+        .action-card {
+            min-height: 160px;
+        }
+        
+        .card-body {
+            padding: 1rem !important;
+        }
+    }
+</style> 

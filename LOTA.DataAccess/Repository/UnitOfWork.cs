@@ -8,18 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MovieApp.DataAccess.Repository
+namespace LOTA.DataAccess.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _db;
-        public ICourseRepository courseRepo { get; private set; }
-
+        public ICourseRepository courseRepository { get; private set; }
+        public ITutorRepository tutorRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
-            courseRepo = new CourseRepository(_db);
+            courseRepository = new CourseRepository(_db);
+            tutorRepository = new TutorRepository(_db);
         }
 
         public async Task<int> SaveAsync()

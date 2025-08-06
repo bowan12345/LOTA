@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Service;
+using LOTA.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 // add sqlserver
@@ -12,7 +13,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 //builder.Services.AddDefaultIdentity<IdentityUser>().AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
 
 // Add services to the container.
@@ -40,6 +41,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{area=Tutor}/{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area=Admin}/{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

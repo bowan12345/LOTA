@@ -4,6 +4,7 @@ using LOTA.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LOTA.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250806024508_UpdateDatabaseSchema")]
+    partial class UpdateDatabaseSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,7 +115,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "TUTOR-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "7943856f-25f7-4891-beae-b97e7d760244",
+                            ConcurrencyStamp = "7695b517-e8af-4285-b423-29aa39982ea9",
                             Email = "tutor1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "John",
@@ -122,7 +125,7 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "TUTOR1@LOTA.COM",
                             NormalizedUserName = "TUTOR1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "c05af296-da86-4254-bf85-baa198390b58",
+                            SecurityStamp = "cfb7713c-70f8-4dc5-bb68-9f95ab3cc2a4",
                             TutorNo = "tutor1@lota.com",
                             TwoFactorEnabled = false,
                             UserName = "tutor1@lota.com"
@@ -131,7 +134,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STUDENT-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d90a5709-01d1-48e6-81fc-244182e185ec",
+                            ConcurrencyStamp = "704456d4-132a-40c7-80ed-c47938143816",
                             Email = "student1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "Alice",
@@ -141,8 +144,9 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "STUDENT1@LOTA.COM",
                             NormalizedUserName = "STUDENT1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "5701eeb3-0e70-4976-bee3-fc2d64acc811",
+                            SecurityStamp = "c78d5bf3-3271-4734-9946-14f0a127323d",
                             StudentNo = "STUDENT-001",
+                            TutorNo = "tutor1@lota.com",
                             TwoFactorEnabled = false,
                             UserName = "student1@lota.com"
                         });
@@ -195,7 +199,7 @@ namespace LOTA.DataAccess.Migrations
                             AssignmentName = "Project Proposal",
                             CourseId = "COURSE-001",
                             CreatedBy = "TUTOR-001",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8656),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8912),
                             IsActive = true,
                             TotalScore = 100m,
                             TotalWeight = 30m
@@ -275,7 +279,7 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-001",
                             CourseCode = "SE101",
                             CourseName = "Software Engineering",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8556),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8810),
                             Description = "Introduction to software development processes and methodologies.",
                             IsActive = true
                         },
@@ -284,7 +288,7 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-002",
                             CourseCode = "ST102",
                             CourseName = "Software Testing",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8603),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8854),
                             Description = "Introduction to software Testing processes and methodologies.",
                             IsActive = true
                         });
@@ -334,7 +338,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8638),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8892),
                             Description = "Understand and document software requirements effectively.",
                             LOName = "Requirement Analysis",
                             MaxScore = 100m,
@@ -344,7 +348,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-002",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8641),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8896),
                             Description = "Apply design principles to create robust software architectures.",
                             LOName = "System Design",
                             MaxScore = 100m,
@@ -390,9 +394,9 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STCOURSE-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8684),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8941),
                             IsActive = true,
-                            RegistrationDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8683),
+                            RegistrationDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8940),
                             StudentId = "STUDENT-001"
                         });
                 });
@@ -450,7 +454,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "SCORE-001",
                             AssignmentId = "ASSIGN-001",
-                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8699),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 45, 8, 12, DateTimeKind.Local).AddTicks(8955),
                             IsRetake = false,
                             LOId = "LO-001",
                             Score = 80m,

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LOTA Administrator System</title>
+    <title>@ViewData["Title"] - LOTA Admin Portal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/LOTAWeb.styles.css" asp-append-version="true" />
@@ -18,7 +18,7 @@
                  <div class="d-flex align-items-center">
                      <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                          <img src="~/image/logo.jpg" alt="LOTA Logo" class="me-3" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
-                         LOTA Administrator System
+                        LOTA Admin Portal
                      </a>
                  </div>
 
@@ -41,44 +41,50 @@
                 <h5 class="fw-bold text-dark mb-3">Navigation</h5>
                 <hr class="my-3">
                 
-                  <ul class="nav flex-column">
-                      <li class="nav-item mb-2">
-                          <a class="nav-link bg-primary text-white d-flex align-items-center py-2 px-3 rounded active" href="#">
-                              <i class="fas fa-user-tie me-3"></i>
-                              Tutor Management
-                          </a>
-                      </li>
-                      <li class="nav-item mb-2">
-                          <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
-                              <i class="fas fa-book me-3"></i>
-                              Course Management
-                          </a>
-                      </li>
-                     <li class="nav-item mb-2">
-                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
-                             <i class="fas fa-graduation-cap me-3"></i>
-                             Student Management
-                         </a>
-                     </li>
-                     <li class="nav-item mb-2">
-                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
-                             <i class="fas fa-file-alt me-3"></i>
-                             Assignment & Exam
-                         </a>
-                     </li>
-                     <li class="nav-item mb-2">
-                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
-                             <i class="fas fa-list me-3"></i>
-                             LO Mark
-                         </a>
-                     </li>
-                     <li class="nav-item mb-2">
-                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
-                             <i class="fas fa-chart-line me-3"></i>
-                             LO Results
-                         </a>
-                     </li>
-                 </ul>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home me-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Tutor" asp-action="Index">
+                            <i class="fas fa-user-tie me-3"></i>
+                            Manage Tutors
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                            <i class="fas fa-book me-3"></i>
+                            Manage Courses
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                            <i class="fas fa-graduation-cap me-3"></i>
+                            Manage Students
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                            <i class="fas fa-file-alt me-3"></i>
+                            Assignment & Exam
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                            <i class="fas fa-list me-3"></i>
+                            LO Mark
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                            <i class="fas fa-chart-line me-3"></i>
+                            LO Results
+                        </a>
+                    </li>
+                </ul>
             </div>
         </nav>
 
@@ -126,8 +132,27 @@
                     sidebarOverlay.style.display = 'none';
                 }
             });
-        });
-    </script>
+                 });
+         
+         // Set active navigation based on current page
+         function setActiveNavigation() {
+             const currentPath = window.location.pathname;
+             const navLinks = document.querySelectorAll('#sidebar .nav-link');
+             
+             navLinks.forEach(link => {
+                 link.classList.remove('active', 'bg-primary', 'text-white');
+                 link.classList.add('text-dark');
+                 
+                 if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href'))) {
+                     link.classList.add('active', 'bg-primary', 'text-white');
+                     link.classList.remove('text-dark');
+                 }
+             });
+         }
+         
+         // Call the function when page loads
+         setActiveNavigation();
+     </script>
 
     <style>
         /* Custom styles for the layout */

@@ -22,11 +22,6 @@ namespace LOTA.Model
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-        // FK
-        public string TutorNo { get; set; }
-        [ForeignKey("TutorNo")]
-        public ApplicationUser Tutor { get; set; }
-
         // Relationships
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
         public ICollection<LearningOutcome> LearningOutcomes { get; set; } = new List<LearningOutcome>();

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LOTA.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250804031644_AddTableToDb")]
-    partial class AddTableToDb
+    [Migration("20250806025142_UpdateApplicationSchema")]
+    partial class UpdateApplicationSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,132 @@ namespace LOTA.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("LOTA.Model.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TutorNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "TUTOR-001",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "7943856f-25f7-4891-beae-b97e7d760244",
+                            Email = "tutor1@lota.com",
+                            EmailConfirmed = true,
+                            FirstName = "John",
+                            IsActive = true,
+                            LastName = "Smith",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "TUTOR1@LOTA.COM",
+                            NormalizedUserName = "TUTOR1@LOTA.COM",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "c05af296-da86-4254-bf85-baa198390b58",
+                            TutorNo = "tutor1@lota.com",
+                            TwoFactorEnabled = false,
+                            UserName = "tutor1@lota.com"
+                        },
+                        new
+                        {
+                            Id = "STUDENT-001",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "d90a5709-01d1-48e6-81fc-244182e185ec",
+                            Email = "student1@lota.com",
+                            EmailConfirmed = true,
+                            FirstName = "Alice",
+                            IsActive = true,
+                            LastName = "Brown",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "STUDENT1@LOTA.COM",
+                            NormalizedUserName = "STUDENT1@LOTA.COM",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "5701eeb3-0e70-4976-bee3-fc2d64acc811",
+                            StudentNo = "STUDENT-001",
+                            TwoFactorEnabled = false,
+                            UserName = "student1@lota.com"
+                        });
+                });
 
             modelBuilder.Entity("LOTA.Model.Assignment", b =>
                 {
@@ -72,7 +198,7 @@ namespace LOTA.DataAccess.Migrations
                             AssignmentName = "Project Proposal",
                             CourseId = "COURSE-001",
                             CreatedBy = "TUTOR-001",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6070),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8656),
                             IsActive = true,
                             TotalScore = 100m,
                             TotalWeight = 30m
@@ -139,16 +265,10 @@ namespace LOTA.DataAccess.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("TutorNo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TutorNo");
 
                     b.ToTable("Course");
 
@@ -158,10 +278,18 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-001",
                             CourseCode = "SE101",
                             CourseName = "Software Engineering",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(5945),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8556),
                             Description = "Introduction to software development processes and methodologies.",
-                            IsActive = true,
-                            TutorNo = "TUTOR-001"
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = "COURSE-002",
+                            CourseCode = "ST102",
+                            CourseName = "Software Testing",
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8603),
+                            Description = "Introduction to software Testing processes and methodologies.",
+                            IsActive = true
                         });
                 });
 
@@ -209,7 +337,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6045),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8638),
                             Description = "Understand and document software requirements effectively.",
                             LOName = "Requirement Analysis",
                             MaxScore = 100m,
@@ -219,7 +347,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-002",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6048),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8641),
                             Description = "Apply design principles to create robust software architectures.",
                             LOName = "System Design",
                             MaxScore = 100m,
@@ -245,7 +373,7 @@ namespace LOTA.DataAccess.Migrations
                     b.Property<DateTime?>("RegistrationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("StudentNo")
+                    b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -256,7 +384,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("StudentNo");
+                    b.HasIndex("StudentId");
 
                     b.ToTable("StudentCourse");
 
@@ -265,10 +393,10 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STCOURSE-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6101),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8684),
                             IsActive = true,
-                            RegistrationDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6100),
-                            StudentNo = "STUDENT-001"
+                            RegistrationDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8683),
+                            StudentId = "STUDENT-001"
                         });
                 });
 
@@ -303,7 +431,7 @@ namespace LOTA.DataAccess.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("StudentNo")
+                    b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -316,7 +444,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("LOId");
 
-                    b.HasIndex("StudentNo");
+                    b.HasIndex("StudentId");
 
                     b.ToTable("StudentScore");
 
@@ -325,12 +453,46 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "SCORE-001",
                             AssignmentId = "ASSIGN-001",
-                            CreatedDate = new DateTime(2025, 8, 4, 15, 16, 41, 369, DateTimeKind.Local).AddTicks(6118),
+                            CreatedDate = new DateTime(2025, 8, 6, 14, 51, 41, 956, DateTimeKind.Local).AddTicks(8699),
                             IsRetake = false,
                             LOId = "LO-001",
                             Score = 80m,
                             Status = "Pass",
-                            StudentNo = "STUDENT-001"
+                            StudentId = "STUDENT-001"
+                        });
+                });
+
+            modelBuilder.Entity("LOTA.Model.TutorCourse", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CourseId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TutorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("TutorId");
+
+                    b.ToTable("TutorCourse");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "TCO1001",
+                            CourseId = "COURSE-001",
+                            TutorId = "TUTOR-001"
+                        },
+                        new
+                        {
+                            Id = "TCO1002",
+                            CourseId = "COURSE-002",
+                            TutorId = "TUTOR-001"
                         });
                 });
 
@@ -384,80 +546,6 @@ namespace LOTA.DataAccess.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("nvarchar(21)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasDiscriminator().HasValue("IdentityUser");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -541,74 +629,6 @@ namespace LOTA.DataAccess.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("LOTA.Model.ApplicationUser", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("StudentNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("TutorNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasDiscriminator().HasValue("ApplicationUser");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "TUTOR-001",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "3a0ce219-e5b6-459e-a7c9-ec7fee551442",
-                            Email = "tutor1@lota.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "TUTOR1@LOTA.COM",
-                            NormalizedUserName = "TUTOR1@LOTA.COM",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "e5556106-28fd-48d2-af9a-3333f51cbf54",
-                            TwoFactorEnabled = false,
-                            UserName = "tutor1@lota.com",
-                            FirstName = "John",
-                            IsActive = true,
-                            LastName = "Smith",
-                            TutorNo = "TUTOR-001"
-                        },
-                        new
-                        {
-                            Id = "STUDENT-001",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "8e501a41-8e62-4b3d-b117-9bc0035ab818",
-                            Email = "student1@lota.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "STUDENT1@LOTA.COM",
-                            NormalizedUserName = "STUDENT1@LOTA.COM",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "aa351826-61aa-450c-a022-d7b896bad6a9",
-                            TwoFactorEnabled = false,
-                            UserName = "student1@lota.com",
-                            FirstName = "Alice",
-                            IsActive = true,
-                            LastName = "Brown",
-                            StudentNo = "STUDENT-001"
-                        });
-                });
-
             modelBuilder.Entity("LOTA.Model.Assignment", b =>
                 {
                     b.HasOne("LOTA.Model.Course", "Course")
@@ -633,17 +653,6 @@ namespace LOTA.DataAccess.Migrations
                     b.Navigation("LearningOutcome");
                 });
 
-            modelBuilder.Entity("LOTA.Model.Course", b =>
-                {
-                    b.HasOne("LOTA.Model.ApplicationUser", "Tutor")
-                        .WithMany()
-                        .HasForeignKey("TutorNo")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tutor");
-                });
-
             modelBuilder.Entity("LOTA.Model.LearningOutcome", b =>
                 {
                     b.HasOne("LOTA.Model.Course", "Course")
@@ -665,7 +674,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasOne("LOTA.Model.ApplicationUser", "Student")
                         .WithMany("StudentCourses")
-                        .HasForeignKey("StudentNo")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -690,7 +699,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasOne("LOTA.Model.ApplicationUser", "Student")
                         .WithMany("StudentScores")
-                        .HasForeignKey("StudentNo")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -699,6 +708,22 @@ namespace LOTA.DataAccess.Migrations
                     b.Navigation("LearningOutcome");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("LOTA.Model.TutorCourse", b =>
+                {
+                    b.HasOne("LOTA.Model.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("LOTA.Model.ApplicationUser", "Tutor")
+                        .WithMany("TutorCourse")
+                        .HasForeignKey("TutorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -712,7 +737,7 @@ namespace LOTA.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("LOTA.Model.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -721,7 +746,7 @@ namespace LOTA.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("LOTA.Model.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -736,7 +761,7 @@ namespace LOTA.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("LOTA.Model.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -745,11 +770,20 @@ namespace LOTA.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("LOTA.Model.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LOTA.Model.ApplicationUser", b =>
+                {
+                    b.Navigation("StudentCourses");
+
+                    b.Navigation("StudentScores");
+
+                    b.Navigation("TutorCourse");
                 });
 
             modelBuilder.Entity("LOTA.Model.Assignment", b =>
@@ -771,13 +805,6 @@ namespace LOTA.DataAccess.Migrations
             modelBuilder.Entity("LOTA.Model.LearningOutcome", b =>
                 {
                     b.Navigation("AssignmentLearningOutcomes");
-                });
-
-            modelBuilder.Entity("LOTA.Model.ApplicationUser", b =>
-                {
-                    b.Navigation("StudentCourses");
-
-                    b.Navigation("StudentScores");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,14 +8,14 @@ namespace LOTA.Test
     /// <summary>
     /// (happy path tests)unit tests for admin functionality
     /// </summary>
-    public class AdminUnitTest1
+    public class AdminCourseUnitTest
     {
         [Fact]
         public async Task GetAllCoursesAsync_WithExistingCourses_ReturnsAllCourses()
         {
             // Arrange
             var mockUnitOfWork = new Mock<IUnitOfWork>();
-            mockUnitOfWork.Setup(u => u.courseRepo.GetAllAsync(null, null))
+            mockUnitOfWork.Setup(u => u.courseRepository.GetAllAsync(null, null))
                 .ReturnsAsync(new List<Course>
                 {
                 new Course { Id = "1", CourseName = "DevOps" },
