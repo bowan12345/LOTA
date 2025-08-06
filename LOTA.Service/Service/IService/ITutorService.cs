@@ -29,5 +29,26 @@ namespace LOTA.Service.Service.IService
         /// <param name="AssignedCourses"> a list of assigned courses </param>
         /// <returns></returns>
         Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses);
+
+        /// <summary>
+        /// get tutor info by id
+        /// </summary>
+        /// <param name="id"> id of tutor </param>
+        /// <returns> an object of tutor</returns>
+        Task<ApplicationUser> GetTutorByIdAsync(string id);
+
+        /// <summary>
+        /// get assigned courses for a tutor
+        /// </summary>
+        /// <param name="tutorId"> id of tutor </param>
+        /// <returns> a list of tutor courses</returns>
+        Task<IEnumerable<TutorCourse>> GetTutorCoursesAsync(string tutorId);
+
+        /// <summary>
+        /// remove all course assignments for a tutor
+        /// </summary>
+        /// <param name="tutorId"> id of tutor </param>
+        /// <returns></returns>
+        Task RemoveAllTutorCoursesAsync(string tutorId);
     }
 }

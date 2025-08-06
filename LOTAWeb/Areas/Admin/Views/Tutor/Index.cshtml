@@ -530,43 +530,142 @@
         // Load tutor data and open edit modal
         console.log('Editing tutor:', tutorId);
         
-        // TODO: Load tutor data from backend
-        // For now, we'll just open the modal with the tutor ID
-        document.getElementById('editTutorId').value = tutorId;
-        
-        // Open the edit modal
+        // Show loading state
         const editModal = new bootstrap.Modal(document.getElementById('editTutorModal'));
         editModal.show();
+        
+        // Load tutor data from backend
+        fetch(`/Admin/Tutor/GetTutorById/${tutorId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const tutor = data.data;
+                    
+                    // Populate form fields
+                    document.getElementById('editTutorId').value = tutor.id;
+                    document.getElementById('editFirstName').value = tutor.firstName || '';
+                    document.getElementById('editLastName').value = tutor.lastName || '';
+                    document.getElementById('editEmail').value = tutor.email || '';
+                    document.getElementById('editPassword').value = '';
+                    document.getElementById('editConfirmPassword').value = '';
+                    
+                    // Clear previous selections
+                    const editCourseSelect = document.getElementById('editCourseSelect');
+                    for (let i = 0; i < editCourseSelect.options.length; i++) {
+                        editCourseSelect.options[i].selected = false;
+                    }
+                    
+                    // Select assigned courses
+                    if (tutor.assignedCourses && tutor.assignedCourses.length > 0) {
+                        tutor.assignedCourses.forEach(courseId => {
+                            for (let i = 0; i < editCourseSelect.options.length; i++) {
+                                if (editCourseSelect.options[i].value === courseId) {
+                                    editCourseSelect.options[i].selected = true;
+                                    break;
+                                }
+                            }
+                        });
+                    }
+                    
+                    console.log('Tutor data loaded:', tutor);
+                } else {
+                    alert('Error loading tutor data: ' + (data.message || 'Unknown error'));
+                    editModal.hide();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading tutor data:', error);
+                alert('An error occurred while loading tutor data. Please try again.');
+                editModal.hide();
+            });
     }
 
     function updateTutor() {
         // Get form data
-        const formData = new FormData(document.getElementById('editTutorForm'));
+        const tutorId = document.getElementById('editTutorId').value;
+        const firstName = document.getElementById('editFirstName').value;
+        const lastName = document.getElementById('editLastName').value;
+        const email = document.getElementById('editEmail').value;
+        const password = document.getElementById('editPassword').value;
+        const confirmPassword = document.getElementById('editConfirmPassword').value;
         
         // Get selected courses
         const editCourseSelect = document.getElementById('editCourseSelect');
         const selectedCourseIds = getSelectedCourses(editCourseSelect);
-        formData.append('assignedCourses', selectedCourseIds.join(','));
+        
+        // Validate required fields
+        if (!firstName || !lastName || !email) {
+            alert('Please fill in all required fields!');
+            return;
+        }
         
         // Validate password if provided
-        const password = document.getElementById('editPassword').value;
-        const confirmPassword = document.getElementById('editConfirmPassword').value;
-        
         if (password && password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
         }
         
-        // Here you can add AJAX request to update data
-        console.log('Updating tutor:', Object.fromEntries(formData));
-        console.log('Selected courses:', selectedCourseIds);
+        // Validate password length if provided
+        if (password && password.length < 6) {
+            alert('Password must be at least 6 characters long!');
+            return;
+        }
         
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editTutorModal'));
-        modal.hide();
+        // Create request data
+        const requestData = {
+            id: tutorId,
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: password || null,
+            assignedCourses: selectedCourseIds
+        };
         
-        // Refresh page or update table
-        location.reload();
+        // Show loading state
+        const updateButton = document.querySelector('#editTutorModal .btn-success');
+        const originalText = updateButton.innerHTML;
+        updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        updateButton.disabled = true;
+        
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        const tokenValue = token ? token.value : '';
+        
+        // Send AJAX request to backend
+        fetch('/Admin/Tutor/Update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': tokenValue
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert('Tutor updated successfully!');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editTutorModal'));
+                modal.hide();
+                
+                // Refresh page to show updated tutor
+                location.reload();
+            } else {
+                // Show error message
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating tutor:', error);
+            alert('An error occurred while updating the tutor. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
+        });
     }
 
     function deleteTutor(tutorId) {

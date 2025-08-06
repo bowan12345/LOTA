@@ -1,4 +1,5 @@
 using LOTA.Model;
+using LOTA.Model.DTO;
 using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
@@ -33,10 +34,19 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] TutorCreateDTO tutorCreateDTO)
         {
+            // Validate required fields for creation
+            if (string.IsNullOrEmpty(tutorCreateDTO.Password))
+            {
+                return Json(new { success = false, message = "Password is required for creating a new tutor" });
+            }
 
             if (!ModelState.IsValid)
             {
-                return Json(new { success = false, message = "Invalid data provided" });
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
             }
 
             // Check if email already exists
@@ -84,34 +94,36 @@ namespace LOTAWeb.Areas.Admin.Controllers
 
         // POST: Admin/Tutor/Update
         [HttpPost]
-        public async Task<IActionResult> Update([FromBody] UpdateTutorRequest request)
+        public async Task<IActionResult> Update([FromBody] TutorUpdateDTO tutorUpdateDTO)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return Json(new { success = false, message = "Invalid data provided" });
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
                 }
 
-                var tutor = await _userManager.FindByIdAsync(request.Id);
+                var tutor = await _userManager.FindByIdAsync(tutorUpdateDTO.Id);
                 if (tutor == null)
                 {
                     return Json(new { success = false, message = "Tutor not found" });
                 }
 
                 // Update tutor properties
-                tutor.FirstName = request.FirstName;
-                tutor.LastName = request.LastName;
-                tutor.TutorNo = request.TutorNo;
-                tutor.Email = request.Email;
-                tutor.UserName = request.Email;
-                tutor.IsActive = request.IsActive;
+                tutor.FirstName = tutorUpdateDTO.FirstName;
+                tutor.LastName = tutorUpdateDTO.LastName;
+                tutor.Email = tutorUpdateDTO.Email;
+                tutor.TutorNo = tutorUpdateDTO.Email;
 
                 // Update password if provided
-                if (!string.IsNullOrEmpty(request.Password))
+                if (!string.IsNullOrEmpty(tutorUpdateDTO.Password))
                 {
                     var token = await _userManager.GeneratePasswordResetTokenAsync(tutor);
-                    var result = await _userManager.ResetPasswordAsync(tutor, token, request.Password);
+                    var result = await _userManager.ResetPasswordAsync(tutor, token, tutorUpdateDTO.Password);
                     if (!result.Succeeded)
                     {
                         return Json(new { success = false, message = "Failed to update password" });
@@ -121,10 +133,24 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 var updateResult = await _userManager.UpdateAsync(tutor);
                 if (updateResult.Succeeded)
                 {
-                    // TODO: Handle course assignments if needed
-                    // This would involve updating TutorCourse relationships
-                    
-                    return Json(new { success = true, message = "Tutor updated successfully" });
+                    // Handle course assignments
+                    try
+                    {
+                        // Remove existing course assignments
+                        await _tutorService.RemoveAllTutorCoursesAsync(tutorUpdateDTO.Id);
+                        
+                        // Add new course assignments if provided
+                        if (tutorUpdateDTO.AssignedCourses != null && tutorUpdateDTO.AssignedCourses.Any())
+                        {
+                            await _tutorService.AddTutorCourseAsync(tutorUpdateDTO.Id, tutorUpdateDTO.AssignedCourses);
+                        }
+                        
+                        return Json(new { success = true, message = "Tutor updated successfully" });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = "Tutor updated but failed to update course assignments: " + ex.Message });
+                    }
                 }
                 else
                 {
@@ -134,6 +160,41 @@ namespace LOTAWeb.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "An error occurred while updating the tutor" });
+            }
+        }
+
+        // GET: Admin/Tutor/GetTutorById/{id}
+        [HttpGet]
+        public async Task<IActionResult> GetTutorById(string id)
+        {
+            try
+            {
+                var tutor = await _tutorService.GetTutorByIdAsync(id);
+                if (tutor == null)
+                {
+                    return Json(new { success = false, message = "Tutor not found" });
+                }
+
+                // Get assigned courses for this tutor
+                var assignedCourses = await _tutorService.GetTutorCoursesAsync(id);
+                var courseIds = assignedCourses.Select(tc => tc.CourseId).ToList();
+
+                var tutorData = new
+                {
+                    id = tutor.Id,
+                    firstName = tutor.FirstName,
+                    lastName = tutor.LastName,
+                    email = tutor.Email,
+                    tutorNo = tutor.TutorNo,
+                    isActive = tutor.IsActive,
+                    assignedCourses = courseIds
+                };
+
+                return Json(new { success = true, data = tutorData });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while retrieving the tutor" });
             }
         }
 

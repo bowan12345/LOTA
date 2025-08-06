@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LOTAWeb.Models
+namespace LOTA.Model.DTO
 {
-    public class UpdateTutorRequest
+    public class TutorUpdateDTO
     {
         [Required]
         public string Id { get; set; }
@@ -14,15 +14,11 @@ namespace LOTAWeb.Models
         public string LastName { get; set; }
 
         [Required]
-        public string TutorNo { get; set; }
-
-        [Required]
         [EmailAddress]
         public string Email { get; set; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
-        public bool IsActive { get; set; }
 
         public List<string> AssignedCourses { get; set; } = new List<string>();
     }

@@ -51,6 +51,36 @@ namespace LOTA.Service.Service
             await _unitOfWork.tutorCourseRepository.AddRangeAsync(tutorCourses);
             await _unitOfWork.SaveAsync(); 
         }
+
+        public async Task<ApplicationUser> GetTutorByIdAsync(string id)
+        {
+            var tutors = await _unitOfWork.tutorRepository.GetAllAsync(
+                filter: u => u.Id == id,
+                includeProperties: "TutorCourse.Course"
+            );
+            return tutors.FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<TutorCourse>> GetTutorCoursesAsync(string tutorId)
+        {
+            return await _unitOfWork.tutorCourseRepository.GetAllAsync(
+                filter: tc => tc.TutorId == tutorId,
+                includeProperties: "Course"
+            );
+        }
+
+        public async Task RemoveAllTutorCoursesAsync(string tutorId)
+        {
+            var existingCourses = await _unitOfWork.tutorCourseRepository.GetAllAsync(
+                filter: tc => tc.TutorId == tutorId
+            );
+            
+            if (existingCourses.Any())
+            {
+                _unitOfWork.tutorCourseRepository.RemoveRange(existingCourses);
+                await _unitOfWork.SaveAsync();
+            }
+        }
           
     }
 }
