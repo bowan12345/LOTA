@@ -25,7 +25,7 @@ namespace LOTA.Test
             var service = new CourseService(mockUnitOfWork.Object);
 
             // Act
-            var result = await service.GetAllCoursesAsync(null);
+            var result = await service.GetAllCoursesAsync();
 
             // Assert
             Assert.NotNull(result);

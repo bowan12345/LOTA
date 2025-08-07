@@ -21,7 +21,7 @@ namespace LOTA.Service.Service.IService
         /// Get all courses
         /// </summary>
         /// <returns> All courses </returns>
-         Task<IEnumerable<Course>> GetAllCoursesAsync(CourseQueryDTO courseQueryDTO);
+         Task<IEnumerable<Course>> GetAllCoursesAsync();
         
         /// <summary>
         ///  Get a course by course name or course code
@@ -29,5 +29,19 @@ namespace LOTA.Service.Service.IService
         /// <param name="courseSearchItem"> course name or course code</param>
         /// <returns> a list courses </returns>
          Task<IEnumerable<Course>> GetCoursesByNameOrCodeAsync(string courseSearchItem);
+
+        /// <summary>
+        ///  update details of the course
+        /// </summary>
+        /// <param name="course"> The course to update </param>
+        /// <returns></returns>
+        Task UpdateCourse(Course course);
+
+        /// <summary>
+        /// remove a course
+        /// </summary>
+        /// <param name="courseId"> The course id to remove </param>
+        /// <returns></returns>
+        Task RemoveCourse(string courseId);
     }
 }

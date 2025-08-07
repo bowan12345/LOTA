@@ -21,33 +21,27 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         // GET: Admin/Tutor home page
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery] string searchTerm = "")
         {
+            IEnumerable<Course> courseList;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                //query all courseList information by filter
+                 courseList = await _courseService.GetCoursesByNameOrCodeAsync(searchTerm);
+            }
+            else
+            {
+                //query all courseList information from courseservice
+                 courseList = await _courseService.GetAllCoursesAsync();
+            }
 
-            //query all courseList information from courseservice
-            var courseList = await _courseService.GetAllCoursesAsync(null);
+            // Pass search term to view for maintaining search state
+            ViewBag.SearchTerm = searchTerm;
+
             //return all course information on the home page 
             return View(courseList);
         }
 
-        /// <summary>
-        ///  to do 
-        /// </summary>
-        /// <param name="courseQueryDTO"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> GetALLCouseByConditions([FromBody]CourseQueryDTO courseQueryDTO)
-        {
-
-            //query all courseList information from courseservice
-            var courseList = await _courseService.GetAllCoursesAsync(courseQueryDTO);
-            //return all course information on the home page 
-            return Json(new
-            {
-                success = true,
-                data = courseList
-            });
-        }
 
         /// <summary>
         ///  search courses by course name or course code

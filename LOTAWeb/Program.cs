@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Service;
 using LOTA.Model;
+using LOTA.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 // add sqlserver
@@ -23,6 +24,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddLOTAProjectServices();
 
 var app = builder.Build();
+
+// Configure the HTTP request pipeline, catch global exception
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
