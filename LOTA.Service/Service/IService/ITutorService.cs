@@ -50,5 +50,12 @@ namespace LOTA.Service.Service.IService
         /// <param name="tutorId"> id of tutor </param>
         /// <returns></returns>
         Task RemoveAllTutorCoursesAsync(string tutorId);
+
+        /// <summary>
+        /// search tutors by search term
+        /// </summary>
+        /// <param name="searchTerm"> search term to filter tutors </param>
+        /// <returns> filtered list of tutors</returns>
+        Task<IEnumerable<ApplicationUser>> SearchTutorsAsync(string searchTerm);
     }
 }

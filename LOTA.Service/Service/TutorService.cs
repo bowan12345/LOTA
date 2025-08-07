@@ -81,6 +81,27 @@ namespace LOTA.Service.Service
                 await _unitOfWork.SaveAsync();
             }
         }
+
+        public async Task<IEnumerable<ApplicationUser>> SearchTutorsAsync(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                // If search term is empty, return all tutors
+                return await GetAllTutorsAsync();
+            }
+
+            // Convert search term to lowercase for case-insensitive search
+            searchTerm = searchTerm.ToLower();
+
+            // Get tutors with search filter
+            return await _unitOfWork.tutorRepository.GetAllAsync(
+                filter: u => !string.IsNullOrEmpty(u.TutorNo) && 
+                            (u.FirstName != null && u.FirstName.ToLower().Contains(searchTerm) ||
+                             u.LastName != null && u.LastName.ToLower().Contains(searchTerm) ||
+                             u.Email != null && u.Email.ToLower().Contains(searchTerm)),
+                includeProperties: "TutorCourse.Course"
+            );
+        }
           
     }
 }

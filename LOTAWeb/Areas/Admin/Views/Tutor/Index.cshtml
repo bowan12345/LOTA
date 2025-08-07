@@ -30,25 +30,45 @@
         <div class="card-header bg-white border-0 py-3">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-users text-primary me-2"></i>
-                        Tutor List
-                        @if (Model != null && Model.Any())
-                        {
-                            <span class="badge bg-primary ms-2">@Model.Count()</span>
-                        }
-                    </h5>
+                                         <h5 class="card-title mb-0 fw-bold">
+                         <i class="fas fa-users text-primary me-2"></i>
+                         Tutor List
+                         @if (Model != null && Model.Any())
+                         {
+                             <span class="badge bg-primary ms-2">@Model.Count()</span>
+                         }
+                         @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                         {
+                             <span class="badge bg-info ms-2">
+                                 <i class="fas fa-search me-1"></i>
+                                 "@ViewBag.SearchTerm"
+                             </span>
+                         }
+                     </h5>
                 </div>
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-md-end gap-2">
-                        <div class="input-group input-group-sm" style="max-width: 300px;">
-                            <span class="input-group-text bg-light border-end-0">
-                                <i class="fas fa-search text-muted"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search tutors...">
-                        </div>
-                    </div>
-                </div>
+                 <div class="col-md-6">
+                     <div class="d-flex justify-content-md-end gap-2">
+                         <form method="get" action="@Url.Action("Index", "Tutor", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
+                             <div class="input-group input-group-sm">
+                                 <span class="input-group-text bg-light border-end-0">
+                                     <i class="fas fa-search text-muted"></i>
+                                 </span>
+                                 <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
+                                        placeholder="Search tutors..." value="@ViewBag.SearchTerm">
+                                 <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
+                                     <i class="fas fa-search"></i>
+                                 </button>
+                                 @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                 {
+                                     <a href="@Url.Action("Index", "Tutor", new { area = "Admin" })" 
+                                        class="btn btn-outline-danger border-start-0" title="Clear Search">
+                                         <i class="fas fa-times"></i>
+                                     </a>
+                                 }
+                             </div>
+                         </form>
+                     </div>
+                 </div>
             </div>
         </div>
         <div class="card-body p-0">
@@ -87,7 +107,7 @@
                                             <span class="badge bg-secondary">Inactive</span>
                                         }
                                     </td>
-                                                                         <td class="d-none d-xl-table-cell">
+                                      <td class="d-none d-xl-table-cell">
                                          <div class="course-badges">
                                              @if (tutor.TutorCourse != null && tutor.TutorCourse.Any())
                                              {
@@ -124,17 +144,26 @@
                             }
                         }
                         else
-                        {
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <div class="text-muted">
-                                        <i class="fas fa-users fa-2x mb-3"></i>
-                                        <p class="mb-0">No tutors found</p>
-                                        <small>Click "Add Tutor" to create the first tutor</small>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
+                         {
+                             <tr>
+                                 <td colspan="7" class="text-center py-4">
+                                     <div class="text-muted">
+                                         @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                         {
+                                             <i class="fas fa-search fa-2x mb-3"></i>
+                                             <p class="mb-0">No tutors found for "@ViewBag.SearchTerm"</p>
+                                             <small>Try a different search term or <a href="@Url.Action("Index", "Tutor", new { area = "Admin" })" class="text-decoration-none">clear search</a></small>
+                                         }
+                                         else
+                                         {
+                                             <i class="fas fa-users fa-2x mb-3"></i>
+                                             <p class="mb-0">No tutors found</p>
+                                             <small>Click "Add Tutor" to create the first tutor</small>
+                                         }
+                                     </div>
+                                 </td>
+                             </tr>
+                         }
                     </tbody>
                 </table>
             </div>
@@ -284,35 +313,39 @@
                     <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls" required>
                     <div class="form-text">Supported formats: .xlsx, .xls</div>
                 </div>
-                <div class="alert alert-info">
-                    <h6 class="alert-heading">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Excel File Format Requirements
-                    </h6>
-                    <p class="mb-0">Your Excel file should contain the following columns:</p>
-                    <ul class="mb-0 mt-2">
-                        <li>First Name</li>
-                        <li>Last Name</li>
-                        <li>Tutor No</li>
-                        <li>Email</li>
-                        <li>Password</li>
-                        <li>Assigned Courses (comma-separated)</li>
-                    </ul>
-                </div>
-                <div class="mb-3">
-                    <a href="#" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-download me-2"></i>
-                        Download Template
-                    </a>
-                </div>
+                                 <div class="alert alert-info">
+                     <h6 class="alert-heading">
+                         <i class="fas fa-info-circle me-2"></i>
+                         Excel File Format Requirements
+                     </h6>
+                     <p class="mb-0">Your Excel file should contain the following columns:</p>
+                     <ul class="mb-0 mt-2">
+                         <li><strong>Surname</strong> (Required)</li>
+                         <li><strong>FirstName</strong> (Required)</li>
+                         <li><strong>Email</strong> (Required)</li>
+                         <li><strong>Password</strong> (Optional - will generate random password if not provided)</li>
+                     </ul>
+                     <div class="mt-3">
+                         <small class="text-muted">
+                             <i class="fas fa-exclamation-triangle me-1"></i>
+                             <strong>Note:</strong> Column headers are case-sensitive. Make sure your Excel file has exactly these column names in the first row.
+                         </small>
+                     </div>
+                 </div>
+                 <div class="mb-3">
+                     <a href="@Url.Action("DownloadTemplate", "Tutor", new { area = "Admin" })" class="btn btn-outline-primary btn-sm">
+                         <i class="fas fa-download me-2"></i>
+                         Download Template
+                     </a>
+                 </div>
             </div>
-            <div class="modal-footer flex-column flex-sm-row gap-2">
-                <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success w-100 w-sm-auto">
-                    <i class="fas fa-upload me-2"></i>
-                    Upload & Import
-                </button>
-            </div>
+                         <div class="modal-footer flex-column flex-sm-row gap-2">
+                 <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                 <button type="button" class="btn btn-success w-100 w-sm-auto" onclick="uploadExcel()">
+                     <i class="fas fa-upload me-2"></i>
+                     Upload & Import
+                 </button>
+             </div>
         </div>
     </div>
 </div>
@@ -347,13 +380,27 @@
             });
         }
         
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                filterTable(this.value);
-            });
-        }
+         // Search functionality - Add enter key support and auto-submit
+         const searchInput = document.getElementById('searchInput');
+         if (searchInput) {
+             searchInput.addEventListener('keypress', function(e) {
+                 if (e.key === 'Enter') {
+                     e.preventDefault();
+                     this.closest('form').submit();
+                 }
+             });
+             
+             // Auto-submit after 500ms of no typing (debounced search)
+             let searchTimeout;
+             searchInput.addEventListener('input', function() {
+                 clearTimeout(searchTimeout);
+                 searchTimeout = setTimeout(() => {
+                     if (this.value.length >= 2 || this.value.length === 0) {
+                         this.closest('form').submit();
+                     }
+                 }, 500);
+             });
+         }
         
         // Initialize Bootstrap tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -408,22 +455,7 @@
         console.log(`Loaded ${courses.length} courses into dropdowns`);
     }
 
-    // Table search filter function
-    function filterTable(searchTerm) {
-        const table = document.querySelector('.responsive-table');
-        const rows = table.querySelectorAll('tbody tr');
-        
-        searchTerm = searchTerm.toLowerCase();
-        
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
+    
 
     // Get selected courses from select element
     function getSelectedCourses(selectElement) {
@@ -704,12 +736,86 @@
                 showError('Error: ' + data.message);
             }
         })
-        .catch(error => {
-            // Clear loading toast
-            clearAllToasts();
-            showAjaxError(error, 'An error occurred while deleting the tutor. Please try again.');
-        });
-    }
+                 .catch(error => {
+             // Clear loading toast
+             clearAllToasts();
+             showAjaxError(error, 'An error occurred while deleting the tutor. Please try again.');
+         });
+     }
+
+     function uploadExcel() {
+         const fileInput = document.getElementById('excelFile');
+         const file = fileInput.files[0];
+         
+         if (!file) {
+             showError('Please select a file to upload');
+             return;
+         }
+         
+         // Validate file extension
+         const allowedExtensions = ['.xlsx', '.xls'];
+         const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+         if (!allowedExtensions.includes(fileExtension)) {
+             showError('Please select a valid Excel file (.xlsx or .xls)');
+             return;
+         }
+         
+         // Show loading state
+         const uploadButton = document.querySelector('#uploadExcelModal .btn-success');
+         const originalText = uploadButton.innerHTML;
+         uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+         uploadButton.disabled = true;
+         
+         // Create FormData
+         const formData = new FormData();
+         formData.append('file', file);
+         
+         // Get anti-forgery token
+         const token = document.querySelector('input[name="__RequestVerificationToken"]');
+         const tokenValue = token ? token.value : '';
+         
+         // Send AJAX request
+         fetch('/Admin/Tutor/UploadExcel', {
+             method: 'POST',
+             headers: {
+                 'RequestVerificationToken': tokenValue
+             },
+             body: formData
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.success) {
+                 // Show success message with details
+                 let message = data.message;
+                 if (data.data && data.data.errors && data.data.errors.length > 0) {
+                     message += '\n\nFirst few errors:\n' + data.data.errors.join('\n');
+                 }
+                 
+                 showSuccess(message);
+                 
+                 // Close modal
+                 const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                 modal.hide();
+                 
+                 // Reset file input
+                 fileInput.value = '';
+                 
+                 // Refresh page to show new tutors
+                 location.reload();
+             } else {
+                 showError('Error: ' + data.message);
+             }
+         })
+         .catch(error => {
+             console.error('Error uploading Excel file:', error);
+             showError('An error occurred while uploading the Excel file. Please try again.');
+         })
+         .finally(() => {
+             // Reset button state
+             uploadButton.innerHTML = originalText;
+             uploadButton.disabled = false;
+         });
+     }
 </script>
 
 <style>

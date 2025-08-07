@@ -16,10 +16,10 @@ namespace LOTA.Model
         [MaxLength(50)]
         public string LastName { get; set; }
 
-        [MaxLength(20)]
+        [MaxLength(255)]
         public string? TutorNo { get; set; }
 
-        [MaxLength(20)]
+        [MaxLength(255)]
         public string? StudentNo { get; set; }
 
         public bool IsActive { get; set; } = true;
