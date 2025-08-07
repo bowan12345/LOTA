@@ -112,6 +112,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 {
                     return Json(new { success = false, message = "Tutor not found" });
                 }
+                // Check if email already exists
+                var existingUser = await _userManager.FindByEmailAsync(tutorUpdateDTO.Email);
+                if (existingUser != null)
+                {
+                    return Json(new { success = false, message = "Email already exists" });
+                }
 
                 // Update tutor properties
                 tutor.FirstName = tutorUpdateDTO.FirstName;
@@ -210,6 +216,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tutor not found" });
                 }
 
+                // Step 1: Delete all course assignments (sub-table) first
+                try
+                {
+                    await _tutorService.RemoveAllTutorCoursesAsync(id);
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Failed to remove course assignments: " + ex.Message });
+                }
+
+                // Step 2: Delete the tutor (main table)
                 var result = await _userManager.DeleteAsync(tutor);
                 if (result.Succeeded)
                 {
@@ -222,7 +239,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "An error occurred while deleting the tutor" });
+                // Log the exception for debugging
+                Console.WriteLine($"Error deleting tutor {id}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                return Json(new { success = false, message = "An error occurred while deleting the tutor. Please try again or contact support." });
             }
         }
     }
