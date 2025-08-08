@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace LOTA.DataAccess.Repository.IRepository
 {
-    public interface ICourseRepository : IRepository<Course, string>
+    public interface ILearningOutcomeRepository : IRepository<LearningOutcome,string>
     {
-        Task<Course> GetCourseByCodeAsync(string courseCode);
     }
 }

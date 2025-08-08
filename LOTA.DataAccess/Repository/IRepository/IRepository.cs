@@ -14,7 +14,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// </summary>
         /// <param name="id"> id of object </param>
         /// <returns> object </returns>
-        Task<T> GetByIdAsync(TKey id);
+        Task<T> GetByIdAsync(TKey id, string? includeProperties = null);
 
         /// <summary>
         /// get all objects

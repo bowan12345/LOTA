@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LOTA.Model.DTO
+namespace LOTA.Model.DTO.Admin
 {
     /// <summary>
     ///  Data Transfer Object of Course 

@@ -1,5 +1,5 @@
 ﻿
-@model IEnumerable<LOTA.Model.DTO.CourseReturnDTO>
+@model IEnumerable<LOTA.Model.DTO.Admin.CourseReturnDTO>
 @{
     ViewData["Title"] = "Course Management";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -425,44 +425,45 @@
          tbody.appendChild(row);
      }
      
-     function addEditLearningOutcome() {
-         editLoCounter++;
-         const container = document.getElementById('editLearningOutcomesContainer');
-         
-         // Create table if it doesn't exist
-         if (!container.querySelector('.lo-table')) {
-             const table = document.createElement('table');
-             table.className = 'lo-table';
-             table.innerHTML = `
-                 <thead>
-                     <tr>
-                         <th style="width: 30%;">LO Name</th>
-                         <th style="width: 60%;">Description</th>
-                         <th style="width: 10%;">Actions</th>
-                     </tr>
-                 </thead>
-                 <tbody></tbody>
-             `;
-             container.appendChild(table);
-         }
-         
-         const tbody = container.querySelector('.lo-table tbody');
-         const row = document.createElement('tr');
-         row.innerHTML = `
-             <td>
-                 <input type="text" class="form-control" name="editLoName_${editLoCounter}" placeholder="LO Name (e.g., LO1)" required>
-             </td>
-             <td>
-                 <input type="text" class="form-control" name="editLoDescription_${editLoCounter}" placeholder="LO Description" required>
-             </td>
-             <td>
-                 <button type="button" class="btn btn-danger btn-sm" onclick="removeEditLearningOutcome(this)">
-                     <i class="fas fa-trash"></i>
-                 </button>
-             </td>
-         `;
-         tbody.appendChild(row);
-     }
+           function addEditLearningOutcome() {
+          editLoCounter++;
+          const container = document.getElementById('editLearningOutcomesContainer');
+          
+          // Create table if it doesn't exist
+          if (!container.querySelector('.lo-table')) {
+              const table = document.createElement('table');
+              table.className = 'lo-table';
+              table.innerHTML = `
+                  <thead>
+                      <tr>
+                          <th style="width: 30%;">LO Name</th>
+                          <th style="width: 60%;">Description</th>
+                          <th style="width: 10%;">Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody></tbody>
+              `;
+              container.appendChild(table);
+          }
+          
+          const tbody = container.querySelector('.lo-table tbody');
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td>
+                  <input type="hidden" name="editLoId_${editLoCounter}" value="">
+                  <input type="text" class="form-control" name="editLoName_${editLoCounter}" placeholder="LO Name (e.g., LO1)" required>
+              </td>
+              <td>
+                  <input type="text" class="form-control" name="editLoDescription_${editLoCounter}" placeholder="LO Description" required>
+              </td>
+              <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEditLearningOutcome(this)">
+                      <i class="fas fa-trash"></i>
+                  </button>
+              </td>
+          `;
+          tbody.appendChild(row);
+      }
      
      function removeLearningOutcome(button) {
          const row = button.closest('tr');
@@ -500,28 +501,30 @@
          editLoCounter = 0;
      }
      
-     function getLearningOutcomesData(containerId) {
-         const container = document.getElementById(containerId);
-         const table = container.querySelector('.lo-table');
-         if (!table) return [];
-         
-         const rows = table.querySelectorAll('tbody tr');
-         const learningOutcomes = [];
-         
-         rows.forEach(row => {
-             const nameInput = row.querySelector('input[name^="loName_"], input[name^="editLoName_"]');
-             const descriptionInput = row.querySelector('input[name^="loDescription_"], input[name^="editLoDescription_"]');
-             
-             if (nameInput && descriptionInput && nameInput.value.trim() && descriptionInput.value.trim()) {
-                 learningOutcomes.push({
-                     name: nameInput.value.trim(),
-                     description: descriptionInput.value.trim()
-                 });
-             }
-         });
-         
-         return learningOutcomes;
-     }
+           function getLearningOutcomesData(containerId) {
+          const container = document.getElementById(containerId);
+          const table = container.querySelector('.lo-table');
+          if (!table) return [];
+          
+          const rows = table.querySelectorAll('tbody tr');
+          const learningOutcomes = [];
+          
+          rows.forEach(row => {
+              const nameInput = row.querySelector('input[name^="loName_"], input[name^="editLoName_"]');
+              const descriptionInput = row.querySelector('input[name^="loDescription_"], input[name^="editLoDescription_"]');
+              const idInput = row.querySelector('input[name^="loId_"], input[name^="editLoId_"]');
+              
+              if (nameInput && descriptionInput && nameInput.value.trim() && descriptionInput.value.trim()) {
+                  learningOutcomes.push({
+                      id: idInput ? idInput.value.trim() : '',
+                      name: nameInput.value.trim(),
+                      description: descriptionInput.value.trim()
+                  });
+              }
+          });
+          
+          return learningOutcomes;
+      }
  
      function saveCourse() {
                  // Get form data
@@ -536,12 +539,15 @@
             return;
         }
         
-        // Create request data
+        // Create request data - adapt to backend DTO format
         const requestData = {
             courseName: courseName,
             courseCode: courseCode,
             description: description,
-            learningOutcomes: learningOutcomes
+            learningOutcomes: learningOutcomes.map(lo => ({
+                LOName: lo.name,
+                description: lo.description
+            }))
         };
         
         // Show loading state
@@ -615,23 +621,25 @@
                      document.getElementById('editCourseCode').value = course.courseCode || '';
                      document.getElementById('editDescription').value = course.description || '';
                      
-                     // Load learning outcomes
-                     clearEditLearningOutcomes();
-                     if (course.learningOutcomes && course.learningOutcomes.length > 0) {
-                         course.learningOutcomes.forEach(lo => {
-                             addEditLearningOutcome();
-                             const tbody = document.querySelector('#editLearningOutcomesContainer .lo-table tbody');
-                             const lastRow = tbody.lastElementChild;
-                             if (lastRow) {
-                                 const nameInput = lastRow.querySelector('input[name^="editLoName_"]');
-                                 const descriptionInput = lastRow.querySelector('input[name^="editLoDescription_"]');
-                                 if (nameInput && descriptionInput) {
-                                     nameInput.value = lo.name || lo.loName || '';
-                                     descriptionInput.value = lo.description || lo.loDescription || '';
-                                 }
-                             }
-                         });
-                     }
+                                           // Load learning outcomes
+                      clearEditLearningOutcomes();
+                      if (course.learningOutcomes && course.learningOutcomes.length > 0) {
+                          course.learningOutcomes.forEach(lo => {
+                              addEditLearningOutcome();
+                              const tbody = document.querySelector('#editLearningOutcomesContainer .lo-table tbody');
+                              const lastRow = tbody.lastElementChild;
+                              if (lastRow) {
+                                  const idInput = lastRow.querySelector('input[name^="editLoId_"]');
+                                  const nameInput = lastRow.querySelector('input[name^="editLoName_"]');
+                                  const descriptionInput = lastRow.querySelector('input[name^="editLoDescription_"]');
+                                  if (idInput && nameInput && descriptionInput) {
+                                      idInput.value = lo.id || '';
+                                      nameInput.value = lo.loName || '';
+                                      descriptionInput.value = lo.description || '';
+                                  }
+                              }
+                          });
+                      }
                     
 
                     
@@ -662,14 +670,18 @@
             return;
         }
         
-        // Create request data
-        const requestData = {
-            id: courseId,
-            courseName: courseName,
-            courseCode: courseCode,
-            description: description,
-            learningOutcomes: learningOutcomes
-        };
+                 // Create request data - adapt to backend DTO format
+         const requestData = {
+             id: courseId,
+             courseName: courseName,
+             courseCode: courseCode,
+             description: description,
+             learningOutcomes: learningOutcomes.map(lo => ({
+                 id: lo.id,
+                 LOName: lo.name,
+                 description: lo.description
+             }))
+         };
         
         // Show loading state
         const updateButton = document.querySelector('#editCourseModal .btn-success');

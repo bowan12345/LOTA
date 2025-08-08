@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LOTA.Model.DTO
+namespace LOTA.Model.DTO.Admin
 {
     public class TutorCreateDTO
     {
@@ -21,4 +21,4 @@ namespace LOTA.Model.DTO
 
         public List<string> AssignedCourses { get; set; } = new List<string>();
     }
-} 
+}

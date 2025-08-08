@@ -35,9 +35,17 @@ namespace LOTA.DataAccess.Repository
             return entities;
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T> GetByIdAsync(string id, string? includeProperties = null)
         {
-            return await dbset.FindAsync(id);
+            IQueryable<T> query = dbset;
+            if (!string.IsNullOrEmpty(includeProperties))
+            {
+                foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(item);
+                }
+            }
+            return await query.FirstOrDefaultAsync(x => EF.Property<string>(x,"Id") == id);
         }
 
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null)

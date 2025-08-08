@@ -6,6 +6,7 @@ using System.Text.Json;
 using LOTAWeb.Models;
 using LOTA.Service.Service;
 using LOTA.Model.DTO;
+using LOTA.Model.DTO.Admin;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -65,5 +66,133 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
 
+
+        /// <summary>
+        /// Create a new course
+        /// </summary>
+        /// <param name="courseCreateDTO">Course data from frontend</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CourseCreateDTO courseCreateDTO) 
+        {
+            try
+            {
+                // Controller layer data validation
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+                }
+
+                // Check if course code already exists
+                var existingCourse = await _courseService.GetCourseByCodeAsync(courseCreateDTO.CourseCode);
+                if (existingCourse != null)
+                {
+                    return Json(new { success = false, message = "Course with this code already exists" });
+                }
+
+                // Call Service layer to handle business logic
+                var result = await _courseService.CreateCourseAsync(courseCreateDTO);
+                
+                return Json(new { success = true, message = "Course created successfully", data = result });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CreateCourse: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to create course: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get course by ID for editing
+        /// </summary>
+        /// <param name="id">Course ID</param>
+        /// <returns>JSON result with course data</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCourseById(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Course ID is required" });
+                }
+
+                var course = await _courseService.GetCourseByIdAsync(id);
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+
+                return Json(new { success = true, data = course });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetCourseById: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to get course: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Update an existing course
+        /// </summary>
+        /// <param name="courseUpdateDTO">Updated course data</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> Update([FromBody] CourseUpdateDTO courseUpdateDTO)
+        {
+            try
+            {
+                // Controller layer data validation
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+                }
+
+                // Call Service layer to handle business logic
+                await _courseService.UpdateCourse(courseUpdateDTO);
+                
+                return Json(new { success = true, message = "Course updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UpdateCourse: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to update course: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Delete a course
+        /// </summary>
+        /// <param name="id">Course ID</param>
+        /// <returns>JSON result</returns>
+        [HttpDelete]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Course ID is required" });
+                }
+
+                // Call Service layer to handle business logic
+                await _courseService.RemoveCourse(id);
+                
+                return Json(new { success = true, message = "Course deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DeleteCourse: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to delete course: {ex.Message}" });
+            }
+        }
     }
 } 

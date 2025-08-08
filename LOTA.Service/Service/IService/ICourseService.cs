@@ -1,5 +1,6 @@
 ﻿using LOTA.Model;
 using LOTA.Model.DTO;
+using LOTA.Model.DTO.Admin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,27 @@ namespace LOTA.Service.Service.IService
         /// </summary>
         /// <param name="course"> The course to create </param>
         /// <returns> The created course </returns>
-         Task<Course> CreateCourseAsync(Course course);
+         Task<CourseReturnDTO> CreateCourseAsync(CourseCreateDTO course);
+
+        /// <summary>
+        /// Get a course by course code
+        /// </summary>
+        /// <param name="courseCode"> The course code to search </param>
+        /// <returns> one course </returns>
+        Task<CourseReturnDTO> GetCourseByCodeAsync(string courseCode);
+
+        /// <summary>
+        /// Get a course by course ID
+        /// </summary>
+        /// <param name="courseId"> The course ID to search </param>
+        /// <returns> one course </returns>
+        Task<CourseReturnDTO> GetCourseByIdAsync(string courseId);
 
         /// <summary>
         /// Get all courses
         /// </summary>
         /// <returns> All courses </returns>
-         Task<IEnumerable<CourseReturnDTO>> GetAllCoursesAsync();
+        Task<IEnumerable<CourseReturnDTO>> GetAllCoursesAsync();
 
         /// <summary>
         ///  Get a course by course name or course code
@@ -35,7 +50,7 @@ namespace LOTA.Service.Service.IService
         /// </summary>
         /// <param name="course"> The course to update </param>
         /// <returns></returns>
-        Task UpdateCourse(Course course);
+        Task UpdateCourse(CourseUpdateDTO course);
 
         /// <summary>
         /// remove a course

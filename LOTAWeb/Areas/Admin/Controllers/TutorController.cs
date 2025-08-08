@@ -1,5 +1,6 @@
 using LOTA.Model;
 using LOTA.Model.DTO;
+using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
