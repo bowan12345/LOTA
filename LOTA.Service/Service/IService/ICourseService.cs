@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace LOTA.Service.Service.IService
 {
@@ -58,5 +59,18 @@ namespace LOTA.Service.Service.IService
         /// <param name="courseId"> The course id to remove </param>
         /// <returns></returns>
         Task RemoveCourse(string courseId);
+
+        /// <summary>
+        /// Import courses from Excel file
+        /// </summary>
+        /// <param name="fileStream">Excel file stream</param>
+        /// <returns>Import result with success count and errors</returns>
+        Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream);
+
+        /// <summary>
+        /// Generate Excel template for course import
+        /// </summary>
+        /// <returns>Excel file as byte array</returns>
+        Task<byte[]> GenerateExcelTemplateAsync();
     }
 }

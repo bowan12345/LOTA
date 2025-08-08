@@ -91,6 +91,26 @@ namespace LOTA.DataAccess.Data
                    SecurityStamp = Guid.NewGuid().ToString()
                }
            );
+            // qualification
+            modelBuilder.Entity<Qualification>().HasData(
+                new Qualification
+                {
+                    Id = "Qualification-001",
+                    QualificationName = "Bachelor of Information Technolog",
+                    QualificationType = "Bachelor",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                },
+                new Qualification
+                {
+                    Id = "Qualification-002",
+                    QualificationName = "Diploma in IT Technical Support",
+                    QualificationType = "Diploma",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                }
+            );
+
             // course
             modelBuilder.Entity<Course>().HasData(
                 new Course
@@ -98,7 +118,9 @@ namespace LOTA.DataAccess.Data
                     Id = "COURSE-001",
                     CourseName = "Software Engineering",
                     CourseCode = "SE101",
+                    Level = 5,
                     Description = "Introduction to software development processes and methodologies.",
+                    QualificationId= "Qualification-001",
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }, 
@@ -107,7 +129,9 @@ namespace LOTA.DataAccess.Data
                     Id = "COURSE-002",
                     CourseName = "Software Testing",
                     CourseCode = "ST102",
+                    Level = 5,
                     Description = "Introduction to software Testing processes and methodologies.",
+                    QualificationId = "Qualification-002",
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }

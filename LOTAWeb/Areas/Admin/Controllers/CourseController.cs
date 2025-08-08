@@ -194,5 +194,79 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = $"Failed to delete course: {ex.Message}" });
             }
         }
+
+        /// <summary>
+        /// Upload Excel file to import courses
+        /// </summary>
+        /// <param name="file">Excel file</param>
+        /// <returns>JSON result with import status</returns>
+        [HttpPost]
+        public async Task<IActionResult> UploadExcel(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return Json(new { success = false, message = "Please select a file to upload" });
+                }
+
+                // Validate file extension
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return Json(new { success = false, message = "Please select a valid Excel file (.xlsx or .xls)" });
+                }
+
+                // Validate file size (max 10MB)
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return Json(new { success = false, message = "File size must be less than 10MB" });
+                }
+
+                using var stream = file.OpenReadStream();
+                var (successCount, errors) = await _courseService.ImportCoursesFromExcelAsync(stream);
+
+                var message = $"Successfully imported {successCount} courses.";
+                if (errors.Count > 0)
+                {
+                    message += $" {errors.Count} errors occurred during import.";
+                }
+
+                return Json(new { 
+                    success = true, 
+                    message = message,
+                    data = new { 
+                        successCount, 
+                        errorCount = errors.Count,
+                        errors = errors.Take(10).ToList() // Return first 10 errors
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UploadExcel: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to upload Excel file: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Download Excel template for course import
+        /// </summary>
+        /// <returns>Excel file download</returns>
+        [HttpGet]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            try
+            {
+                var excelBytes = await _courseService.GenerateExcelTemplateAsync();
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CourseImportTemplate.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DownloadTemplate: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to generate template: {ex.Message}" });
+            }
+        }
     }
 } 

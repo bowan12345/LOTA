@@ -4,6 +4,8 @@ using LOTA.Model.DTO;
 using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using LOTA.Utility;
+using ClosedXML.Excel;
+using System.Data;
 
 namespace LOTA.Service.Service
 {
@@ -253,7 +255,152 @@ namespace LOTA.Service.Service
            
         }
 
+        public async Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream)
+        {
+            var errors = new List<string>();
+            var successCount = 0;
 
+            try
+            {
+                using var workbook = new XLWorkbook(fileStream);
+                var worksheet = workbook.Worksheet(1); // Get first worksheet
+                var rows = worksheet.RowsUsed().Skip(1); // Skip header row
+
+                foreach (var row in rows)
+                {
+                    try
+                    {
+                        var courseName = row.Cell("A").Value.ToString()?.Trim();
+                        var courseCode = row.Cell("B").Value.ToString()?.Trim();
+                        var description = row.Cell("C").Value.ToString()?.Trim();
+                        var learningOutcomes = row.Cell("D").Value.ToString()?.Trim();
+
+                        // Validate required fields
+                        if (string.IsNullOrWhiteSpace(courseName))
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Course Name is required");
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(courseCode))
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Course Code is required");
+                            continue;
+                        }
+
+                        // Check if course code already exists
+                        var existingCourse = await _unitOfWork.courseRepository.GetAsync(c => c.CourseCode == courseCode);
+                        if (existingCourse != null)
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Course with code '{courseCode}' already exists");
+                            continue;
+                        }
+
+                        // Create course
+                        var course = new Course
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            CourseName = courseName,
+                            CourseCode = courseCode,
+                            Description = description ?? "",
+                            IsActive = true,
+                            CreatedDate = DateTime.Now,
+                            UpdatedDate = DateTime.Now
+                        };
+
+                        await _unitOfWork.courseRepository.AddAsync(course);
+
+                        // Process learning outcomes if provided
+                        if (!string.IsNullOrWhiteSpace(learningOutcomes))
+                        {
+                            var loList = learningOutcomes.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(lo => lo.Trim())
+                                .Where(lo => !string.IsNullOrWhiteSpace(lo))
+                                .ToList();
+
+                            foreach (var lo in loList)
+                            {
+                                var learningOutcome = new LearningOutcome
+                                {
+                                    Id = Guid.NewGuid().ToString(),
+                                    LOName = lo,
+                                    Description = lo, // Use the same value as description for now
+                                    MaxScore = 100,
+                                    Weight = 1,
+                                    CourseId = course.Id,
+                                    CreatedDate = DateTime.Now,
+                                    UpdatedDate = DateTime.Now
+                                };
+
+                                await _unitOfWork.learningOutcomeRepository.AddAsync(learningOutcome);
+                            }
+                        }
+
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Row {row.RowNumber()}: Error processing row - {ex.Message}");
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    await _unitOfWork.SaveAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Error reading Excel file: {ex.Message}");
+            }
+
+            return (successCount, errors);
+        }
+
+        public async Task<byte[]> GenerateExcelTemplateAsync()
+        {
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Courses");
+
+            // Add headers
+            worksheet.Cell("A1").Value = "CourseName";
+            worksheet.Cell("B1").Value = "CourseCode";
+            worksheet.Cell("C1").Value = "Description";
+            worksheet.Cell("D1").Value = "LearningOutcomes";
+
+            // Style headers
+            var headerRange = worksheet.Range("A1:D1");
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+            headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+            // Add sample data
+            worksheet.Cell("A2").Value = "Introduction to Computer Science";
+            worksheet.Cell("B2").Value = "CS101";
+            worksheet.Cell("C2").Value = "Basic concepts of computer science";
+            worksheet.Cell("D2").Value = "LO1; LO2; LO3";
+
+            worksheet.Cell("A3").Value = "Advanced Programming";
+            worksheet.Cell("B3").Value = "CS201";
+            worksheet.Cell("C3").Value = "Advanced programming concepts";
+            worksheet.Cell("D3").Value = "LO1; LO2";
+
+            // Auto-fit columns
+            worksheet.Columns().AdjustToContents();
+
+            // Add data validation for required fields
+            var courseNameValidation = worksheet.Range("A2:A1000").CreateDataValidation();
+            courseNameValidation.Custom("=LEN(A2)>0");
+            courseNameValidation.ErrorMessage = "Course Name is required";
+
+            var courseCodeValidation = worksheet.Range("B2:B1000").CreateDataValidation();
+            courseCodeValidation.Custom("=LEN(B2)>0");
+            courseCodeValidation.ErrorMessage = "Course Code is required";
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
 
         private CourseReturnDTO MapToDTO(Course course)
         {

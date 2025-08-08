@@ -14,6 +14,9 @@ namespace LOTA.Model
         [Required, MaxLength(50)]
         public string CourseCode { get; set; }
 
+        [Required]
+        public int Level { get; set; }
+
         [MaxLength(255)]
         public string Description { get; set; }
 
@@ -21,6 +24,11 @@ namespace LOTA.Model
 
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
+
+        // FK
+        public string? QualificationId { get; set; }
+        [ForeignKey("QualificationId")]
+        public Qualification? Qualification { get; set; }
 
         // Relationships
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
