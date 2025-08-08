@@ -411,7 +411,7 @@
 
     // Load courses from backend
     function loadCourses() {
-        fetch('/Admin/Course/SearchCourses?courseSearchItem=')
+        fetch('/Admin/Course/SearchCourses?searchTerm=')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data) {

@@ -27,20 +27,17 @@ namespace LOTA.Service.Service
             return course;
         }
 
-        /*public async Task<IEnumerable<Course>> GetAllCoursesAsync()
-        {
-            throw new NotImplementedException("TDD Red phase: method not implemented yet");
-        }*/
 
-        public async Task<IEnumerable<Course>> GetAllCoursesAsync()
+        public async Task<IEnumerable<CourseReturnDTO>> GetAllCoursesAsync()
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             // get all courses based on filter conditions
             IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(includeProperties: "LearningOutcomes");
-            return courses;
+            return courses.Select(MapToDTO);
 
         }
 
-        public async Task<IEnumerable<Course>> GetCoursesByNameOrCodeAsync(string courseSearchItem)
+        public async Task<IEnumerable<CourseReturnDTO>> GetCoursesByNameOrCodeAsync(string courseSearchItem)
         {
             //throw new NotImplementedException();
             // create a combine multipile filter conditions object
@@ -55,7 +52,7 @@ namespace LOTA.Service.Service
             }
             // get all courses based on filter conditions
             IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(filter,includeProperties: "LearningOutcomes");
-            return courses;
+            return courses.Select(MapToDTO);
         }
 
         public async Task RemoveCourse(string courseId)
@@ -96,6 +93,32 @@ namespace LOTA.Service.Service
                 throw new Exception(ex.Message);
             }
            
+        }
+
+
+
+        private CourseReturnDTO MapToDTO(Course course)
+        {
+            return new CourseReturnDTO
+            {
+                Id = course.Id,
+                CourseCode = course.CourseCode,
+                CourseName = course.CourseName,
+                Description = course.Description,
+                IsActive = course.IsActive,
+                CreatedDate = course.CreatedDate,
+                UpdatedDate = course.UpdatedDate,
+                LearningOutcomes = course.LearningOutcomes?.Select(lo => new LearningOutcomeDTO
+                {
+                    Id = lo.Id,
+                    LOName = lo.LOName,
+                    Description = lo.Description,
+                    MaxScore = lo.MaxScore,
+                    Weight = lo.Weight,
+                    CreatedDate = lo.CreatedDate,
+                    UpdatedDate = lo.UpdatedDate
+                }).ToList() ?? new List<LearningOutcomeDTO>()
+            };
         }
     }
 }

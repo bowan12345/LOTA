@@ -21,14 +21,14 @@ namespace LOTA.Service.Service.IService
         /// Get all courses
         /// </summary>
         /// <returns> All courses </returns>
-         Task<IEnumerable<Course>> GetAllCoursesAsync();
-        
+         Task<IEnumerable<CourseReturnDTO>> GetAllCoursesAsync();
+
         /// <summary>
         ///  Get a course by course name or course code
         /// </summary>
         /// <param name="courseSearchItem"> course name or course code</param>
         /// <returns> a list courses </returns>
-         Task<IEnumerable<Course>> GetCoursesByNameOrCodeAsync(string courseSearchItem);
+         Task<IEnumerable<CourseReturnDTO>> GetCoursesByNameOrCodeAsync(string courseSearchItem);
 
         /// <summary>
         ///  update details of the course

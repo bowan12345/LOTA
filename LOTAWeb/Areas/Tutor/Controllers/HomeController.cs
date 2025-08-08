@@ -3,6 +3,7 @@ using LOTA.Service.Service.IService;
 using LOTAWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using LOTA.Model.DTO;
 
 namespace LOTAWeb.Controllers
 {

@@ -23,7 +23,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         // GET: Admin/Tutor home page
         public async Task<IActionResult> Index([FromQuery] string searchTerm = "")
         {
-            IEnumerable<Course> courseList;
+            IEnumerable<CourseReturnDTO> courseList;
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 //query all courseList information by filter

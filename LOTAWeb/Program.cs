@@ -5,6 +5,8 @@ using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Service;
 using LOTA.Model;
 using LOTA.Utility;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // add sqlserver
@@ -18,7 +20,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFramework
 
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 
 // Add all LOTA Services/repository
 builder.Services.AddLOTAProjectServices();
