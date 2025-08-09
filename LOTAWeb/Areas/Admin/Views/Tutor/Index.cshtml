@@ -540,8 +540,10 @@
                 document.getElementById('addTutorForm').reset();
                 document.getElementById('courseSelect').selectedIndex = -1;
                 
-                // Refresh page to show new tutor
-                location.reload();
+                // Refresh page to show new tutor after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -682,8 +684,10 @@
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editTutorModal'));
                 modal.hide();
                 
-                // Refresh page to show updated tutor
-                location.reload();
+                // Refresh page to show updated tutor after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -731,7 +735,11 @@
             clearAllToasts();
             
             if (data.success) {
-                showSuccessAndReload('Tutor deleted successfully!');
+                showSuccess('Tutor deleted successfully!');
+                // Reload the page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 showError('Error: ' + data.message);
             }
@@ -797,11 +805,13 @@
                  const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
                  modal.hide();
                  
-                 // Reset file input
-                 fileInput.value = '';
-                 
-                 // Refresh page to show new tutors
-                 location.reload();
+                                 // Reset file input
+                fileInput.value = '';
+                
+                // Refresh page to show new tutors after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
              } else {
                  showError('Error: ' + data.message);
              }

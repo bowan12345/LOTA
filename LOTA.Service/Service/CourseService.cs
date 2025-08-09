@@ -39,6 +39,7 @@ namespace LOTA.Service.Service
                 CourseName = courseDTO.CourseName,
                 CourseCode = courseDTO.CourseCode,
                 Description = courseDTO.Description,
+                QualificationId = courseDTO.QualificationId,
                 IsActive = true,
                 CreatedDate = DateTime.Now,
                 UpdatedDate = DateTime.Now
@@ -81,7 +82,8 @@ namespace LOTA.Service.Service
                 Id = courseId,
                 CourseCode = courseDTO.CourseCode,
                 CourseName = courseDTO.CourseName,
-                Description = courseDTO.Description
+                Description = courseDTO.Description,
+                QualificationId = courseDTO.QualificationId
             };
         }
 
@@ -89,7 +91,7 @@ namespace LOTA.Service.Service
         {
             //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             // get all courses based on filter conditions
-            IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(includeProperties: "LearningOutcomes");
+            IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(includeProperties: "LearningOutcomes,Qualification,Qualification.QualificationType");
             return courses.Select(MapToDTO);
 
         }
@@ -138,7 +140,7 @@ namespace LOTA.Service.Service
                 filter = filter.Or(p => p.CourseCode.Contains(courseSearchItem));
             }
             // get all courses based on filter conditions
-            IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(filter,includeProperties: "LearningOutcomes");
+            IEnumerable<Course> courses = await _unitOfWork.courseRepository.GetAllAsync(filter,includeProperties: "LearningOutcomes,Qualification,Qualification.QualificationType");
             return courses.Select(MapToDTO);
         }
 
@@ -180,6 +182,8 @@ namespace LOTA.Service.Service
                 course.CourseCode = courseDTO.CourseCode;
                 course.CourseName = courseDTO.CourseName;
                 course.Description = courseDTO.Description;
+                course.QualificationId = courseDTO.QualificationId;
+                course.UpdatedDate = DateTime.Now;
 
                 // Get existing learning outcomes
                 var existingLearningOutcomes = await _unitOfWork.learningOutcomeRepository.GetAllAsync(lo => lo.CourseId == courseDTO.Id);
@@ -397,6 +401,8 @@ namespace LOTA.Service.Service
             courseCodeValidation.Custom("=LEN(B2)>0");
             courseCodeValidation.ErrorMessage = "Course Code is required";
 
+
+
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             return stream.ToArray();
@@ -410,9 +416,13 @@ namespace LOTA.Service.Service
                 CourseCode = course.CourseCode,
                 CourseName = course.CourseName,
                 Description = course.Description,
+                Level = course.Qualification?.Level ?? 0, // Get Level from Qualification
                 IsActive = course.IsActive,
                 CreatedDate = course.CreatedDate,
                 UpdatedDate = course.UpdatedDate,
+                QualificationId = course.QualificationId,
+                QualificationName = course.Qualification?.QualificationName,
+                QualificationType = course.Qualification?.QualificationType?.QualificationTypeName,
                 LearningOutcomes = course.LearningOutcomes?.Select(lo => new LearningOutcomeDTO
                 {
                     Id = lo.Id,

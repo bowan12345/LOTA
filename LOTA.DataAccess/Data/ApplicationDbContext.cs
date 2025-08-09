@@ -15,6 +15,8 @@ namespace LOTA.DataAccess.Data
         public DbSet<AssignmentLearningOutcome> AssignmentLearningOutcome { get; set; }
         public DbSet<Course> Course { get; set; }
         public DbSet<LearningOutcome> LearningOutcome { get; set; }
+        public DbSet<Qualification> Qualification { get; set; }
+        public DbSet<QualificationType> QualificationType { get; set; }
         public DbSet<StudentCourse> StudentCourse { get; set; }
         public DbSet<StudentScore> StudentScore { get; set; }
         public DbSet<TutorCourse> TutorCourse { get; set; }
@@ -61,6 +63,19 @@ namespace LOTA.DataAccess.Data
                 .HasForeignKey(tc => tc.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Qualification and Course relationship
+            modelBuilder.Entity<Course>()
+                .HasOne(c => c.Qualification)
+                .WithMany(q => q.Courses)
+                .HasForeignKey(c => c.QualificationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Qualification>()
+                .HasOne(c => c.QualificationType)
+                .WithMany(q => q.Qualifications)
+                .HasForeignKey(c => c.QualificationTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<ApplicationUser>().HasData(
                new ApplicationUser
                {
@@ -91,13 +106,58 @@ namespace LOTA.DataAccess.Data
                    SecurityStamp = Guid.NewGuid().ToString()
                }
            );
+
+            // qualificationType
+            modelBuilder.Entity<QualificationType>().HasData(
+                new QualificationType
+                {
+                    Id = "001",
+                    QualificationTypeName = "Bachelor",
+                },
+                new QualificationType
+                {
+                    Id = "002",
+                    QualificationTypeName = "Diploma",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "003",
+                    QualificationTypeName = "Certificate",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "004",
+                    QualificationTypeName = "Master",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "005",
+                    QualificationTypeName = "PhD",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "006",
+                    QualificationTypeName = "Graduate Diploma",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "007",
+                    QualificationTypeName = "Postgraduate Certificate",
+                }
+            );
             // qualification
             modelBuilder.Entity<Qualification>().HasData(
                 new Qualification
                 {
                     Id = "Qualification-001",
                     QualificationName = "Bachelor of Information Technolog",
-                    QualificationType = "Bachelor",
+                    QualificationTypeId = "001",
+                    Level=7,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 },
@@ -105,7 +165,8 @@ namespace LOTA.DataAccess.Data
                 {
                     Id = "Qualification-002",
                     QualificationName = "Diploma in IT Technical Support",
-                    QualificationType = "Diploma",
+                    QualificationTypeId = "002",
+                    Level = 5,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }
@@ -118,7 +179,6 @@ namespace LOTA.DataAccess.Data
                     Id = "COURSE-001",
                     CourseName = "Software Engineering",
                     CourseCode = "SE101",
-                    Level = 5,
                     Description = "Introduction to software development processes and methodologies.",
                     QualificationId= "Qualification-001",
                     IsActive = true,
@@ -129,7 +189,6 @@ namespace LOTA.DataAccess.Data
                     Id = "COURSE-002",
                     CourseName = "Software Testing",
                     CourseCode = "ST102",
-                    Level = 5,
                     Description = "Introduction to software Testing processes and methodologies.",
                     QualificationId = "Qualification-002",
                     IsActive = true,

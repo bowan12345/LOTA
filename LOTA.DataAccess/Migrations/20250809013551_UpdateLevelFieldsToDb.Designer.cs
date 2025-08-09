@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LOTA.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250808233407_addQualificationTableToDb")]
-    partial class addQualificationTableToDb
+    [Migration("20250809013551_UpdateLevelFieldsToDb")]
+    partial class UpdateLevelFieldsToDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -115,7 +115,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "TUTOR-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "adfef29f-159f-47c0-b527-79772b1e9b7e",
+                            ConcurrencyStamp = "88cacf1a-cc4e-4f03-8c6d-a7bce3a4545d",
                             Email = "tutor1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "John",
@@ -125,7 +125,7 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "TUTOR1@LOTA.COM",
                             NormalizedUserName = "TUTOR1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "0b1d6ac5-198e-4ab9-b854-1014fa0abad6",
+                            SecurityStamp = "f3903796-6943-4b88-9b3c-6c58f1bab8ce",
                             TutorNo = "tutor1@lota.com",
                             TwoFactorEnabled = false,
                             UserName = "tutor1@lota.com"
@@ -134,7 +134,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STUDENT-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "bef03561-b91b-4b0f-8185-0e43c2641a15",
+                            ConcurrencyStamp = "f91fb543-a28a-4d0d-93da-ebdfd6f4e2c7",
                             Email = "student1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "Alice",
@@ -144,7 +144,7 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "STUDENT1@LOTA.COM",
                             NormalizedUserName = "STUDENT1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "ae4d2661-8707-4d8f-9093-256d27aea840",
+                            SecurityStamp = "9489b9ec-001d-4c69-9717-a4e94aa93303",
                             StudentNo = "STUDENT-001",
                             TwoFactorEnabled = false,
                             UserName = "student1@lota.com"
@@ -198,7 +198,7 @@ namespace LOTA.DataAccess.Migrations
                             AssignmentName = "Project Proposal",
                             CourseId = "COURSE-001",
                             CreatedBy = "TUTOR-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9760),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4227),
                             IsActive = true,
                             TotalScore = 100m,
                             TotalWeight = 30m
@@ -265,9 +265,6 @@ namespace LOTA.DataAccess.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
-
                     b.Property<string>("QualificationId")
                         .HasColumnType("nvarchar(450)");
 
@@ -286,10 +283,9 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-001",
                             CourseCode = "SE101",
                             CourseName = "Software Engineering",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9648),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4166),
                             Description = "Introduction to software development processes and methodologies.",
                             IsActive = true,
-                            Level = 5,
                             QualificationId = "Qualification-001"
                         },
                         new
@@ -297,10 +293,9 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-002",
                             CourseCode = "ST102",
                             CourseName = "Software Testing",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9652),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4169),
                             Description = "Introduction to software Testing processes and methodologies.",
                             IsActive = true,
-                            Level = 5,
                             QualificationId = "Qualification-002"
                         });
                 });
@@ -349,7 +344,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9735),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4203),
                             Description = "Understand and document software requirements effectively.",
                             LOName = "Requirement Analysis",
                             MaxScore = 100m,
@@ -359,7 +354,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-002",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9739),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4206),
                             Description = "Apply design principles to create robust software architectures.",
                             LOName = "System Design",
                             MaxScore = 100m,
@@ -378,20 +373,24 @@ namespace LOTA.DataAccess.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
                     b.Property<string>("QualificationName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("QualificationType")
+                    b.Property<string>("QualificationTypeId")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("QualificationTypeId");
 
                     b.ToTable("Qualification");
 
@@ -399,18 +398,72 @@ namespace LOTA.DataAccess.Migrations
                         new
                         {
                             Id = "Qualification-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9561),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4092),
                             IsActive = true,
+                            Level = 7,
                             QualificationName = "Bachelor of Information Technolog",
-                            QualificationType = "Bachelor"
+                            QualificationTypeId = "001"
                         },
                         new
                         {
                             Id = "Qualification-002",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9618),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4146),
                             IsActive = true,
+                            Level = 5,
                             QualificationName = "Diploma in IT Technical Support",
-                            QualificationType = "Diploma"
+                            QualificationTypeId = "002"
+                        });
+                });
+
+            modelBuilder.Entity("LOTA.Model.QualificationType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("QualificationTypeName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("QualificationType");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "001",
+                            QualificationTypeName = "Bachelor"
+                        },
+                        new
+                        {
+                            Id = "002",
+                            QualificationTypeName = "Diploma"
+                        },
+                        new
+                        {
+                            Id = "003",
+                            QualificationTypeName = "Certificate"
+                        },
+                        new
+                        {
+                            Id = "004",
+                            QualificationTypeName = "Master"
+                        },
+                        new
+                        {
+                            Id = "005",
+                            QualificationTypeName = "PhD"
+                        },
+                        new
+                        {
+                            Id = "006",
+                            QualificationTypeName = "Graduate Diploma"
+                        },
+                        new
+                        {
+                            Id = "007",
+                            QualificationTypeName = "Postgraduate Certificate"
                         });
                 });
 
@@ -452,9 +505,9 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STCOURSE-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9796),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4255),
                             IsActive = true,
-                            RegistrationDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9794),
+                            RegistrationDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4254),
                             StudentId = "STUDENT-001"
                         });
                 });
@@ -512,7 +565,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "SCORE-001",
                             AssignmentId = "ASSIGN-001",
-                            CreatedDate = new DateTime(2025, 8, 9, 11, 34, 4, 487, DateTimeKind.Local).AddTicks(9811),
+                            CreatedDate = new DateTime(2025, 8, 9, 13, 35, 50, 902, DateTimeKind.Local).AddTicks(4269),
                             IsRetake = false,
                             LOId = "LO-001",
                             Score = 80m,
@@ -716,7 +769,8 @@ namespace LOTA.DataAccess.Migrations
                 {
                     b.HasOne("LOTA.Model.Qualification", "Qualification")
                         .WithMany("Courses")
-                        .HasForeignKey("QualificationId");
+                        .HasForeignKey("QualificationId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Qualification");
                 });
@@ -730,6 +784,17 @@ namespace LOTA.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("LOTA.Model.Qualification", b =>
+                {
+                    b.HasOne("LOTA.Model.QualificationType", "QualificationType")
+                        .WithMany("Qualifications")
+                        .HasForeignKey("QualificationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("QualificationType");
                 });
 
             modelBuilder.Entity("LOTA.Model.StudentCourse", b =>
@@ -881,6 +946,11 @@ namespace LOTA.DataAccess.Migrations
             modelBuilder.Entity("LOTA.Model.Qualification", b =>
                 {
                     b.Navigation("Courses");
+                });
+
+            modelBuilder.Entity("LOTA.Model.QualificationType", b =>
+                {
+                    b.Navigation("Qualifications");
                 });
 #pragma warning restore 612, 618
         }

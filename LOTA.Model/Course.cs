@@ -14,9 +14,6 @@ namespace LOTA.Model
         [Required, MaxLength(50)]
         public string CourseCode { get; set; }
 
-        [Required]
-        public int Level { get; set; }
-
         [MaxLength(255)]
         public string Description { get; set; }
 

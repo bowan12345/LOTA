@@ -1,0 +1,199 @@
+﻿using LOTA.Model;
+using LOTA.Service.Service.IService;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using LOTA.Model.DTO.Admin;
+
+namespace LOTAWeb.Areas.Admin.Controllers
+{
+    [Area("Admin")]
+    public class QualificationController : Controller
+    {
+
+        private readonly IQualificationService _qualificationService;
+
+        public QualificationController(IQualificationService qualificationService)
+        {
+            _qualificationService = qualificationService;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+
+        /// <summary>
+        /// Get all qualifications
+        /// </summary>
+        /// <returns>JSON result with qualifications list</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetQualifications()
+        {
+            try
+            {
+                var qualifications = await _qualificationService.GetAllQualificationsAsync();
+                return Json(new { success = true, data = qualifications });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get qualification by ID
+        /// </summary>
+        /// <param name="id">Qualification ID</param>
+        /// <returns>JSON result with qualification details</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetQualification(string id)
+        {
+            try
+            {
+                var qualification = await _qualificationService.GetQualificationByIdAsync(id);
+                if (qualification == null)
+                {
+                    return Json(new { success = false, message = "Qualification not found" });
+                }
+
+                return Json(new { success = true, data = qualification });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Create new qualification
+        /// </summary>
+        /// <param name="qualification">Qualification data</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> CreateQualification([FromBody] QualificationCreateDTO qualification)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                var result = await _qualificationService.CreateQualificationAsync(qualification);
+                return Json(new { success = true, data = result, message = "Qualification created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while creating the qualification" });
+            }
+        }
+
+        /// <summary>
+        /// Update qualification
+        /// </summary>
+        /// <param name="qualification">Updated qualification data</param>
+        /// <returns>JSON result</returns>
+        [HttpPut]
+        public async Task<IActionResult> UpdateQualification([FromBody] QualificationUpdateDTO qualification)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                var result = await _qualificationService.UpdateQualificationAsync(qualification);
+                return Json(new { success = true, data = result, message = "Qualification updated successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while updating the qualification" });
+            }
+        }
+
+        /// <summary>
+        /// Delete qualification
+        /// </summary>
+        /// <param name="id">Qualification ID</param>
+        /// <returns>JSON result</returns>
+        [HttpDelete]
+        public async Task<IActionResult> DeleteQualification(string id)
+        {
+            try
+            {
+                var result = await _qualificationService.DeleteQualificationAsync(id);
+                if (!result)
+                {
+                    return Json(new { success = false, message = "Qualification not found" });
+                }
+
+                return Json(new { success = true, message = "Qualification deleted successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while deleting the qualification" });
+            }
+        }
+
+        /// <summary>
+        /// Check if qualification name exists
+        /// </summary>
+        /// <param name="name">Qualification name</param>
+        /// <param name="excludeId">ID to exclude from check</param>
+        /// <returns>JSON result</returns>
+        [HttpGet]
+        public async Task<IActionResult> CheckQualificationName(string name, string? excludeId = null)
+        {
+            try
+            {
+                var exists = await _qualificationService.IsQualificationNameExistsAsync(name, excludeId);
+                return Json(new { success = true, exists });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get all qualification types from database
+        /// </summary>
+        /// <returns>JSON result with qualification types list</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetQualificationTypes()
+        {
+            try
+            {
+                var qualificationTypes = await _qualificationService.GetAllQualificationTypesAsync();
+                return Json(new { success = true, data = qualificationTypes });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+    }
+}

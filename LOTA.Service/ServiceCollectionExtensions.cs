@@ -21,6 +21,7 @@ namespace LOTA.Service
             // register Services
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<ITutorService, TutorService>();
+            services.AddScoped<IQualificationService, QualificationService>();
 
             return services;
         }

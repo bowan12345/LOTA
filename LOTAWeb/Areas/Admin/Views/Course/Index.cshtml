@@ -15,148 +15,262 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-dark mb-0">Manage Courses</h2>
         <div class="d-flex gap-2">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCourseModal" id="addCourseBtn">
                 <i class="fas fa-plus me-2"></i>
                 Add Course
             </button>
-            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#uploadExcelModal" id="uploadExcelBtn">
                 <i class="fas fa-file-excel me-2"></i>
                 Upload Excel
+            </button>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addQualificationModal" id="addQualificationBtn" style="display: none;">
+                <i class="fas fa-plus me-2"></i>
+                Add Qualification
             </button>
         </div>
     </div>
 
-    <!-- Course Table -->
-    <div class="card border-0 shadow-sm">
+    <!-- Tab Navigation -->
+    <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-graduation-cap text-primary me-2"></i>
-                        Course List
+            <ul class="nav nav-tabs card-header-tabs" id="managementTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Courses
                         @if (Model != null && Model.Any())
                         {
                             <span class="badge bg-primary ms-2">@Model.Count()</span>
                         }
-                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
-                        {
-                            <span class="badge bg-info ms-2">
-                                <i class="fas fa-search me-1"></i>
-                                "@ViewBag.SearchTerm"
-                            </span>
-                        }
-                    </h5>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-md-end gap-2">
-                        <form method="get" action="@Url.Action("Index", "Course", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-search text-muted"></i>
-                                </span>
-                                <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
-                                       placeholder="Search courses..." value="@ViewBag.SearchTerm">
-                                <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
-                                    <i class="fas fa-search"></i>
-                                </button>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="qualifications-tab" data-bs-toggle="tab" data-bs-target="#qualifications" type="button" role="tab" aria-controls="qualifications" aria-selected="false">
+                        <i class="fas fa-certificate me-2"></i>
+                        Qualifications
+                        <span class="badge bg-secondary ms-2" id="qualificationCount">0</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="managementTabsContent">
+        <!-- Courses Tab -->
+        <div class="tab-pane fade show active" id="courses" role="tabpanel" aria-labelledby="courses-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0 fw-bold">
+                                <i class="fas fa-graduation-cap text-primary me-2"></i>
+                                Course List
+                                @if (Model != null && Model.Any())
+                                {
+                                    <span class="badge bg-primary ms-2">@Model.Count()</span>
+                                }
                                 @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                                 {
-                                    <a href="@Url.Action("Index", "Course", new { area = "Admin" })" 
-                                       class="btn btn-outline-danger border-start-0" title="Clear Search">
-                                        <i class="fas fa-times"></i>
-                                    </a>
+                                    <span class="badge bg-info ms-2">
+                                        <i class="fas fa-search me-1"></i>
+                                        "@ViewBag.SearchTerm"
+                                    </span>
                                 }
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-md-end gap-2">
+                                <form method="get" action="@Url.Action("Index", "Course", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-search text-muted"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
+                                               placeholder="Search courses..." value="@ViewBag.SearchTerm">
+                                        <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                        {
+                                            <a href="@Url.Action("Index", "Course", new { area = "Admin" })" 
+                                               class="btn btn-outline-danger border-start-0" title="Clear Search">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 responsive-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 text-nowrap">Course Name</th>
+                                    <th class="border-0 text-nowrap">Course Code</th>
+                                    <th class="border-0 text-nowrap d-none d-md-table-cell">Level</th>
+                                    <th class="border-0 text-nowrap d-none d-lg-table-cell">Qualification</th>
+                                    <th class="border-0 text-nowrap d-none d-xl-table-cell">Description</th>
+                                    <th class="border-0 text-nowrap d-none d-xxl-table-cell">Learning Outcomes</th>
+                                    <th class="border-0 text-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var course in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-nowrap">@(course.CourseName ?? "N/A")</td>
+                                            <td class="text-nowrap">@(course.CourseCode ?? "N/A")</td>
+                                            <td class="text-nowrap d-none d-md-table-cell">
+                                                <span class="badge bg-info">@course.Level</span>
+                                            </td>
+                                            <td class="text-nowrap d-none d-lg-table-cell">
+                                                @if (!string.IsNullOrEmpty(course.QualificationName))
+                                                {
+                                                    <div>
+                                                        <div class="fw-semibold">@course.QualificationName</div>
+                                                        @if (!string.IsNullOrEmpty(course.QualificationType))
+                                                        {
+                                                            <small class="text-muted">@course.QualificationType</small>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No qualification</span>
+                                                }
+                                            </td>
+                                            <td class="text-nowrap d-none d-xl-table-cell">
+                                                @if (!string.IsNullOrEmpty(course.Description))
+                                                {
+                                                    <span title="@course.Description">
+                                                        @(course.Description.Length > 50 ? course.Description.Substring(0, 50) + "..." : course.Description)
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No description</span>
+                                                }
+                                            </td>
+                                            <td class="d-none d-xxl-table-cell">
+                                                @if (course.LearningOutcomes != null && course.LearningOutcomes.Any())
+                                                {
+                                                    <span title="@string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName))">
+                                                        @{
+                                                            var loNames = string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName));
+                                                            var displayText = loNames.Length > 60 ? loNames.Substring(0, 60) + "..." : loNames;
+                                                        }
+                                                        @displayText
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No learning outcomes</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-nowrap">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-success btn-sm" title="Edit" onclick="editCourse('@course.Id')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteCourse('@course.Id')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="text-muted">
+                                                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                                {
+                                                    <i class="fas fa-search fa-2x mb-3"></i>
+                                                    <p class="mb-0">No courses found for "@ViewBag.SearchTerm"</p>
+                                                    <small>Try a different search term or <a href="@Url.Action("Index", "Course", new { area = "Admin" })" class="text-decoration-none">clear search</a></small>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-graduation-cap fa-2x mb-3"></i>
+                                                    <p class="mb-0">No courses found</p>
+                                                    <small>Click "Add Course" to create the first course</small>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 responsive-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="border-0 text-nowrap">Course Name</th>
-                            <th class="border-0 text-nowrap">Course Code</th>
-                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Description</th>
-                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Learning Outcomes</th>
-                            <th class="border-0 text-nowrap">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var course in Model)
-                            {
-                                <tr>
-                                    <td class="text-nowrap">@(course.CourseName ?? "N/A")</td>
-                                    <td class="text-nowrap">@(course.CourseCode ?? "N/A")</td>
-                                    <td class="text-nowrap d-none d-lg-table-cell">
-                                        @if (!string.IsNullOrEmpty(course.Description))
-                                        {
-                                            <span title="@course.Description">
-                                                @(course.Description.Length > 50 ? course.Description.Substring(0, 50) + "..." : course.Description)
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No description</span>
-                                        }
-                                    </td>
-                                    <td class="d-none d-xl-table-cell">
-                                        @if (course.LearningOutcomes != null && course.LearningOutcomes.Any())
-                                        {
-                                            <span title="@string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName))">
-                                                @{
-                                                    var loNames = string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName));
-                                                    var displayText = loNames.Length > 60 ? loNames.Substring(0, 60) + "..." : loNames;
-                                                }
-                                                @displayText
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No learning outcomes</span>
-                                        }
-                                    </td>
 
-                                    <td class="text-nowrap">
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-success btn-sm" title="Edit" onclick="editCourse('@course.Id')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteCourse('@course.Id')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+        <!-- Qualifications Tab -->
+        <div class="tab-pane fade" id="qualifications" role="tabpanel" aria-labelledby="qualifications-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0 fw-bold">
+                                <i class="fas fa-certificate text-primary me-2"></i>
+                                Qualification List
+                                <span class="badge bg-primary ms-2" id="qualificationListCount">0</span>
+                            </h5>
+                        </div>
+                        @* <div class="col-md-6">
+                            <div class="d-flex justify-content-md-end gap-2">
+                                <div class="input-group input-group-sm" style="max-width: 300px;">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="qualificationSearchInput" 
+                                           placeholder="Search qualifications...">
+                                    <button type="button" class="btn btn-outline-secondary border-start-0" title="Search" onclick="searchQualifications()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger border-start-0" title="Clear Search" onclick="clearQualificationSearch()" style="display: none;" id="clearQualificationSearchBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div> *@
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 responsive-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 text-nowrap">Qualification Name</th>
+                                    <th class="border-0 text-nowrap">Qualification Type</th>
+                                    <th class="border-0 text-nowrap d-none d-md-table-cell">Level</th>
+                                    <th class="border-0 text-nowrap d-none d-xl-table-cell">Status</th>
+                                    <th class="border-0 text-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="qualificationTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                            <p class="mb-0">Loading qualifications...</p>
                                         </div>
                                     </td>
                                 </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    <div class="text-muted">
-                                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
-                                        {
-                                            <i class="fas fa-search fa-2x mb-3"></i>
-                                            <p class="mb-0">No courses found for "@ViewBag.SearchTerm"</p>
-                                            <small>Try a different search term or <a href="@Url.Action("Index", "Course", new { area = "Admin" })" class="text-decoration-none">clear search</a></small>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-graduation-cap fa-2x mb-3"></i>
-                                            <p class="mb-0">No courses found</p>
-                                            <small>Click "Add Course" to create the first course</small>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -183,6 +297,14 @@
                         <div class="col-12 col-md-6">
                             <label for="courseCode" class="form-label">Course Code</label>
                             <input type="text" class="form-control" id="courseCode" name="courseCode" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="qualificationId" class="form-label">Qualification</label>
+                            <select class="form-select" id="qualificationId" name="qualificationId">
+                                <option value="">Select Qualification (Optional)</option>
+                                <!-- Qualifications will be loaded dynamically -->
+                            </select>
                         </div>
                         <div class="col-12">
                             <label for="description" class="form-label">Description</label>
@@ -239,6 +361,14 @@
                         <div class="col-12 col-md-6">
                             <label for="editCourseCode" class="form-label">Course Code</label>
                             <input type="text" class="form-control" id="editCourseCode" name="courseCode" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editQualificationId" class="form-label">Qualification</label>
+                            <select class="form-select" id="editQualificationId" name="qualificationId">
+                                <option value="">Select Qualification (Optional)</option>
+                                <!-- Qualifications will be loaded dynamically -->
+                            </select>
                         </div>
                         <div class="col-12">
                             <label for="editDescription" class="form-label">Description</label>
@@ -332,8 +462,14 @@
      let loCounter = 0;
      let editLoCounter = 0;
      
-     // Initialize when document is ready
-     document.addEventListener('DOMContentLoaded', function() {
+         // Initialize when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load qualification types from database
+        loadQualificationTypes();
+        
+        // Load qualifications for course modals
+        loadQualificationsForCourse();
+        
         // Modal event listeners
         const addCourseModal = document.getElementById('addCourseModal');
                  if (addCourseModal) {
@@ -383,7 +519,51 @@
         const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-         });
+        
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(event) {
+                const target = event.target.getAttribute('data-bs-target');
+                
+                // Show/hide appropriate buttons based on active tab
+                if (target === '#courses') {
+                    document.getElementById('addCourseBtn').style.display = 'inline-block';
+                    document.getElementById('uploadExcelBtn').style.display = 'inline-block';
+                    document.getElementById('addQualificationBtn').style.display = 'none';
+                } else if (target === '#qualifications') {
+                    document.getElementById('addCourseBtn').style.display = 'none';
+                    document.getElementById('uploadExcelBtn').style.display = 'none';
+                    document.getElementById('addQualificationBtn').style.display = 'inline-block';
+                    
+                    // Load qualifications when tab is shown
+                    loadQualifications();
+                }
+            });
+        });
+        
+        // Initialize qualification search functionality
+        const qualificationSearchInput = document.getElementById('qualificationSearchInput');
+        if (qualificationSearchInput) {
+            qualificationSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchQualifications();
+                }
+            });
+            
+            // Auto-search after typing
+            let searchTimeout;
+            qualificationSearchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length >= 2 || this.value.length === 0) {
+                        searchQualifications();
+                    }
+                }, 500);
+            });
+        }
+    });
  
      // Learning Outcomes Functions
      function addLearningOutcome() {
@@ -527,28 +707,30 @@
       }
  
      function saveCourse() {
-                 // Get form data
-         const courseName = document.getElementById('courseName').value;
-         const courseCode = document.getElementById('courseCode').value;
-         const description = document.getElementById('description').value;
-         const learningOutcomes = getLearningOutcomesData('learningOutcomesContainer');
-        
-        // Validate required fields
-        if (!courseName || !courseCode) {
-            showError('Please fill in all required fields!');
-            return;
-        }
-        
-        // Create request data - adapt to backend DTO format
-        const requestData = {
-            courseName: courseName,
-            courseCode: courseCode,
-            description: description,
-            learningOutcomes: learningOutcomes.map(lo => ({
-                LOName: lo.name,
-                description: lo.description
-            }))
-        };
+                         // Get form data
+        const courseName = document.getElementById('courseName').value;
+        const courseCode = document.getElementById('courseCode').value;
+        const qualificationId = document.getElementById('qualificationId').value;
+        const description = document.getElementById('description').value;
+        const learningOutcomes = getLearningOutcomesData('learningOutcomesContainer');
+       
+       // Validate required fields
+       if (!courseName || !courseCode) {
+           showError('Please fill in all required fields!');
+           return;
+       }
+       
+       // Create request data - adapt to backend DTO format
+       const requestData = {
+           courseName: courseName,
+           courseCode: courseCode,
+           qualificationId: qualificationId || null,
+           description: description,
+           learningOutcomes: learningOutcomes.map(lo => ({
+               LOName: lo.name,
+               description: lo.description
+           }))
+       };
         
         // Show loading state
         const saveButton = document.querySelector('#addCourseModal .btn-success');
@@ -582,8 +764,10 @@
                 // Reset form
                 document.getElementById('addCourseForm').reset();
                 
-                // Refresh page to show new course
-                location.reload();
+                // Refresh page to show new course after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -619,6 +803,7 @@
                      document.getElementById('editCourseId').value = course.id;
                      document.getElementById('editCourseName').value = course.courseName || '';
                      document.getElementById('editCourseCode').value = course.courseCode || '';
+                     document.getElementById('editQualificationId').value = course.qualificationId || '';
                      document.getElementById('editDescription').value = course.description || '';
                      
                                            // Load learning outcomes
@@ -657,31 +842,33 @@
     }
 
     function updateCourse() {
-                 // Get form data
-         const courseId = document.getElementById('editCourseId').value;
-         const courseName = document.getElementById('editCourseName').value;
-         const courseCode = document.getElementById('editCourseCode').value;
-         const description = document.getElementById('editDescription').value;
-         const learningOutcomes = getLearningOutcomesData('editLearningOutcomesContainer');
-        
-        // Validate required fields
-        if (!courseName || !courseCode) {
-            showError('Please fill in all required fields!');
-            return;
-        }
-        
-                 // Create request data - adapt to backend DTO format
-         const requestData = {
-             id: courseId,
-             courseName: courseName,
-             courseCode: courseCode,
-             description: description,
-             learningOutcomes: learningOutcomes.map(lo => ({
-                 id: lo.id,
-                 LOName: lo.name,
-                 description: lo.description
-             }))
-         };
+                         // Get form data
+        const courseId = document.getElementById('editCourseId').value;
+        const courseName = document.getElementById('editCourseName').value;
+        const courseCode = document.getElementById('editCourseCode').value;
+        const qualificationId = document.getElementById('editQualificationId').value;
+        const description = document.getElementById('editDescription').value;
+        const learningOutcomes = getLearningOutcomesData('editLearningOutcomesContainer');
+       
+       // Validate required fields
+       if (!courseName || !courseCode) {
+           showError('Please fill in all required fields!');
+           return;
+       }
+       
+                // Create request data - adapt to backend DTO format
+        const requestData = {
+            id: courseId,
+            courseName: courseName,
+            courseCode: courseCode,
+            qualificationId: qualificationId || null,
+            description: description,
+            learningOutcomes: learningOutcomes.map(lo => ({
+                id: lo.id,
+                LOName: lo.name,
+                description: lo.description
+            }))
+        };
         
         // Show loading state
         const updateButton = document.querySelector('#editCourseModal .btn-success');
@@ -712,8 +899,10 @@
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
                 modal.hide();
                 
-                // Refresh page to show updated course
-                location.reload();
+                // Refresh page to show updated course after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -761,7 +950,11 @@
             clearAllToasts();
             
             if (data.success) {
-                showSuccessAndReload('Course deleted successfully!');
+                showSuccess('Course deleted successfully!');
+                // Reload the page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 showError('Error: ' + data.message);
             }
@@ -830,8 +1023,10 @@
                 // Reset file input
                 fileInput.value = '';
                 
-                // Refresh page to show new courses
-                location.reload();
+                // Refresh page to show new courses after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             } else {
                 showError('Error: ' + data.message);
             }
@@ -845,6 +1040,411 @@
             uploadButton.innerHTML = originalText;
             uploadButton.disabled = false;
         });
+    }
+
+    // Load qualifications data
+    function loadQualifications() {
+        const tbody = document.getElementById('qualificationTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p class="mb-0">Loading qualifications...</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Call actual API endpoint
+        fetch('/Admin/Qualification/GetQualifications')
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    displayQualifications(result.data);
+                    updateQualificationCount(result.data.length);
+                } else {
+                    showError(result.message || 'Failed to load qualifications');
+                    displayQualifications([]);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading qualifications:', error);
+                showError('Failed to load qualifications');
+                displayQualifications([]);
+            });
+    }
+
+    // Load qualification types from database
+    function loadQualificationTypes() {
+        fetch('/Admin/Qualification/GetQualificationTypes')
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    populateQualificationTypeDropdowns(result.data);
+                } else {
+                    console.error('Failed to load qualification types:', result.message);
+                    // Fallback to default options if API fails
+                    populateQualificationTypeDropdowns([
+                        'Bachelor', 'Diploma', 'Certificate', 'Master', 
+                        'PhD', 'Graduate Diploma', 'Postgraduate Certificate'
+                    ]);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading qualification types:', error);
+                // Fallback to default options if API fails
+                populateQualificationTypeDropdowns([
+                    'Bachelor', 'Diploma', 'Certificate', 'Master', 
+                    'PhD', 'Graduate Diploma', 'Postgraduate Certificate'
+                ]);
+            });
+    }
+
+    // Load qualifications for course modals
+    function loadQualificationsForCourse() {
+        fetch('/Admin/Qualification/GetQualifications')
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    populateQualificationDropdowns(result.data);
+                } else {
+                    console.error('Failed to load qualifications:', result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading qualifications:', error);
+            });
+    }
+
+    // Populate qualification dropdowns for course modals
+    function populateQualificationDropdowns(qualifications) {
+        const addDropdown = document.getElementById('qualificationId');
+        const editDropdown = document.getElementById('editQualificationId');
+        
+        // Clear existing options except the first "Select Qualification" option
+        if (addDropdown) {
+            addDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>';
+            qualifications.forEach(qual => {
+                const option = document.createElement('option');
+                option.value = qual.id;
+                option.textContent = `Level ${qual.level} -- ${qual.qualificationType} (${qual.qualificationName})`;
+                addDropdown.appendChild(option);
+            });
+        }
+        
+        if (editDropdown) {
+            editDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>';
+            qualifications.forEach(qual => {
+                const option = document.createElement('option');
+                option.value = qual.id;
+                option.textContent = `Level ${qual.level} -- ${qual.qualificationType} (${qual.qualificationName})`;
+                editDropdown.appendChild(option);
+            });
+        }
+    }
+
+    // Populate qualification type dropdowns
+    function populateQualificationTypeDropdowns(types) {
+        const addDropdown = document.getElementById('qualificationType');
+        const editDropdown = document.getElementById('editQualificationType');
+        
+        // Clear existing options except the first "Select Type" option
+        if (addDropdown) {
+            addDropdown.innerHTML = '<option value="">Select Type</option>';
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                addDropdown.appendChild(option);
+            });
+        }
+        
+        if (editDropdown) {
+            editDropdown.innerHTML = '<option value="">Select Type</option>';
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                editDropdown.appendChild(option);
+            });
+        }
+    }
+
+    // Display qualifications in table
+    function displayQualifications(qualifications) {
+        const tbody = document.getElementById('qualificationTableBody');
+        
+        if (!qualifications || qualifications.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-certificate fa-2x mb-3"></i>
+                            <p class="mb-0">No qualifications found</p>
+                            <small>Click "Add Qualification" to create the first qualification</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = qualifications.map(qual => `
+            <tr>
+                <td class="text-nowrap">${qual.qualificationName || 'N/A'}</td>
+                <td class="text-nowrap">${qual.qualificationType || 'N/A'}</td>
+                <td class="text-nowrap d-none d-md-table-cell">
+                    <span class="badge bg-info">${qual.level || 'N/A'}</span>
+                </td>
+                <td class="text-nowrap d-none d-xl-table-cell">
+                    <span class="badge ${qual.isActive ? 'bg-success' : 'bg-secondary'}">
+                        ${qual.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="text-nowrap">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-success btn-sm" title="Edit" onclick="editQualification('${qual.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteQualification('${qual.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Update qualification count
+    function updateQualificationCount(count) {
+        document.getElementById('qualificationCount').textContent = count;
+        document.getElementById('qualificationListCount').textContent = count;
+    }
+
+    // Search qualifications
+    function searchQualifications() {
+        const searchTerm = document.getElementById('qualificationSearchInput').value.trim();
+        const clearBtn = document.getElementById('clearQualificationSearchBtn');
+        
+        if (searchTerm) {
+            clearBtn.style.display = 'inline-block';
+            // For now, just reload all and filter client-side
+            // TODO: Implement server-side search
+            loadQualifications();
+        } else {
+            clearBtn.style.display = 'none';
+            loadQualifications();
+        }
+    }
+
+    // Clear qualification search
+    function clearQualificationSearch() {
+        document.getElementById('qualificationSearchInput').value = '';
+        document.getElementById('clearQualificationSearchBtn').style.display = 'none';
+        loadQualifications();
+    }
+
+    // Save qualification
+    function saveQualification() {
+        const form = document.getElementById('addQualificationForm');
+        const formData = new FormData(form);
+        
+        // Validate required fields
+        const name = formData.get('qualificationName');
+        const type = formData.get('qualificationType');
+        const level = formData.get('level');
+        
+        if (!name || !type || !level) {
+            showError('Please fill in all required fields!');
+            return;
+        }
+        
+        // Show loading state
+        const saveButton = document.querySelector('#addQualificationModal .btn-success');
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        saveButton.disabled = true;
+        
+        // Prepare data for API call
+        const qualificationData = {
+            qualificationName: name,
+            qualificationType: type,
+            level: parseInt(level),
+            isActive: formData.get('isActive') === 'on'
+        };
+        
+        // Call API
+        fetch('/Admin/Qualification/CreateQualification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(qualificationData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showSuccess(result.message || 'Qualification created successfully!');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addQualificationModal'));
+                modal.hide();
+                
+                // Reset form
+                form.reset();
+                
+                // Reload qualifications
+                loadQualifications();
+            } else {
+                showError(result.message || 'Failed to create qualification');
+            }
+        })
+        .catch(error => {
+            console.error('Error creating qualification:', error);
+            showError('Failed to create qualification');
+        })
+        .finally(() => {
+            // Reset button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+        });
+    }
+
+    // Edit qualification
+    function editQualification(qualificationId) {
+        // Show loading state
+        const editModal = new bootstrap.Modal(document.getElementById('editQualificationModal'));
+        editModal.show();
+        
+        // Load qualification data
+        fetch(`/Admin/Qualification/GetQualification?id=${qualificationId}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    const qualification = result.data;
+                    
+                    // Populate form fields
+                    document.getElementById('editQualificationHiddenId').value = qualification.id;
+                    document.getElementById('editQualificationName').value = qualification.qualificationName;
+                    document.getElementById('editQualificationType').value = qualification.qualificationType;
+                    document.getElementById('editQualificationLevel').value = qualification.level || '';
+                    document.getElementById('editQualificationIsActive').checked = qualification.isActive;
+                } else {
+                    showError(result.message || 'Failed to load qualification data');
+                    editModal.hide();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading qualification:', error);
+                showError('Failed to load qualification data');
+                editModal.hide();
+            });
+    }
+
+    // Update qualification
+    function updateQualification() {
+        const form = document.getElementById('editQualificationForm');
+        const formData = new FormData(form);
+        
+        // Validate required fields
+        const name = formData.get('qualificationName');
+        const type = formData.get('qualificationType');
+        const level = formData.get('level');
+        
+        if (!name || !type || !level) {
+            showError('Please fill in all required fields!');
+            return;
+        }
+        
+        // Show loading state
+        const updateButton = document.querySelector('#editQualificationModal .btn-success');
+        const originalText = updateButton.innerHTML;
+        updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        updateButton.disabled = true;
+        
+        // Prepare data for API call
+        const qualificationData = {
+            id: formData.get('id'),
+            qualificationName: name,
+            qualificationType: type,
+            level: parseInt(level),
+            isActive: formData.get('isActive') === 'on'
+        };
+        
+        // Call API
+        fetch('/Admin/Qualification/UpdateQualification', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(qualificationData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showSuccess(result.message || 'Qualification updated successfully!');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editQualificationModal'));
+                modal.hide();
+                
+                // Reset form
+                form.reset();
+                
+                // Reload qualifications
+                loadQualifications();
+            } else {
+                showError(result.message || 'Failed to update qualification');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating qualification:', error);
+            showError('Failed to update qualification');
+        })
+        .finally(() => {
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
+        });
+    }
+
+    // Delete qualification
+    function deleteQualification(qualificationId) {
+        showConfirm(
+            'Are you sure you want to delete this qualification?',
+            () => {
+                // Show loading message
+                const loadingToast = showLoading('Deleting qualification...');
+                
+                // Call API
+                fetch(`/Admin/Qualification/DeleteQualification?id=${qualificationId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    // Clear loading toast
+                    clearAllToasts();
+                    
+                    if (result.success) {
+                        showSuccess(result.message || 'Qualification deleted successfully!');
+                        // Reload the page after a short delay
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        showError(result.message || 'Failed to delete qualification');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting qualification:', error);
+                    clearAllToasts();
+                    showError('Failed to delete qualification');
+                });
+            },
+            null,
+            'Delete Qualification'
+        );
     }
 </script>
 
@@ -1122,4 +1722,158 @@
      .lo-table .btn-danger i {
          font-size: 0.75rem;
      }
+     
+     /* Tab styling */
+     .nav-tabs .nav-link {
+         border: none;
+         color: #6c757d;
+         font-weight: 500;
+         padding: 0.75rem 1.5rem;
+         transition: all 0.2s ease-in-out;
+     }
+     
+     .nav-tabs .nav-link:hover {
+         border: none;
+         color: #495057;
+         background-color: #f8f9fa;
+     }
+     
+     .nav-tabs .nav-link.active {
+         border: none;
+         color: #0d6efd;
+         background-color: #fff;
+         border-bottom: 3px solid #0d6efd;
+     }
+     
+     .nav-tabs .nav-link .badge {
+         font-size: 0.75rem;
+         padding: 0.25rem 0.5rem;
+     }
 </style>
+
+<!-- Add Qualification Modal -->
+<div class="modal fade" id="addQualificationModal" tabindex="-1" aria-labelledby="addQualificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="addQualificationModalLabel">
+                    <i class="fas fa-plus me-2"></i>
+                    Add Qualification
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addQualificationForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="qualificationName" class="form-label">Qualification Name</label>
+                            <input type="text" class="form-control" id="qualificationName" name="qualificationName" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="qualificationType" class="form-label">Qualification Type</label>
+                            <select class="form-select" id="qualificationType" name="qualificationType" required>
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="qualificationLevel" class="form-label">Level</label>
+                            <select class="form-select" id="qualificationLevel" name="level" required>
+                                <option value="">Select Level</option>
+                                <option value="4">Level 4</option>
+                                <option value="5">Level 5</option>
+                                <option value="6">Level 6</option>
+                                <option value="7">Level 7</option>
+                                <option value="8">Level 8</option>
+                                <option value="9">Level 9</option>
+                                <option value="10">Level 10</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="qualificationIsActive" name="isActive" checked>
+                                <label class="form-check-label" for="qualificationIsActive">
+                                    Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="saveQualification()">
+                                <i class="fas fa-save me-2"></i>
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Qualification Modal -->
+<div class="modal fade" id="editQualificationModal" tabindex="-1" aria-labelledby="editQualificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="editQualificationModalLabel">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Qualification
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editQualificationForm">
+                    <input type="hidden" id="editQualificationHiddenId" name="id">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="editQualificationName" class="form-label">Qualification Name</label>
+                            <input type="text" class="form-control" id="editQualificationName" name="qualificationName" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editQualificationType" class="form-label">Qualification Type</label>
+                            <select class="form-select" id="editQualificationType" name="qualificationType" required>
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editQualificationLevel" class="form-label">Level</label>
+                            <select class="form-select" id="editQualificationLevel" name="level" required>
+                                <option value="">Select Level</option>
+                                <option value="4">Level 4</option>
+                                <option value="5">Level 5</option>
+                                <option value="6">Level 6</option>
+                                <option value="7">Level 7</option>
+                                <option value="8">Level 8</option>
+                                <option value="9">Level 9</option>
+                                <option value="10">Level 10</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editQualificationIsActive" name="isActive">
+                                <label class="form-check-label" for="editQualificationIsActive">
+                                    Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="updateQualification()">
+                                <i class="fas fa-save me-2"></i>
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

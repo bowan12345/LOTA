@@ -18,8 +18,12 @@ namespace LOTA.Model.DTO.Admin
         [StringLength(50, ErrorMessage = "Course code cannot exceed 50 characters")]
         public string CourseCode { get; set; }
 
+
+
         [StringLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string Description { get; set; }
+
+        public string? QualificationId { get; set; }
 
         public ICollection<LearningOutcomeCreateDTO> LearningOutcomes { get; set; } = new List<LearningOutcomeCreateDTO>();
     }
