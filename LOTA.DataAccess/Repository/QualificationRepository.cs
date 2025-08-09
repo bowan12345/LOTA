@@ -66,7 +66,7 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<QualificationType?> GetQualificationTypeByNameAsync(string name)
+        public async Task<QualificationType?> GetQualificationTypeByTypeNameAsync(string name)
         {
             return await _db.QualificationType
                 .FirstOrDefaultAsync(qt => qt.QualificationTypeName == name);

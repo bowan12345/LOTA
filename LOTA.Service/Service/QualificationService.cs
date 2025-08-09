@@ -63,7 +63,7 @@ namespace LOTA.Service.Service
             }
 
             // Find the QualificationType by name
-            var qualificationType = await _unitOfWork.qualificationRepository.GetQualificationTypeByNameAsync(qualificationDto.QualificationType);
+            var qualificationType = await _unitOfWork.qualificationRepository.GetQualificationTypeByTypeNameAsync(qualificationDto.QualificationType);
             if (qualificationType == null)
             {
                 throw new InvalidOperationException($"Qualification type '{qualificationDto.QualificationType}' not found.");
@@ -112,7 +112,7 @@ namespace LOTA.Service.Service
             }
 
             // Find the QualificationType by name
-            var qualificationType = await _unitOfWork.qualificationRepository.GetQualificationTypeByNameAsync(qualificationDto.QualificationType);
+            var qualificationType = await _unitOfWork.qualificationRepository.GetQualificationTypeByTypeNameAsync(qualificationDto.QualificationType);
             if (qualificationType == null)
             {
                 throw new InvalidOperationException($"Qualification type '{qualificationDto.QualificationType}' not found.");

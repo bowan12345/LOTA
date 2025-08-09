@@ -38,17 +38,13 @@
                     <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">
                         <i class="fas fa-graduation-cap me-2"></i>
                         Courses
-                        @if (Model != null && Model.Any())
-                        {
-                            <span class="badge bg-primary ms-2">@Model.Count()</span>
-                        }
+                       
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="qualifications-tab" data-bs-toggle="tab" data-bs-target="#qualifications" type="button" role="tab" aria-controls="qualifications" aria-selected="false">
                         <i class="fas fa-certificate me-2"></i>
                         Qualifications
-                        <span class="badge bg-secondary ms-2" id="qualificationCount">0</span>
                     </button>
                 </li>
             </ul>
@@ -127,7 +123,7 @@
                                             <td class="text-nowrap">@(course.CourseName ?? "N/A")</td>
                                             <td class="text-nowrap">@(course.CourseCode ?? "N/A")</td>
                                             <td class="text-nowrap d-none d-md-table-cell">
-                                                <span class="badge bg-info">@course.Level</span>
+                                                <span class="badge bg-info">@(course.Level == 0 ? "N/A" : course.Level.ToString())</span>
                                             </td>
                                             <td class="text-nowrap d-none d-lg-table-cell">
                                                 @if (!string.IsNullOrEmpty(course.QualificationName))
@@ -429,8 +425,6 @@
                     <ul class="mb-0 mt-2">
                         <li><strong>CourseName</strong> (Required)</li>
                         <li><strong>CourseCode</strong> (Required)</li>
-                        <li><strong>Description</strong> (Optional)</li>
-                        <li><strong>LearningOutcomes</strong> (Optional)</li>
                     </ul>
                     <div class="mt-3">
                         <small class="text-muted">
@@ -531,6 +525,9 @@
                     document.getElementById('addCourseBtn').style.display = 'inline-block';
                     document.getElementById('uploadExcelBtn').style.display = 'inline-block';
                     document.getElementById('addQualificationBtn').style.display = 'none';
+                    
+                    // Refresh the page to get updated course data with latest qualification information
+                    location.reload();
                 } else if (target === '#qualifications') {
                     document.getElementById('addCourseBtn').style.display = 'none';
                     document.getElementById('uploadExcelBtn').style.display = 'none';
@@ -1218,7 +1215,6 @@
 
     // Update qualification count
     function updateQualificationCount(count) {
-        document.getElementById('qualificationCount').textContent = count;
         document.getElementById('qualificationListCount').textContent = count;
     }
 
@@ -1779,6 +1775,9 @@
                             <label for="qualificationLevel" class="form-label">Level</label>
                             <select class="form-select" id="qualificationLevel" name="level" required>
                                 <option value="">Select Level</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
                                 <option value="4">Level 4</option>
                                 <option value="5">Level 5</option>
                                 <option value="6">Level 6</option>
@@ -1843,6 +1842,9 @@
                             <label for="editQualificationLevel" class="form-label">Level</label>
                             <select class="form-select" id="editQualificationLevel" name="level" required>
                                 <option value="">Select Level</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
                                 <option value="4">Level 4</option>
                                 <option value="5">Level 5</option>
                                 <option value="6">Level 6</option>

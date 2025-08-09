@@ -3,6 +3,7 @@ using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using LOTA.Model.DTO.Admin;
+using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -84,6 +85,36 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Validation failed", errors });
                 }
 
+                //check level range
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Certificate.ToString() && (qualification.Level < 1 || qualification.Level > 6))
+                {
+                    return Json(new { success = false, message = " Certificate Level between 1 and 6" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Diploma.ToString() && (qualification.Level < 4 || qualification.Level > 7))
+                {
+                    return Json(new { success = false, message = " Diploma Level between 4 and 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Bachelor.ToString() && (qualification.Level < 5 || qualification.Level > 7))
+                {
+                    return Json(new { success = false, message = " Bachelor Level between 5 and 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.GraduateDiploma.ToString() && qualification.Level != 7)
+                {
+                    return Json(new { success = false, message = " GraduateDiploma  Level is 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PostgraduateCertificate.ToString() && qualification.Level != 8)
+                {
+                    return Json(new { success = false, message = " PostgraduateCertificate  Level is 8" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Master.ToString() && (qualification.Level < 8 || qualification.Level > 9))
+                {
+                    return Json(new { success = false, message = " Master  Level between 8 and 9" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PhD.ToString() && qualification.Level != 10)
+                {
+                    return Json(new { success = false, message = " PhD  Level is 10" });
+                }
+
                 var result = await _qualificationService.CreateQualificationAsync(qualification);
                 return Json(new { success = true, data = result, message = "Qualification created successfully" });
             }
@@ -114,6 +145,36 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         .Select(e => e.ErrorMessage)
                         .ToList();
                     return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                //check level range
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Certificate.ToString() && (qualification.Level < 1 || qualification.Level > 6))
+                {
+                    return Json(new { success = false, message = " Certificate Level between 1 and 6" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Diploma.ToString() && (qualification.Level < 4 || qualification.Level > 7))
+                {
+                    return Json(new { success = false, message = " Diploma Level between 4 and 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Bachelor.ToString() && (qualification.Level < 5 || qualification.Level > 7))
+                {
+                    return Json(new { success = false, message = " Bachelor Level between 5 and 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.GraduateDiploma.ToString() && qualification.Level != 7)
+                {
+                    return Json(new { success = false, message = " GraduateDiploma  Level is 7" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PostgraduateCertificate.ToString() && qualification.Level != 8)
+                {
+                    return Json(new { success = false, message = " PostgraduateCertificate  Level is 8" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Master.ToString() && (qualification.Level < 8 || qualification.Level > 9))
+                {
+                    return Json(new { success = false, message = " Master  Level between 8 and 9" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PhD.ToString() && qualification.Level != 10)
+                {
+                    return Json(new { success = false, message = " PhD  Level is 10" });
                 }
 
                 var result = await _qualificationService.UpdateQualificationAsync(qualification);

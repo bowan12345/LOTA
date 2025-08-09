@@ -16,7 +16,7 @@ namespace LOTA.Model.DTO.Admin
         public string QualificationType { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Level is required")]
-        [Range(4, 10, ErrorMessage = "Level must be between 4 and 10")]
+        [Range(1, 10, ErrorMessage = "Level must be between 1 and 10")]
         public int Level { get; set; }
 
         public bool IsActive { get; set; } = true;

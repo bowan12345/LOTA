@@ -15,6 +15,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<Qualification>> GetAllQualificationsAsync();
         Task<bool> IsQualificationNameExistsAsync(string name, string? excludeId = null);
         Task<IEnumerable<string>> GetAllQualificationTypesAsync();
-        Task<QualificationType?> GetQualificationTypeByNameAsync(string name);
+        Task<QualificationType?> GetQualificationTypeByTypeNameAsync(string name);
     }
 }

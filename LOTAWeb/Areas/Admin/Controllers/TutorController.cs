@@ -539,10 +539,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Cell(1, 2).Value = "FirstName";
                      worksheet.Cell(1, 3).Value = "Email";
                      worksheet.Cell(1, 4).Value = "Password";
-                     worksheet.Cell(1, 5).Value = "AssignedCourses";
 
                      // Style headers
-                     var headerRange = worksheet.Range(1, 1, 1, 5);
+                     var headerRange = worksheet.Range(1, 1, 1, 4);
                      headerRange.Style.Font.Bold = true;
                      headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
                      headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
@@ -553,13 +552,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Cell(2, 2).Value = "John";
                      worksheet.Cell(2, 3).Value = "john.smith@example.com";
                      worksheet.Cell(2, 4).Value = "password123";
-                     worksheet.Cell(2, 5).Value = "CS101,CS102";
 
                      worksheet.Cell(3, 1).Value = "Johnson";
                      worksheet.Cell(3, 2).Value = "Jane";
                      worksheet.Cell(3, 3).Value = "jane.johnson@example.com";
-                     worksheet.Cell(3, 4).Value = "";
-                     worksheet.Cell(3, 5).Value = "MATH201";
+                     worksheet.Cell(3, 4).Value = "password123";
 
                      // Auto-fit columns
                      worksheet.Columns().AdjustToContents();
@@ -569,7 +566,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Column(2).Width = 15; // FirstName
                      worksheet.Column(3).Width = 25; // Email
                      worksheet.Column(4).Width = 15; // Password
-                     worksheet.Column(5).Width = 20; // AssignedCourses
 
                      // Create the file stream
                      var stream = new MemoryStream();

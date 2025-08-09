@@ -72,10 +72,10 @@ namespace LOTA.Service.Service
                 
                     // Save learning outcomes to database
                     await _unitOfWork.learningOutcomeRepository.AddRangeAsync(learningOutcomes);
-                    await _unitOfWork.SaveAsync();
                 }
             }
-            
+            // Save changes to database
+            await _unitOfWork.SaveAsync();
             // Return creation result
             return new CourseReturnDTO()
             {
@@ -276,8 +276,6 @@ namespace LOTA.Service.Service
                     {
                         var courseName = row.Cell("A").Value.ToString()?.Trim();
                         var courseCode = row.Cell("B").Value.ToString()?.Trim();
-                        var description = row.Cell("C").Value.ToString()?.Trim();
-                        var learningOutcomes = row.Cell("D").Value.ToString()?.Trim();
 
                         // Validate required fields
                         if (string.IsNullOrWhiteSpace(courseName))
@@ -294,7 +292,7 @@ namespace LOTA.Service.Service
 
                         // Check if course code already exists
                         var existingCourse = await _unitOfWork.courseRepository.GetAsync(c => c.CourseCode == courseCode);
-                        if (existingCourse != null)
+                        if (existingCourse != null && existingCourse.Count()>0)
                         {
                             errors.Add($"Row {row.RowNumber()}: Course with code '{courseCode}' already exists");
                             continue;
@@ -306,39 +304,14 @@ namespace LOTA.Service.Service
                             Id = Guid.NewGuid().ToString(),
                             CourseName = courseName,
                             CourseCode = courseCode,
-                            Description = description ?? "",
+                            Description = "",
+                            QualificationId = null,
                             IsActive = true,
                             CreatedDate = DateTime.Now,
                             UpdatedDate = DateTime.Now
                         };
 
                         await _unitOfWork.courseRepository.AddAsync(course);
-
-                        // Process learning outcomes if provided
-                        if (!string.IsNullOrWhiteSpace(learningOutcomes))
-                        {
-                            var loList = learningOutcomes.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                                .Select(lo => lo.Trim())
-                                .Where(lo => !string.IsNullOrWhiteSpace(lo))
-                                .ToList();
-
-                            foreach (var lo in loList)
-                            {
-                                var learningOutcome = new LearningOutcome
-                                {
-                                    Id = Guid.NewGuid().ToString(),
-                                    LOName = lo,
-                                    Description = lo, // Use the same value as description for now
-                                    MaxScore = 100,
-                                    Weight = 1,
-                                    CourseId = course.Id,
-                                    CreatedDate = DateTime.Now,
-                                    UpdatedDate = DateTime.Now
-                                };
-
-                                await _unitOfWork.learningOutcomeRepository.AddAsync(learningOutcome);
-                            }
-                        }
 
                         successCount++;
                     }
@@ -369,11 +342,9 @@ namespace LOTA.Service.Service
             // Add headers
             worksheet.Cell("A1").Value = "CourseName";
             worksheet.Cell("B1").Value = "CourseCode";
-            worksheet.Cell("C1").Value = "Description";
-            worksheet.Cell("D1").Value = "LearningOutcomes";
 
             // Style headers
-            var headerRange = worksheet.Range("A1:D1");
+            var headerRange = worksheet.Range("A1:B1");
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
             headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -381,13 +352,9 @@ namespace LOTA.Service.Service
             // Add sample data
             worksheet.Cell("A2").Value = "Introduction to Computer Science";
             worksheet.Cell("B2").Value = "CS101";
-            worksheet.Cell("C2").Value = "Basic concepts of computer science";
-            worksheet.Cell("D2").Value = "LO1; LO2; LO3";
 
             worksheet.Cell("A3").Value = "Advanced Programming";
             worksheet.Cell("B3").Value = "CS201";
-            worksheet.Cell("C3").Value = "Advanced programming concepts";
-            worksheet.Cell("D3").Value = "LO1; LO2";
 
             // Auto-fit columns
             worksheet.Columns().AdjustToContents();
@@ -400,8 +367,6 @@ namespace LOTA.Service.Service
             var courseCodeValidation = worksheet.Range("B2:B1000").CreateDataValidation();
             courseCodeValidation.Custom("=LEN(B2)>0");
             courseCodeValidation.ErrorMessage = "Course Code is required";
-
-
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
