@@ -62,7 +62,7 @@
                         </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Student" asp-action="Index">
                             <i class="fas fa-graduation-cap me-3"></i>
                             Manage Students
                         </a>
@@ -220,6 +220,17 @@
              padding-top: 0;
              padding-bottom: 0;
          }
+         
+         /* Prevent header from shifting */
+         header {
+             position: relative;
+             z-index: 1031;
+         }
+         
+         /* Ensure header stays fixed at top */
+         header .container-fluid {
+             position: relative;
+         }
         
          /* Content area */
          main {
@@ -232,9 +243,19 @@
             border-color: rgba(255, 255, 255, 0.5);
         }
         
-        /* Smooth transitions */
-        * {
+        /* Smooth transitions for specific elements only */
+        .btn, .nav-link, .form-control, .card {
             transition: all 0.2s ease-in-out;
+        }
+        
+        /* Prevent header from shifting when modal opens */
+        header {
+            transition: none !important;
+        }
+        
+        /* Ensure body doesn't shift when modal opens */
+        body.modal-open {
+            padding-right: 0 !important;
         }
     </style>
 

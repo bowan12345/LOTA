@@ -72,5 +72,28 @@ namespace LOTA.Service.Service.IService
         /// </summary>
         /// <returns>Excel file as byte array</returns>
         Task<byte[]> GenerateExcelTemplateAsync();
+
+        /// <summary>
+        /// Get enrolled students for a course
+        /// </summary>
+        /// <param name="courseId">The course ID</param>
+        /// <returns>List of enrolled students</returns>
+        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId);
+
+        /// <summary>
+        /// Add students to a course
+        /// </summary>
+        /// <param name="courseId">The course ID</param>
+        /// <param name="studentIds">List of student IDs to add</param>
+        /// <returns></returns>
+        Task AddStudentsToCourseAsync(string courseId, List<string> studentIds);
+
+        /// <summary>
+        /// Remove a student from a course
+        /// </summary>
+        /// <param name="courseId">The course ID</param>
+        /// <param name="studentId">The student ID to remove</param>
+        /// <returns></returns>
+        Task RemoveStudentFromCourseAsync(string courseId, string studentId);
     }
 }

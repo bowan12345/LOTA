@@ -11,6 +11,7 @@ using LOTA.Model.DTO.Admin;
 namespace LOTAWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    //[Authorize(Roles = "Admin")]
     public class CourseController : Controller
     {
         private readonly ICourseService _courseService;
@@ -42,7 +43,23 @@ namespace LOTAWeb.Areas.Admin.Controllers
             //return all course information on the home page 
             return View(courseList);
         }
-
+        public async Task<IActionResult> Details(string id) 
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return RedirectToAction("Index");
+            }
+            
+            // Query course information by course id
+            var courseReturnDTO = await _courseService.GetCourseByIdAsync(id);
+            
+            if (courseReturnDTO == null)
+            {
+                return RedirectToAction("Index");
+            }
+            
+            return View(courseReturnDTO);
+        }
 
         /// <summary>
         ///  search courses by course name or course code
@@ -266,6 +283,66 @@ namespace LOTAWeb.Areas.Admin.Controllers
             {
                 Console.WriteLine($"Error in DownloadTemplate: {ex.Message}");
                 return Json(new { success = false, message = $"Failed to generate template: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEnrolledStudents(string id)
+        {
+            try
+            {
+                var students = await _courseService.GetEnrolledStudentsAsync(id);
+                return Json(new { success = true, data = students });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddStudentsToCourse([FromBody] AddStudentsToCourseDTO request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                await _courseService.AddStudentsToCourseAsync(request.CourseId, request.StudentIds);
+                return Json(new { success = true, message = "Students added to course successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveStudentFromCourseDTO request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                await _courseService.RemoveStudentFromCourseAsync(request.CourseId, request.StudentId);
+                return Json(new { success = true, message = "Student removed from course successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

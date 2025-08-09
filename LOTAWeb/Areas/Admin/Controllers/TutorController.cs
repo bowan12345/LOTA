@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 namespace LOTAWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    //[Authorize(Roles = "Admin")]
     public class TutorController : Controller
     {
         private readonly ITutorService _tutorService;

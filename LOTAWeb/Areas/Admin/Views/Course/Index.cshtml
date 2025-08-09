@@ -172,6 +172,9 @@
 
                                             <td class="text-nowrap">
                                                 <div class="btn-group" role="group">
+                                                    <button class="btn btn-info btn-sm" title="View Details" onclick="viewCourseDetails('@course.Id')">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
                                                     <button class="btn btn-success btn-sm" title="Edit" onclick="editCourse('@course.Id')">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
@@ -779,6 +782,11 @@
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
         });
+    }
+
+    function viewCourseDetails(courseId) {
+        // Redirect to course details page
+        window.location.href = `/Admin/Course/Details/${courseId}`;
     }
 
     function editCourse(courseId) {

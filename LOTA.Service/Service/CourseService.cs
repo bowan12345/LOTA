@@ -118,7 +118,7 @@ namespace LOTA.Service.Service
                 throw new NullReferenceException("courseId is empty");
             }
             
-            Course course = await _unitOfWork.courseRepository.GetByIdAsync(courseId, includeProperties: "LearningOutcomes");
+            Course course = await _unitOfWork.courseRepository.GetByIdAsync(courseId, includeProperties: "LearningOutcomes,Qualification,Qualification.QualificationType");
             if (course == null)
             {
                 return null;
@@ -399,6 +399,56 @@ namespace LOTA.Service.Service
                     UpdatedDate = lo.UpdatedDate
                 }).ToList() ?? new List<LearningOutcomeDTO>()
             };
+        }
+
+        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId)
+        {
+            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAsync(courseId);
+            return studentCourses.Select(sc => new StudentReturnDTO
+            {
+                Id = sc.Student.Id,
+                FirstName = sc.Student.FirstName,
+                LastName = sc.Student.LastName,
+                Email = sc.Student.Email,
+                StudentNo = sc.Student.StudentNo,
+                IsActive = sc.Student.IsActive,
+                EnrolledCoursesCount = 0 // We don't need this for this context
+            });
+        }
+
+        public async Task AddStudentsToCourseAsync(string courseId, List<string> studentIds)
+        {
+            foreach (var studentId in studentIds)
+            {
+                // Check if student is already enrolled in this course
+                var existingEnrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
+                if (existingEnrollment == null)
+                {
+                    var studentCourse = new StudentCourse
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        StudentId = studentId,
+                        CourseId = courseId,
+                        IsActive = true,
+                        RegistrationDate = DateTime.UtcNow,
+                        CreatedDate = DateTime.UtcNow
+                    };
+
+                    await _unitOfWork.studentCourseRepository.AddAsync(studentCourse);
+                }
+            }
+
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task RemoveStudentFromCourseAsync(string courseId, string studentId)
+        {
+            var enrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
+            if (enrollment != null)
+            {
+                _unitOfWork.studentCourseRepository.Remove(enrollment);
+                await _unitOfWork.SaveAsync();
+            }
         }
     }
 }

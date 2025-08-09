@@ -1,0 +1,796 @@
+﻿@model IEnumerable<LOTA.Model.DTO.Admin.StudentReturnDTO>
+@{
+    ViewData["Title"] = "Student Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    // Add anti-forgery token for AJAX requests
+    var token = Html.AntiForgeryToken();
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark mb-0">Manage Students</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <i class="fas fa-plus me-2"></i>
+                Add Student
+            </button>
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
+                <i class="fas fa-file-excel me-2"></i>
+                Upload Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Student Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-users text-primary me-2"></i>
+                        Student List
+                        @if (Model != null && Model.Any())
+                        {
+                            <span class="badge bg-primary ms-2">@Model.Count()</span>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                        {
+                            <span class="badge bg-info ms-2">
+                                <i class="fas fa-search me-1"></i>
+                                "@ViewBag.SearchTerm"
+                            </span>
+                        }
+                    </h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-md-end gap-2">
+                        <form method="get" action="@Url.Action("Index", "Student", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
+                                       placeholder="Search students..." value="@ViewBag.SearchTerm">
+                                <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                {
+                                    <a href="@Url.Action("Index", "Student", new { area = "Admin" })" 
+                                       class="btn btn-outline-danger border-start-0" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 responsive-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 text-nowrap">Student ID</th>
+                            <th class="border-0 text-nowrap d-none d-md-table-cell">Surname</th>
+                            <th class="border-0 text-nowrap d-none d-md-table-cell">First Name</th>
+                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Email</th>
+                            <th class="border-0 text-nowrap">Password</th>
+                            <th class="border-0 text-nowrap d-none d-md-table-cell">Status</th>
+                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Enrolled Courses</th>
+                            <th class="border-0 text-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var student in Model)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">@(student.StudentNo ?? "N/A")</td>
+                                    <td class="text-nowrap d-none d-md-table-cell">@(student.LastName ?? "N/A")</td>
+                                    <td class="text-nowrap d-none d-md-table-cell">@(student.FirstName ?? "N/A")</td>
+                                    <td class="text-nowrap d-none d-lg-table-cell">@(student.Email ?? "N/A")</td>
+                                    <td class="text-nowrap">
+                                        <span class="text-muted">••••••••</span>
+                                    </td>
+                                    <td class="text-nowrap d-none d-md-table-cell">
+                                        <span class="badge @(student.IsActive ? "bg-success" : "bg-secondary")">
+                                            @(student.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td class="text-nowrap d-none d-xl-table-cell">
+                                        <span class="badge bg-info">@student.EnrolledCoursesCount</span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-success btn-sm" title="Edit" onclick="editStudent('@student.Id')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteStudent('@student.Id')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="text-muted">
+                                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                        {
+                                            <i class="fas fa-search fa-2x mb-3"></i>
+                                            <p class="mb-0">No students found for "@ViewBag.SearchTerm"</p>
+                                            <small>Try a different search term or <a href="@Url.Action("Index", "Student", new { area = "Admin" })" class="text-decoration-none">clear search</a></small>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-users fa-2x mb-3"></i>
+                                            <p class="mb-0">No students found</p>
+                                            <small>Click "Add Student" to create your first student</small>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentModalLabel">
+                    <i class="fas fa-plus text-success me-2"></i>
+                    Add New Student
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addStudentForm">
+                <div class="modal-body">
+                    @token
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name </label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name </label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="studentNo" class="form-label">Student ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="studentNo" name="studentNo">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                            <label class="form-check-label" for="isActive">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>
+                        Save Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStudentModalLabel">
+                    <i class="fas fa-edit text-success me-2"></i>
+                    Edit Student
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editStudentForm">
+                <div class="modal-body">
+                    @token
+                    <input type="hidden" id="editStudentId" name="editStudentId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editFirstName" class="form-label">First Name </label>
+                            <input type="text" class="form-control" id="editFirstName" name="editFirstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editLastName" class="form-label">Last Name </label>
+                            <input type="text" class="form-control" id="editLastName" name="editLastName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="editEmail" name="editEmail" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editStudentNo" class="form-label">Student ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editStudentNo" name="editStudentNo">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsActive" name="editIsActive">
+                            <label class="form-check-label" for="editIsActive">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>
+                        Update Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Excel Modal -->
+<div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadExcelModalLabel">
+                    <i class="fas fa-file-excel text-success me-2"></i>
+                    Upload Students from Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadExcelForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    @token
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Select Excel File</label>
+                        <input type="file" class="form-control" id="excelFile" name="excelFile" accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Excel File Requirements:</h6>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>First Name</strong> (Optional)</li>
+                            <li><strong>Last Name</strong> (Optional)</li>
+                            <li><strong>Email</strong> (Required)</li>
+                            <li><strong>Student ID</strong> (Required)</li>
+                        </ul>
+                        <p class="mb-0 mt-2"><small><strong>Note:</strong> Password will be automatically generated as "Student123!"</small></p>
+                    </div>
+                    <div class="mb-3">
+                        <a href="/Admin/Student/DownloadTemplate" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-2"></i>
+                            Download Template
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload Students
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/sweetalert-utils.js"></script>
+    <script>
+        // Form submission handlers
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveStudent();
+        });
+
+        document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateStudent();
+        });
+
+        document.getElementById('uploadExcelForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Upload form submitted');
+            uploadExcel();
+        });
+
+        // Save student function
+        function saveStudent() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const studentNo = document.getElementById('studentNo').value;
+            const isActive = document.getElementById('isActive').checked;
+
+            // Validate required fields
+            if (!firstName || !lastName || !email || !password) {
+                showError('Please fill in all required fields!');
+                return;
+            }
+
+            // Validate password confirmation
+            if (password !== confirmPassword) {
+                showError('Password and Confirm Password do not match!');
+                return;
+            }
+
+            // Create request data
+            const requestData = {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password,
+                studentNo: studentNo || null,
+                isActive: isActive
+            };
+
+            // Show loading state
+            const saveButton = document.querySelector('#addStudentModal .btn-success');
+            const originalText = saveButton.innerHTML;
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            saveButton.disabled = true;
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            const tokenValue = token ? token.value : '';
+
+            // Send AJAX request
+            fetch('/Admin/Student/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': tokenValue
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Student created successfully!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('addStudentForm').reset();
+                    
+                    // Refresh page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showError('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error creating student:', error);
+                showError('An error occurred while creating the student. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
+            });
+        }
+
+        // Edit student function
+        function editStudent(studentId) {
+            console.log('Editing student:', studentId);
+            
+            // Show loading state
+            const editModal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+            editModal.show();
+            
+            // Load student data from backend
+            fetch(`/Admin/Student/GetStudentById/${studentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const student = data.data;
+                        
+                        // Populate form fields
+                        document.getElementById('editStudentId').value = student.id;
+                        document.getElementById('editFirstName').value = student.firstName || '';
+                        document.getElementById('editLastName').value = student.lastName || '';
+                        document.getElementById('editEmail').value = student.email || '';
+                        document.getElementById('editStudentNo').value = student.studentNo || '';
+                        document.getElementById('editIsActive').checked = student.isActive;
+                    } else {
+                        showError('Failed to load student data');
+                        editModal.hide();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading student data:', error);
+                    showError('An error occurred while loading student data');
+                    editModal.hide();
+                });
+        }
+
+        // Update student function
+        function updateStudent() {
+            const studentId = document.getElementById('editStudentId').value;
+            const firstName = document.getElementById('editFirstName').value;
+            const lastName = document.getElementById('editLastName').value;
+            const email = document.getElementById('editEmail').value;
+            const studentNo = document.getElementById('editStudentNo').value;
+            const isActive = document.getElementById('editIsActive').checked;
+
+            // Validate required fields
+            if (!firstName || !lastName || !email) {
+                showError('Please fill in all required fields!');
+                return;
+            }
+
+            // Create request data
+            const requestData = {
+                id: studentId,
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                studentNo: studentNo || null,
+                isActive: isActive
+            };
+
+            // Show loading state
+            const updateButton = document.querySelector('#editStudentModal .btn-success');
+            const originalText = updateButton.innerHTML;
+            updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+            updateButton.disabled = true;
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            const tokenValue = token ? token.value : '';
+
+            // Send AJAX request
+            fetch('/Admin/Student/Update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': tokenValue
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Student updated successfully!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
+                    modal.hide();
+                    
+                    // Refresh page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showError('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating student:', error);
+                showError('An error occurred while updating the student. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                updateButton.innerHTML = originalText;
+                updateButton.disabled = false;
+            });
+        }
+
+        // Delete student function
+        function deleteStudent(studentId) {
+            showConfirm(
+                'Are you sure you want to delete this student?',
+                () => confirmDeleteStudent(studentId),
+                null,
+                'Delete Student'
+            );
+        }
+
+        function confirmDeleteStudent(studentId) {
+            const loadingToast = showLoading('Deleting student...');
+            
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            const tokenValue = token ? token.value : '';
+
+            // Send AJAX request to delete student
+            fetch(`/Admin/Student/Delete/${studentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': tokenValue
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Student deleted successfully!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showError('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting student:', error);
+                showError('An error occurred while deleting the student. Please try again.');
+            });
+        }
+
+        // Upload Excel function
+        function uploadExcel() {
+            console.log('uploadExcel function called');
+            const fileInput = document.getElementById('excelFile');
+            console.log('File input element:', fileInput);
+            
+            if (!fileInput) {
+                showError('File input element not found');
+                return;
+            }
+            
+            console.log('File input files:', fileInput.files);
+            console.log('File input files length:', fileInput.files.length);
+            const file = fileInput.files[0];
+            console.log('Selected file:', file);
+            console.log('File name:', file ? file.name : 'No file');
+            console.log('File size:', file ? file.size : 'No file');
+            console.log('File type:', file ? file.type : 'No file');
+
+            if (!file) {
+                showError('Please select a file to upload');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('excelFile', file);
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            const tokenValue = token ? token.value : '';
+            formData.append('__RequestVerificationToken', tokenValue);
+
+            // Show loading state
+            const uploadButton = document.querySelector('#uploadExcelModal .btn-success');
+            const originalText = uploadButton.innerHTML;
+            uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+            uploadButton.disabled = true;
+
+            // Send AJAX request
+            fetch('/Admin/Student/UploadExcel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Students uploaded successfully!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('uploadExcelForm').reset();
+                    
+                    // Refresh page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showError('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading Excel:', error);
+                showError('An error occurred while uploading the file. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                uploadButton.innerHTML = originalText;
+                uploadButton.disabled = false;
+            });
+        }
+    </script>
+
+    <style>
+        /* Responsive table styles */
+        .responsive-table {
+            min-width: 800px; /* Ensure table has minimum width */
+        }
+        
+        /* Table scrollbar styles */
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Responsive breakpoint optimization */
+        @@media (max-width: 1200px) {
+            .responsive-table {
+                min-width: 700px;
+            }
+        }
+        
+        @@media (max-width: 992px) {
+            .responsive-table {
+                min-width: 600px;
+            }
+            
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+        
+        @@media (max-width: 768px) {
+            .responsive-table {
+                min-width: 500px;
+            }
+            
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+            
+            .d-flex.gap-2 {
+                flex-direction: column;
+                gap: 0.5rem !important;
+            }
+            
+            .d-flex.gap-2 .btn {
+                width: 100%;
+            }
+            
+            /* Search box takes full width on small screens */
+            .input-group {
+                max-width: 100% !important;
+            }
+        }
+        
+        @@media (max-width: 576px) {
+            .responsive-table {
+                min-width: 400px;
+            }
+            
+            .table-responsive {
+                font-size: 0.75rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.15rem 0.3rem;
+                font-size: 0.65rem;
+            }
+            
+            .card-header {
+                padding: 0.75rem;
+            }
+            
+            .card-title {
+                font-size: 1rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* Modal responsiveness */
+        @@media (max-width: 768px) {
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .form-label {
+                font-size: 0.9rem;
+            }
+            
+            .form-control {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Button group improvements */
+        .btn-group .btn {
+            border-radius: 0;
+        }
+        
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+        
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+        
+        /* Table hover effects */
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        /* Badge improvements */
+        .badge {
+            font-weight: 500;
+        }
+        
+        /* Search input improvements */
+        .input-group .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+    </style>
+}
