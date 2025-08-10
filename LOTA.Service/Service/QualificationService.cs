@@ -121,7 +121,7 @@ namespace LOTA.Service.Service
             existingQualification.QualificationName = qualificationDto.QualificationName;
             existingQualification.QualificationTypeId = qualificationType.Id;
             existingQualification.Level = qualificationDto.Level;
-            existingQualification.IsActive = qualificationDto.IsActive;
+            //existingQualification.IsActive = qualificationDto.IsActive;
             existingQualification.UpdatedDate = DateTime.UtcNow;
 
             _unitOfWork.qualificationRepository.Update(existingQualification);

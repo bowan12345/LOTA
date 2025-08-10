@@ -19,6 +19,6 @@ namespace LOTA.Model.DTO.Admin
         [Range(1, 10, ErrorMessage = "Level must be between 1 and 10")]
         public int Level { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
     }
 }
