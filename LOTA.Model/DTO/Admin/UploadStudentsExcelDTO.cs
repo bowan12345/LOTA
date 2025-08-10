@@ -2,21 +2,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LOTA.Model.DTO.Admin
 {
-    public class AddStudentsToCourseDTO
+    public class UploadStudentsExcelDTO
     {
         [Required]
         public string CourseId { get; set; } = string.Empty;
-
-        [Required]
-        public List<string> StudentIds { get; set; } = new List<string>();
 
         [Required]
         public string AcademicYear { get; set; } = string.Empty;
 
         [Required]
         public string TrimesterNumber { get; set; } = string.Empty;
-
-        [Required]
-        public string TrimesterId { get; set; } = string.Empty;
     }
 }

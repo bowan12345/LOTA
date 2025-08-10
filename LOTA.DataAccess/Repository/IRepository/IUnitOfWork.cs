@@ -15,6 +15,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         IQualificationRepository qualificationRepository { get; }
         IStudentRepository studentRepository { get; }
         IStudentCourseRepository studentCourseRepository { get; }
+        ITrimesterRepository trimesterRepository { get; }
         
         Task<int> SaveAsync();
     }

@@ -20,6 +20,7 @@ namespace LOTA.DataAccess.Data
         public DbSet<StudentCourse> StudentCourse { get; set; }
         public DbSet<StudentScore> StudentScore { get; set; }
         public DbSet<TutorCourse> TutorCourse { get; set; }
+        public DbSet<Trimester> Trimester { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -267,6 +268,42 @@ namespace LOTA.DataAccess.Data
                 }
             );
 
+            // trimester
+            modelBuilder.Entity<Trimester>().HasData(
+                new Trimester
+                {
+                    Id = "Trimester-001",
+                    AcademicYear = "2024",
+                    TrimesterNumber = "1",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                },
+                new Trimester
+                {
+                    Id = "Trimester-002",
+                    AcademicYear = "2024",
+                    TrimesterNumber = "2",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                },
+                 new Trimester
+                 {
+                     Id = "Trimester-003",
+                     AcademicYear = "2025",
+                     TrimesterNumber = "1",
+                     IsActive = true,
+                     CreatedDate = DateTime.Now
+                 },
+                new Trimester
+                {
+                    Id = "Trimester-004",
+                    AcademicYear = "2025",
+                    TrimesterNumber = "2",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                }
+            );
+
             // student course
             modelBuilder.Entity<StudentCourse>().HasData(
                 new StudentCourse
@@ -274,6 +311,7 @@ namespace LOTA.DataAccess.Data
                     Id = "STCOURSE-001",
                     StudentId = "STUDENT-001",
                     CourseId = "COURSE-001",
+                    TrimesterId="Trimester-001",
                     IsActive = true,
                     RegistrationDate = DateTime.Now,
                     CreatedDate = DateTime.Now
@@ -281,8 +319,6 @@ namespace LOTA.DataAccess.Data
             );
 
             // student score
-
-
             modelBuilder.Entity<StudentScore>().HasData(
                 new StudentScore
                 {
@@ -290,6 +326,7 @@ namespace LOTA.DataAccess.Data
                     StudentId = "STUDENT-001",
                     AssignmentId = "ASSIGN-001",
                     LOId = "LO-001",
+                    TrimesterId = "Trimester-001",
                     Score = 80,
                     Status = "Pass",
                     IsRetake = false,

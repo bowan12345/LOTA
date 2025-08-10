@@ -27,6 +27,10 @@ namespace LOTA.Model
         [ForeignKey("LOId")]
         public LearningOutcome LearningOutcome { get; set; }
 
+        public string TrimesterId { get; set; }
+        [ForeignKey("TrimesterId")]
+        public Trimester Trimester { get; set; }
+
         // Properties
         [Precision(5, 2)]
         public decimal Score { get; set; }

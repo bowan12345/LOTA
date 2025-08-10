@@ -23,6 +23,7 @@ namespace LOTA.Service
             services.AddScoped<ITutorService, TutorService>();
             services.AddScoped<IQualificationService, QualificationService>();
             services.AddScoped<IStudentService, StudentService>();
+            services.AddScoped<ITrimesterService, TrimesterService>();
 
             return services;
         }

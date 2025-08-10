@@ -401,9 +401,9 @@ namespace LOTA.Service.Service
             };
         }
 
-        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId)
+        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, string? academicYear = null, string? trimesterNumber = null)
         {
-            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAsync(courseId);
+            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAndTrimesterAsync(courseId, academicYear, trimesterNumber);
             return studentCourses.Select(sc => new StudentReturnDTO
             {
                 Id = sc.Student.Id,
@@ -416,25 +416,42 @@ namespace LOTA.Service.Service
             });
         }
 
-        public async Task AddStudentsToCourseAsync(string courseId, List<string> studentIds)
+        public async Task AddStudentsToCourseAsync(string courseId, List<string> studentIds, string trimesterId)
         {
+            // Validate trimester exists
+            var trimester = await _unitOfWork.trimesterRepository.GetAsync(t => t.Id == trimesterId);
+            if (!trimester.Any())
+            {
+                throw new InvalidOperationException($"Trimester with ID {trimesterId} not found");
+            }
+
             foreach (var studentId in studentIds)
             {
-                // Check if student is already enrolled in this course
-                var existingEnrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
-                if (existingEnrollment == null)
+                // Check if student is already enrolled in this course for this trimester
+                var existingEnrollment = await _unitOfWork.studentCourseRepository.GetAsync(sc => 
+                    sc.StudentId == studentId && 
+                    sc.CourseId == courseId && 
+                    sc.TrimesterId == trimesterId);
+
+                if (!existingEnrollment.Any())
                 {
                     var studentCourse = new StudentCourse
                     {
                         Id = Guid.NewGuid().ToString(),
                         StudentId = studentId,
                         CourseId = courseId,
+                        TrimesterId = trimesterId,
                         IsActive = true,
                         RegistrationDate = DateTime.UtcNow,
                         CreatedDate = DateTime.UtcNow
                     };
 
                     await _unitOfWork.studentCourseRepository.AddAsync(studentCourse);
+                }
+                else
+                {
+                    // Student is already enrolled in this course for this trimester
+                    throw new InvalidOperationException($"Student {studentId} is already enrolled in course {courseId} for trimester {trimesterId}");
                 }
             }
 
@@ -449,6 +466,98 @@ namespace LOTA.Service.Service
                 _unitOfWork.studentCourseRepository.Remove(enrollment);
                 await _unitOfWork.SaveAsync();
             }
+        }
+
+        public async Task<(int successCount, List<string> errors)> ImportStudentsFromExcelAsync(string courseId, string trimesterId, Stream fileStream)
+        {
+            var errors = new List<string>();
+            var successCount = 0;
+
+            try
+            {
+                // Validate trimester exists
+                var trimester = await _unitOfWork.trimesterRepository.GetAsync(t => t.Id == trimesterId);
+                if (!trimester.Any())
+                {
+                    throw new InvalidOperationException($"Trimester with ID {trimesterId} not found");
+                }
+
+                using var workbook = new XLWorkbook(fileStream);
+                var worksheet = workbook.Worksheet(1);
+                var rows = worksheet.RowsUsed().Skip(1); // Skip header row
+
+                foreach (var row in rows)
+                {
+                    try
+                    {
+                        var studentId = row.Cell("A").Value.ToString()?.Trim();
+                        var email = row.Cell("B").Value.ToString()?.Trim();
+
+                        if (string.IsNullOrEmpty(studentId) || string.IsNullOrEmpty(email))
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Student ID or Email is empty");
+                            continue;
+                        }
+
+                        // Find student by Student ID or Email
+                        var student = await _unitOfWork.studentRepository.GetAsync(s => 
+                            s.StudentNo == studentId && s.Email == email);
+
+                        if (!student.Any())
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Student not found with ID '{studentId}' or Email '{email}'");
+                            continue;
+                        }
+
+                        var studentEntity = student.First();
+
+                        // Check if student is already enrolled in this course for this trimester
+                        var existingEnrollment = await _unitOfWork.studentCourseRepository.GetAsync(sc => 
+                            sc.StudentId == studentEntity.Id && 
+                            sc.CourseId == courseId && 
+                            sc.TrimesterId == trimesterId);
+
+                        if (!existingEnrollment.Any())
+                        {
+                            var studentCourse = new StudentCourse
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                StudentId = studentEntity.Id,
+                                CourseId = courseId,
+                                TrimesterId = trimesterId,
+                                IsActive = true,
+                                RegistrationDate = DateTime.UtcNow,
+                                CreatedDate = DateTime.UtcNow
+                            };
+
+                            await _unitOfWork.studentCourseRepository.AddAsync(studentCourse);
+                            successCount++;
+                        }
+                        else
+                        {
+                            // Student is already enrolled in this course for this trimester
+                            errors.Add($"Row {row.RowNumber()}: Student '{studentId}' is already enrolled in this course for trimester {trimesterId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Row {row.RowNumber()}: Error processing row - {ex.Message}");
+                    }
+                }
+
+                await _unitOfWork.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"General error: {ex.Message}");
+            }
+
+            return (successCount, errors);
+        }
+
+        public async Task<IEnumerable<Trimester>> GetActiveTrimestersAsync()
+        {
+            return await _unitOfWork.trimesterRepository.GetActiveTrimestersAsync();
         }
     }
 }

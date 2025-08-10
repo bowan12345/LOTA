@@ -26,6 +26,10 @@
                 <i class="fas fa-user-plus me-2"></i>
                 Add Students
             </button>
+            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
+                <i class="fas fa-file-excel me-2"></i>
+                Upload Excel
+            </button>
             <a href="/Admin/Course" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>
                 Back to Courses
@@ -138,6 +142,7 @@
                         <div class="text-center py-4">
                             <i class="fas fa-target fa-2x text-muted mb-3"></i>
                             <p class="text-muted mb-0">No learning outcomes defined for this course</p>
+                            <small class="text-muted">Learning outcomes help define what students will learn</small>
                         </div>
                     }
                 </div>
@@ -155,7 +160,33 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div id="enrolledStudentsList">
+                    <!-- Filter Controls -->
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label for="filterAcademicYear" class="form-label small text-muted">Academic Year</label>
+                                <select class="form-select form-select-sm" id="filterAcademicYear" onchange="filterEnrolledStudents();">
+                                    <option value="">All Years</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="filterTrimester" class="form-label small text-muted">Trimester</label>
+                                <select class="form-select form-select-sm" id="filterTrimester" onchange="filterEnrolledStudents();">
+                                    <option value="">All Trimesters</option>
+                                    <option value="tri1">Trimester 1</option>
+                                    <option value="tri2">Trimester 2</option>
+                                    <option value="tri3">Trimester 3</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="enrolledStudentsList" class="enrolled-students-list">
                         <div class="text-center py-4">
                             <i class="fas fa-users fa-2x text-muted mb-3"></i>
                             <p class="text-muted mb-0">No students enrolled yet</p>
@@ -182,21 +213,46 @@
                 <div class="modal-body">
                     @token
                     <input type="hidden" id="courseId" value="@Model.Id">
+                    
+                    <!-- Academic Year and Trimester Selection -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="academicYear" class="form-label">Academic Year</label>
+                            <select class="form-select" id="academicYear" required>
+                                <option value="">Select Academic Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="trimesterNumber" class="form-label">Trimester</label>
+                            <select class="form-select" id="trimesterNumber" required>
+                                <option value="">Select Trimester</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="studentSearch" class="form-label">Search Students</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="studentSearch" placeholder="Search by name, email, or student ID...">
+                            <input type="text" class="form-control" id="studentSearch" placeholder="Search by name, email, or student ID..." oninput="searchStudents()">
                             <button type="button" class="btn btn-outline-secondary" onclick="searchStudents()">
                                 <i class="fas fa-search"></i>
                             </button>
+                            <button type="button" class="btn btn-outline-info" onclick="clearStudentSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
+
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Available Students</label>
-                        <div id="availableStudentsList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small" id="selectedStudentsCount">0 student(s) selected</span>
+                        </div>
+                        <div id="availableStudentsList" class="border rounded p-3 student-search-results">
                             <div class="text-center py-4">
                                 <i class="fas fa-search fa-2x text-muted mb-3"></i>
                                 <p class="text-muted mb-0">Search for students to add to this course</p>
+                                <small class="text-muted">Search by name, email, or student ID</small>
                             </div>
                         </div>
                     </div>
@@ -213,28 +269,420 @@
     </div>
 </div>
 
+<!-- Upload Excel Modal -->
+<div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadExcelModalLabel">
+                    <i class="fas fa-file-excel text-info me-2"></i>
+                    Upload Students Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadExcelForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    @token
+                    <input type="hidden" id="excelCourseId" value="@Model.Id">
+                    
+                    <!-- Academic Year and Trimester Selection -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="excelAcademicYear" class="form-label">Academic Year</label>
+                            <select class="form-select" id="excelAcademicYear" required>
+                                <option value="">Select Academic Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="excelTrimesterNumber" class="form-label">Trimester</label>
+                            <select class="form-select" id="excelTrimesterNumber" required>
+                                <option value="">Select Trimester</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Excel File</label>
+                        <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls,.csv" required>
+                        <div class="form-text">
+                            <strong>Required format:</strong> Excel file with columns: Student ID (A) and Email (B)<br>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Instructions:</h6>
+                        <ul class="mb-0">
+                            <li>First column (A) should contain Student ID</li>
+                            <li>Second column (B) should contain Email</li>
+                            <li>Students will be verified by Student ID or Email</li>
+                            <li>Only existing students can be added to the course</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload and Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .student-card {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-check-input:checked + .form-check-label {
+            background-color: #e7f3ff;
+            border-color: #0d6efd;
+        }
+        
+        .form-check-input:checked + .form-check-label .fw-semibold {
+            color: #0d6efd !important;
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .student-search-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .enrolled-students-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+}
+
 @section Scripts {
     <script src="~/js/sweetalert-utils.js"></script>
     <script>
         // Load enrolled students when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadEnrolledStudents();
+            // Load academic years for the filter dropdown
+            loadTrimesters();
+            
+            // Don't load any students by default - require user to select filters first
+            // Set initial state to show no students
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
+                    <small class="text-muted">Use the filters above to search for students</small>
+                </div>
+            `;
+            countElement.textContent = '0';
+            
+
+            
+            // Add modal event listeners to load data when modals are opened
+            const addStudentModal = document.getElementById('addStudentToCourseModal');
+            if (addStudentModal) {
+                addStudentModal.addEventListener('show.bs.modal', function() {
+                    loadTrimesters(); // Load trimesters for the add students modal
+                    setupFormEventListeners(); // Setup form event listeners
+                });
+            }
+            
+            const uploadExcelModal = document.getElementById('uploadExcelModal');
+            if (uploadExcelModal) {
+                uploadExcelModal.addEventListener('show.bs.modal', function() {
+                    loadTrimesters(); // Load trimesters for the upload Excel modal
+                    setupFormEventListeners(); // Setup form event listeners
+                });
+            }
         });
 
-        // Load enrolled students for this course
-        async function loadEnrolledStudents() {
-            try {
-                const response = await fetch(`/Admin/Course/GetEnrolledStudents/${@Model.Id}`);
-                const data = await response.json();
 
+
+        // Load enrolled students for this course
+        async function loadEnrolledStudents(academicYear = null, trimesterNumber = null) {
+            
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            // Show loading state
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mb-0">Loading enrolled students...</p>
+                </div>
+            `;
+            
+            try {
+                let url = `/Admin/Course/GetEnrolledStudents/${document.getElementById('courseId').value}`;
+                const params = new URLSearchParams();
+                
+                // Only append parameters if they are not null or empty
+                if (academicYear && academicYear !== '') {
+                    params.append('academicYear', academicYear);
+                }
+                if (trimesterNumber && trimesterNumber !== '') {
+                    params.append('trimesterNumber', trimesterNumber);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
                 if (data.success) {
-                    displayEnrolledStudents(data.data);
+                    const students = data.data;
+                    
+                    if (students && students.length > 0) {
+                        // Display enrolled students in the list
+                        displayEnrolledStudents(students);
+                        countElement.textContent = students.length;
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">No students enrolled for the selected criteria</p>
+                                <small class="text-muted">Try changing the filters or adding students to this course</small>
+                            </div>
+                        `;
+                        countElement.textContent = '0';
+                    }
                 } else {
                     console.error('Error loading enrolled students:', data.message);
+                    container.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                            <p class="text-muted mb-0">Error loading enrolled students</p>
+                            <small class="text-danger">${data.message}</small>
+                        </div>
+                    `;
+                    countElement.textContent = '0';
                 }
             } catch (error) {
                 console.error('Error loading enrolled students:', error);
+                container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                         <p class="text-muted mb-0">Error loading enrolled students</p>
+                         <small class="text-danger">${error.message}</small>
+                     </div>
+                 `;
+                 countElement.textContent = '0';
+             }
+             
+         }
+
+        // Filter enrolled students based on selected criteria
+        function filterEnrolledStudents() {
+            
+            const academicYear = document.getElementById('filterAcademicYear').value;
+            const trimester = document.getElementById('filterTrimester').value;
+            
+            // Convert empty strings to null for proper filtering
+            const academicYearParam = academicYear === '' ? null : academicYear;
+            const trimesterParam = trimester === '' ? null : trimester;
+            
+            loadEnrolledStudents(academicYearParam, trimesterParam);
+        }
+
+
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('filterAcademicYear').value = '';
+            document.getElementById('filterTrimester').value = '';
+            
+            // Show message that filters need to be selected
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
+                    <small class="text-muted">Use the filters above to search for students</small>
+                </div>
+            `;
+            countElement.textContent = '0';
+        }
+
+        // Load trimesters for academic year and trimester selection
+        async function loadTrimesters() {
+            try {
+                const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
+                const data = await response.json();
+
+                if (data.success) {
+                    const trimesters = data.data;
+                    
+                    // Populate academic year dropdowns
+                    const academicYearSelect = document.getElementById('academicYear');           // Add Students Modal
+                    const excelAcademicYearSelect = document.getElementById('excelAcademicYear'); // Upload Excel Modal
+                    const filterAcademicYearSelect = document.getElementById('filterAcademicYear'); // Filter dropdown
+                    
+                    // Clear existing options
+                    academicYearSelect.innerHTML = '<option value="">Select Academic Year</option>';
+                    excelAcademicYearSelect.innerHTML = '<option value="">Select Academic Year</option>';
+                    filterAcademicYearSelect.innerHTML = '<option value="">All Years</option>';
+                    
+                    // Get unique academic years
+                    const uniqueYears = [...new Set(trimesters.map(t => t.academicYear))].sort();
+                    
+                    uniqueYears.forEach(year => {
+                        // Add to add students modal
+                        const option1 = document.createElement('option');
+                        option1.value = year;
+                        option1.textContent = year;
+                        academicYearSelect.appendChild(option1);
+                        
+                        // Add to upload excel modal
+                        const option2 = document.createElement('option');
+                        option2.value = year;
+                        option2.textContent = year;
+                        excelAcademicYearSelect.appendChild(option2);
+                        
+                        // Add to filter dropdown
+                        const option3 = document.createElement('option');
+                        option3.value = year;
+                        option3.textContent = year;
+                        filterAcademicYearSelect.appendChild(option3);
+                    });
+                    
+                    // Populate trimester dropdowns
+                    const trimesterSelect = document.getElementById('trimesterNumber');           // Add Students Modal
+                    const excelTrimesterSelect = document.getElementById('excelTrimesterNumber'); // Upload Excel Modal
+                    
+                    // Clear existing options
+                    trimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
+                    excelTrimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
+                    
+                    trimesters.forEach(trimester => {
+                        // Add to add students modal
+                        const option1 = document.createElement('option');
+                        option1.value = trimester.trimesterNumber;
+                        option1.textContent = `Trimester ${trimester.trimesterNumber.replace('tri', '')}`;
+                        trimesterSelect.appendChild(option1);
+                        
+                        // Add to upload excel modal
+                        const option2 = document.createElement('option');
+                        option2.value = trimester.trimesterNumber;
+                        option2.textContent = `Trimester ${trimester.trimesterNumber.replace('tri', '')}`;
+                        excelTrimesterSelect.appendChild(option2);
+                    });
+                    
+                    // Populate filter trimester dropdown
+                    const filterTrimesterSelect = document.getElementById('filterTrimester');
+                    filterTrimesterSelect.innerHTML = '<option value="">All Trimesters</option>';
+                    
+                    // Get unique trimester numbers
+                    const uniqueTrimesters = [...new Set(trimesters.map(t => t.trimesterNumber))].sort();
+                    
+                    uniqueTrimesters.forEach(trimesterNumber => {
+                        const option = document.createElement('option');
+                        option.value = trimesterNumber;
+                        option.textContent = `Trimester ${trimesterNumber.replace('tri', '')}`;
+                        filterTrimesterSelect.appendChild(option);
+                    });
+                    
+                } else {
+                    console.error('Error loading trimesters:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading trimesters:', error);
             }
+        }
+
+        // Setup form event listeners for academic year and trimester linkage
+        function setupFormEventListeners() {
+            // Add Students Modal - Academic Year change event
+            const addStudentAcademicYear = document.getElementById('academicYear');
+            if (addStudentAcademicYear) {
+                addStudentAcademicYear.addEventListener('change', function() {
+                    const selectedYear = this.value;
+                    const trimesterSelect = document.getElementById('trimesterNumber');
+                    populateTrimesterNumbersByYear(selectedYear, trimesterSelect);
+                });
+            }
+            
+            // Upload Excel Modal - Academic Year change event
+            const excelAcademicYear = document.getElementById('excelAcademicYear');
+            if (excelAcademicYear) {
+                excelAcademicYear.addEventListener('change', function() {
+                    const selectedYear = this.value;
+                    const trimesterSelect = document.getElementById('excelTrimesterNumber');
+                    populateTrimesterNumbersByYear(selectedYear, trimesterSelect);
+                });
+            }
+        }
+        
+        // Populate trimester numbers based on selected academic year
+        function populateTrimesterNumbersByYear(academicYear, trimesterSelect) {
+            trimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
+            
+            if (!academicYear) return;
+            
+            // Get trimesters from the filter dropdown options
+            const filterTrimesterSelect = document.getElementById('filterTrimester');
+            const availableTrimesters = Array.from(filterTrimesterSelect.options)
+                .filter(option => option.value && option.value !== 'All Trimesters')
+                .map(option => ({
+                    trimesterNumber: option.value,
+                    displayName: option.textContent
+                }));
+            
+            availableTrimesters.forEach(trimester => {
+                const option = new Option(trimester.displayName, trimester.trimesterNumber);
+                trimesterSelect.add(option);
+            });
+        }
+        
+        // Legacy function for backward compatibility
+        function populateTrimesterNumbers(academicYear, trimesterSelect) {
+            populateTrimesterNumbersByYear(academicYear, trimesterSelect);
+        }
+
+        // Get trimester ID based on academic year and trimester number
+        async function getTrimesterId(academicYear, trimesterNumber) {
+            try {
+                const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const trimester = data.data.find(t => 
+                        t.academicYear === academicYear && t.trimesterNumber === trimesterNumber
+                    );
+                    return trimester ? trimester.id : null;
+                }
+            } catch (error) {
+                console.error('Error getting trimester ID:', error);
+            }
+            return null;
         }
 
         // Display enrolled students in the list
@@ -244,27 +692,58 @@
 
             if (students && students.length > 0) {
                 countElement.textContent = students.length;
-                container.innerHTML = students.map(student => `
-                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">${student.firstName || ''} ${student.lastName || ''}</div>
-                            <small class="text-muted">${student.studentNo || 'N/A'}</small>
+                container.innerHTML = `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Total enrolled: ${students.length}</span>
+                            <button class="btn btn-outline-primary btn-sm" onclick="exportEnrolledStudents()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
                         </div>
-                        <button class="btn btn-outline-danger btn-sm" onclick="removeStudentFromCourse('${student.id}')" title="Remove from course">
-                            <i class="fas fa-times"></i>
-                        </button>
                     </div>
-                `).join('');
+                    ${students.map(student => `
+                        <div class="d-flex align-items-center mb-3 p-3 border rounded bg-light student-card">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <div class="fw-semibold text-dark me-2">${student.firstName || ''} ${student.lastName || ''}</div>
+                                    <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'} small">
+                                        ${student.isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
+                                </div>
+                            </div>
+                            <div class="ms-2">
+                                <button class="btn btn-outline-danger btn-sm" onclick="removeStudentFromCourse('${student.id}')" title="Remove from course">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
             } else {
                 countElement.textContent = '0';
                 container.innerHTML = `
                     <div class="text-center py-4">
                         <i class="fas fa-users fa-2x text-muted mb-3"></i>
                         <p class="text-muted mb-0">No students enrolled yet</p>
+                        <small class="text-muted">Use the "Add Students" button above to enroll students</small>
+                        <div class="mt-2">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addStudentToCourseModal">
+                                <i class="fas fa-user-plus me-1"></i>Add Students Now
+                            </button>
+                        </div>
                     </div>
                 `;
             }
         }
+
+        // Search timeout for debouncing
+        let searchTimeout;
 
         // Search for available students
         async function searchStudents() {
@@ -280,6 +759,41 @@
                 `;
                 return;
             }
+
+            // Show typing indicator for better UX
+            if (searchTerm.length < 3) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-keyboard fa-2x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Type at least 3 characters to search</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            // Set new timeout for debounced search
+            searchTimeout = setTimeout(async () => {
+                await performStudentSearch(searchTerm, container);
+            }, 300);
+        }
+
+        // Perform the actual student search
+        async function performStudentSearch(searchTerm, container) {
+
+            // Show loading state
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mb-0">Searching for students...</p>
+                </div>
+            `;
 
             try {
                 const response = await fetch(`/Admin/Student/SearchStudents?searchTerm=${encodeURIComponent(searchTerm)}`);
@@ -311,20 +825,50 @@
             const container = document.getElementById('availableStudentsList');
 
             if (students && students.length > 0) {
-                container.innerHTML = students.map(student => `
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" value="${student.id}" id="student_${student.id}">
-                        <label class="form-check-label" for="student_${student.id}">
-                            <div class="fw-semibold">${student.firstName || ''} ${student.lastName || ''}</div>
-                            <small class="text-muted">${student.studentNo || 'N/A'} • ${student.email || 'N/A'}</small>
-                        </label>
+                container.innerHTML = `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Found ${students.length} student(s)</span>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllStudents()">
+                                    <i class="fas fa-check-double me-1"></i>Select All
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-1" onclick="deselectAllStudents()">
+                                    <i class="fas fa-times me-1"></i>Deselect All
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                `).join('');
+                                            ${students.map(student => `
+                            <div class="form-check mb-3 p-3 border rounded student-card">
+                                <input class="form-check-input" type="checkbox" value="${student.id}" id="student_${student.id}" onchange="updateSelectedStudentsCount()">
+                                <label class="form-check-label w-100" for="student_${student.id}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold text-dark">${student.firstName || ''} ${student.lastName || ''}</div>
+                                            <div class="text-muted small">
+                                                <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
+                                            </div>
+                                            <div class="text-muted small">
+                                                <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
+                                            </div>
+                                        </div>
+                                        <div class="ms-2">
+                                            <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'}">
+                                                ${student.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        `).join('')}
+                `;
             } else {
                 container.innerHTML = `
                     <div class="text-center py-4">
                         <i class="fas fa-search fa-2x text-muted mb-3"></i>
                         <p class="text-muted mb-0">No students found</p>
+                        <small class="text-muted">Try different search terms or check spelling</small>
                     </div>
                 `;
             }
@@ -339,13 +883,50 @@
         // Add selected students to the course
         async function addStudentsToCourse() {
             const courseId = document.getElementById('courseId').value;
+            const academicYear = document.getElementById('academicYear').value;
+            const trimesterNumber = document.getElementById('trimesterNumber').value;
             const selectedStudents = Array.from(document.querySelectorAll('#availableStudentsList input[type="checkbox"]:checked'))
                 .map(checkbox => checkbox.value);
+
+            if (!academicYear || !trimesterNumber) {
+                showError('Please select both Academic Year and Trimester.');
+                return;
+            }
+
+            // Get trimester ID based on selected academic year and trimester number
+            const trimesterId = await getTrimesterId(academicYear, trimesterNumber);
+            if (!trimesterId) {
+                showError('Invalid trimester selection. Please try again.');
+                return;
+            }
 
             if (selectedStudents.length === 0) {
                 showError('Please select at least one student to add to the course.');
                 return;
             }
+
+            // Show confirmation dialog for large number of students
+            if (selectedStudents.length > 10) {
+                showConfirm(
+                    `Are you sure you want to add ${selectedStudents.length} students to this course?`,
+                    () => performAddStudentsToCourse(courseId, selectedStudents, academicYear, trimesterNumber, trimesterId),
+                    null,
+                    'Confirm Bulk Add'
+                );
+                return;
+            }
+
+            await performAddStudentsToCourse(courseId, selectedStudents, academicYear, trimesterNumber, trimesterId);
+        }
+
+        // Perform the actual add students operation
+        async function performAddStudentsToCourse(courseId, selectedStudents, academicYear, trimesterNumber, trimesterId) {
+
+            // Show loading state
+            const submitBtn = document.querySelector('#addStudentsToCourseForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding Students...';
 
             try {
                 const response = await fetch('/Admin/Course/AddStudentsToCourse', {
@@ -356,21 +937,25 @@
                     },
                     body: JSON.stringify({
                         courseId: courseId,
-                        studentIds: selectedStudents
+                        studentIds: selectedStudents,
+                        academicYear: academicYear,
+                        trimesterNumber: trimesterNumber,
+                        trimesterId: trimesterId
                     })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    showSuccess('Students added to course successfully!');
+                    showSuccess(`Successfully added ${selectedStudents.length} student(s) to the course!`);
                     
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentToCourseModal'));
                     modal.hide();
                     
-                    // Reset form
+                    // Reset form and search
                     document.getElementById('addStudentsToCourseForm').reset();
+                    document.getElementById('studentSearch').value = '';
                     document.getElementById('availableStudentsList').innerHTML = `
                         <div class="text-center py-4">
                             <i class="fas fa-search fa-2x text-muted mb-3"></i>
@@ -378,23 +963,53 @@
                         </div>
                     `;
                     
-                    // Reload enrolled students
-                    loadEnrolledStudents();
+                    // Reload enrolled students if filters are selected, otherwise show filter message
+                    const academicYear = document.getElementById('filterAcademicYear').value;
+                    const trimester = document.getElementById('filterTrimester').value;
+                    
+                    if (academicYear && trimester) {
+                        loadEnrolledStudents(academicYear, trimester);
+                    } else {
+                        // Show message that filters need to be selected
+                        const container = document.getElementById('enrolledStudentsList');
+                        const countElement = document.getElementById('enrolledStudentsCount');
+                        
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
+                                <small class="text-muted">Use the filters above to search for students</small>
+                            </div>
+                        `;
+                        countElement.textContent = '0';
+                    }
                 } else {
-                    showError('Error: ' + data.message);
+                    if (data.errors && Array.isArray(data.errors)) {
+                        showValidationErrors(data.errors);
+                    } else {
+                        showError('Error: ' + data.message);
+                    }
                 }
             } catch (error) {
                 console.error('Error adding students to course:', error);
                 showError('An error occurred while adding students to the course.');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         }
 
         // Remove student from course
         async function removeStudentFromCourse(studentId) {
             const courseId = document.getElementById('courseId').value;
+            
+            // Get student name for better confirmation
+            const studentElement = document.querySelector(`[onclick="removeStudentFromCourse('${studentId}')"]`).closest('.student-card');
+            const studentName = studentElement ? studentElement.querySelector('.fw-semibold').textContent.trim() : 'this student';
 
             showConfirm(
-                'Are you sure you want to remove this student from the course?',
+                `Are you sure you want to remove ${studentName} from the course?`,
                 async () => {
                     try {
                         const response = await fetch('/Admin/Course/RemoveStudentFromCourse', {
@@ -413,7 +1028,27 @@
 
                         if (data.success) {
                             showSuccess('Student removed from course successfully!');
-                            loadEnrolledStudents();
+                            
+                            // Reload enrolled students if filters are selected, otherwise show filter message
+                            const academicYear = document.getElementById('filterAcademicYear').value;
+                            const trimester = document.getElementById('filterTrimester').value;
+                            
+                            if (academicYear && trimester) {
+                                loadEnrolledStudents(academicYear, trimester);
+                            } else {
+                                // Show message that filters need to be selected
+                                const container = document.getElementById('enrolledStudentsList');
+                                const countElement = document.getElementById('enrolledStudentsCount');
+                                
+                                container.innerHTML = `
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                                        <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
+                                        <small class="text-muted">Use the filters above to search for students</small>
+                                    </div>
+                                `;
+                                countElement.textContent = '0';
+                            }
                         } else {
                             showError('Error: ' + data.message);
                         }
@@ -426,5 +1061,234 @@
                 'Remove Student'
             );
         }
+
+        // Excel upload form submission
+        document.getElementById('uploadExcelForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            uploadStudentsExcel();
+        });
+
+        // Upload students Excel file
+        async function uploadStudentsExcel() {
+            const courseId = document.getElementById('excelCourseId').value;
+            const academicYear = document.getElementById('excelAcademicYear').value;
+            const trimesterNumber = document.getElementById('excelTrimesterNumber').value;
+            const fileInput = document.getElementById('excelFile');
+
+            if (!academicYear || !trimesterNumber) {
+                showError('Please select both Academic Year and Trimester.');
+                return;
+            }
+
+            // Get trimester ID based on selected academic year and trimester number
+            const trimesterId = await getTrimesterId(academicYear, trimesterNumber);
+            if (!trimesterId) {
+                showError('Invalid trimester selection. Please try again.');
+                return;
+            }
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showError('Please select a file to upload.');
+                return;
+            }
+
+            // Validate file type
+            const file = fileInput.files[0];
+            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
+            if (!allowedTypes.includes(file.type)) {
+                showError('Please select a valid Excel or CSV file.');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File size must be less than 5MB.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = document.querySelector('#uploadExcelForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('courseId', courseId);
+            // formData.append('academicYear', academicYear);
+            // formData.append('trimesterNumber', trimesterNumber);
+            formData.append('trimesterId', trimesterId);
+
+            try {
+                const response = await fetch('/Admin/Course/UploadStudentsExcel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const successMessage = data.message;
+                    const resultData = data.data;
+                    
+                    if (resultData && resultData.errors && resultData.errors.length > 0) {
+                        // Show success with warnings about errors
+                        Swal.fire({
+                            title: 'Import Completed with Warnings',
+                            html: `
+                                <div class="text-start">
+                                    <p class="text-success"><i class="fas fa-check-circle me-2"></i>${successMessage}</p>
+                                    <div class="mt-3">
+                                        <h6 class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Errors Found:</h6>
+                                        <div class="text-start" style="max-height: 200px; overflow-y: auto;">
+                                            ${resultData.errors.map(error => `<div class="text-danger small mb-2"></i>${error}</div>`).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            confirmButtonColor: '#ffc107'
+                        });
+                    } else {
+                        showSuccess(successMessage);
+                    }
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                    modal.hide();
+                    
+                    // Reset form and file input
+                    document.getElementById('uploadExcelForm').reset();
+                    document.getElementById('excelFile').value = '';
+                    
+                    // Reload enrolled students if filters are selected, otherwise show filter message
+                    const academicYear = document.getElementById('filterAcademicYear').value;
+                    const trimester = document.getElementById('filterTrimester').value;
+                    
+                    if (academicYear && trimester) {
+                        loadEnrolledStudents(academicYear, trimester);
+                    } else {
+                        // Show message that filters need to be selected
+                        const container = document.getElementById('enrolledStudentsList');
+                        const countElement = document.getElementById('enrolledStudentsCount');
+                        
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
+                                <small class="text-muted">Use the filters above to search for students</small>
+                            </div>
+                        `;
+                        countElement.textContent = '0';
+                    }
+                } else {
+                    showError('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error uploading Excel file:', error);
+                showError('An error occurred while uploading the Excel file.');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        // Clear student search
+        function clearStudentSearch() {
+            document.getElementById('studentSearch').value = '';
+            document.getElementById('availableStudentsList').innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">Search for students to add to this course</p>
+                </div>
+            `;
+        }
+
+        // Select all students
+        function selectAllStudents() {
+            const checkboxes = document.querySelectorAll('#availableStudentsList input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectedStudentsCount();
+        }
+
+        // Deselect all students
+        function deselectAllStudents() {
+            const checkboxes = document.querySelectorAll('#availableStudentsList input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectedStudentsCount();
+        }
+
+        // Update selected students count
+        function updateSelectedStudentsCount() {
+            const selectedCount = document.querySelectorAll('#availableStudentsList input[type="checkbox"]:checked').length;
+            const countElement = document.getElementById('selectedStudentsCount');
+            if (countElement) {
+                countElement.textContent = `${selectedCount} student(s) selected`;
+            }
+        }
+
+        // Export enrolled students to CSV
+        function exportEnrolledStudents() {
+            const courseId = document.getElementById('courseId').value;
+            
+            // Show loading state
+            const exportBtn = document.querySelector('[onclick="exportEnrolledStudents()"]');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.disabled = true;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
+            
+            fetch(`/Admin/Course/GetEnrolledStudents/${courseId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        const students = data.data;
+                        const courseName = '@Model.CourseName';
+                        
+                        // Create CSV content
+                        const headers = ['Student ID', 'First Name', 'Last Name', 'Email', 'Status'];
+                        const csvContent = [
+                            headers.join(','),
+                            ...students.map(student => [
+                                student.studentNo || 'N/A',
+                                student.firstName || '',
+                                student.lastName || '',
+                                student.email || 'N/A',
+                                student.isActive ? 'Active' : 'Inactive'
+                            ].join(','))
+                        ].join('\n');
+                        
+                        // Download CSV file
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `${courseName}_EnrolledStudents.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        showSuccess(`Successfully exported ${students.length} student(s) to CSV!`);
+                    } else {
+                        showError('No students to export');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error exporting students:', error);
+                    showError('Error exporting students');
+                })
+                .finally(() => {
+                    // Reset button state
+                    exportBtn.disabled = false;
+                    exportBtn.innerHTML = originalText;
+                });
+        }
+ 
     </script>
 }
+

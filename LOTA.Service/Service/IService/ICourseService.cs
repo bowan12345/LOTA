@@ -76,17 +76,29 @@ namespace LOTA.Service.Service.IService
         /// <summary>
         /// Get enrolled students for a course
         /// </summary>
-        /// <param name="courseId">The course ID</param>
+        /// <param name="courseId">Course ID</param>
+        /// <param name="academicYear">Academic year (optional)</param>
+        /// <param name="trimesterNumber">Trimester number (optional)</param>
         /// <returns>List of enrolled students</returns>
-        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId);
+        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, string? academicYear = null, string? trimesterNumber = null);
 
         /// <summary>
         /// Add students to a course
         /// </summary>
         /// <param name="courseId">The course ID</param>
         /// <param name="studentIds">List of student IDs to add</param>
+        /// <param name="trimesterId">Trimester ID</param>
         /// <returns></returns>
-        Task AddStudentsToCourseAsync(string courseId, List<string> studentIds);
+        Task AddStudentsToCourseAsync(string courseId, List<string> studentIds, string trimesterId);
+
+        /// <summary>
+        /// Import students to a course from Excel file
+        /// </summary>
+        /// <param name="courseId">The course ID</param>
+        /// <param name="trimesterId">Trimester ID</param>
+        /// <param name="fileStream">Excel file stream</param>
+        /// <returns>Import result with success count and errors</returns>
+        Task<(int successCount, List<string> errors)> ImportStudentsFromExcelAsync(string courseId, string trimesterId, Stream fileStream);
 
         /// <summary>
         /// Remove a student from a course

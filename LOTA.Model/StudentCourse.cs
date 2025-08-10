@@ -21,6 +21,11 @@ namespace LOTA.Model
         public string CourseId { get; set; }
         [ForeignKey("CourseId")]
         public Course Course { get; set; }
+
+        public string TrimesterId { get; set; }
+        [ForeignKey("TrimesterId")]
+        public Trimester Trimester { get; set; }
+
         // Properties
         public bool? IsActive { get; set; } = true;
         public DateTime? RegistrationDate { get; set; }

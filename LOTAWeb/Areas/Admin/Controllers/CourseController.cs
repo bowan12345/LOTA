@@ -287,11 +287,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEnrolledStudents(string id)
+        public async Task<IActionResult> GetEnrolledStudents(string id, string? academicYear = null, string? trimesterNumber = null)
         {
             try
             {
-                var students = await _courseService.GetEnrolledStudentsAsync(id);
+                var students = await _courseService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
                 return Json(new { success = true, data = students });
             }
             catch (Exception ex)
@@ -299,6 +299,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> AddStudentsToCourse([FromBody] AddStudentsToCourseDTO request)
@@ -314,7 +316,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Validation failed", errors });
                 }
 
-                await _courseService.AddStudentsToCourseAsync(request.CourseId, request.StudentIds);
+                await _courseService.AddStudentsToCourseAsync(request.CourseId, request.StudentIds, request.TrimesterId);
                 return Json(new { success = true, message = "Students added to course successfully" });
             }
             catch (Exception ex)
@@ -322,6 +324,66 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// enroll students
+        /// </summary>
+        /// <param name="file"> excel file</param>
+        /// <param name="courseId"> current course id</param>
+        /// <param name="academicYear"> which academic year</param>
+        /// <param name="trimesterNumber"> which trimester number</param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> UploadStudentsExcel([FromForm] IFormFile file, [FromForm] string courseId, [FromForm] string trimesterId)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return Json(new { success = false, message = "Please select a file to upload" });
+                }
+
+                // Validate file extension
+                var allowedExtensions = new[] { ".xlsx", ".xls"};
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return Json(new { success = false, message = "Please select a valid Excel file (.xlsx or .xls)" });
+                }
+
+                // Validate file size (max 10MB)
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return Json(new { success = false, message = "File size must be less than 10MB" });
+                }
+
+                using var stream = file.OpenReadStream();
+                var (successCount, errors) = await _courseService.ImportStudentsFromExcelAsync(courseId, trimesterId, stream);
+
+                var message = $"Successfully imported {successCount} students.";
+                if (errors.Count > 0)
+                {
+                    message += $" {errors.Count} errors occurred during import.";
+                }
+
+                return Json(new { 
+                    success = true, 
+                    message = message,
+                    data = new { 
+                        successCount, 
+                        errorCount = errors.Count,
+                        errors = errors.Take(10).ToList() // Return first 10 errors
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UploadStudentsExcel: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to upload Excel file: {ex.Message}" });
+            }
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveStudentFromCourseDTO request)
