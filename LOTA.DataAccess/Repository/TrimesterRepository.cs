@@ -18,7 +18,7 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<Trimester> GetByAcademicYearAndTrimesterAsync(string academicYear, string trimesterNumber)
+        public async Task<Trimester> GetByAcademicYearAndTrimesterAsync(int academicYear, int trimesterNumber)
         {
             return await _db.Trimester
                 .FirstOrDefaultAsync(t => t.AcademicYear == academicYear && t.TrimesterNumber == trimesterNumber);

@@ -273,32 +273,32 @@ namespace LOTA.DataAccess.Data
                 new Trimester
                 {
                     Id = "Trimester-001",
-                    AcademicYear = "2024",
-                    TrimesterNumber = "1",
+                    AcademicYear = 2024,
+                    TrimesterNumber = 1,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 },
                 new Trimester
                 {
                     Id = "Trimester-002",
-                    AcademicYear = "2024",
-                    TrimesterNumber = "2",
+                    AcademicYear = 2024,
+                    TrimesterNumber = 2,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 },
                  new Trimester
                  {
                      Id = "Trimester-003",
-                     AcademicYear = "2025",
-                     TrimesterNumber = "1",
+                     AcademicYear = 2025,
+                     TrimesterNumber = 1,
                      IsActive = true,
                      CreatedDate = DateTime.Now
                  },
                 new Trimester
                 {
                     Id = "Trimester-004",
-                    AcademicYear = "2025",
-                    TrimesterNumber = "2",
+                    AcademicYear = 2025,
+                    TrimesterNumber = 2,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }

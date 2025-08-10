@@ -401,7 +401,7 @@ namespace LOTA.Service.Service
             };
         }
 
-        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, string? academicYear = null, string? trimesterNumber = null)
+        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null)
         {
             var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAndTrimesterAsync(courseId, academicYear, trimesterNumber);
             return studentCourses.Select(sc => new StudentReturnDTO
@@ -422,7 +422,7 @@ namespace LOTA.Service.Service
             var trimester = await _unitOfWork.trimesterRepository.GetAsync(t => t.Id == trimesterId);
             if (!trimester.Any())
             {
-                throw new InvalidOperationException($"Trimester with ID {trimesterId} not found");
+                throw new InvalidOperationException($"Trimester not found");
             }
 
             foreach (var studentId in studentIds)
@@ -451,7 +451,7 @@ namespace LOTA.Service.Service
                 else
                 {
                     // Student is already enrolled in this course for this trimester
-                    throw new InvalidOperationException($"Student {studentId} is already enrolled in course {courseId} for trimester {trimesterId}");
+                    throw new InvalidOperationException($"Student is already enrolled in course for trimester");
                 }
             }
 
@@ -479,7 +479,7 @@ namespace LOTA.Service.Service
                 var trimester = await _unitOfWork.trimesterRepository.GetAsync(t => t.Id == trimesterId);
                 if (!trimester.Any())
                 {
-                    throw new InvalidOperationException($"Trimester with ID {trimesterId} not found");
+                    throw new InvalidOperationException($"Trimester not found");
                 }
 
                 using var workbook = new XLWorkbook(fileStream);

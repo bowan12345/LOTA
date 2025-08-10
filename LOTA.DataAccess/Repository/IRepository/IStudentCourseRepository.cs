@@ -14,6 +14,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// <param name="academicYear">Academic year (optional)</param>
         /// <param name="trimesterNumber">Trimester number (optional)</param>
         /// <returns>List of student courses</returns>
-        Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, string? academicYear = null, string? trimesterNumber = null);
+        Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, int? academicYear, int? trimesterNumber);
     }
 }

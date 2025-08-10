@@ -287,7 +287,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEnrolledStudents(string id, string? academicYear = null, string? trimesterNumber = null)
+        public async Task<IActionResult> GetEnrolledStudents(string id, int? academicYear = null, int? trimesterNumber = null)
         {
             try
             {

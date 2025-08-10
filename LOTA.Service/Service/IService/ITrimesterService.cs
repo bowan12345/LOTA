@@ -16,7 +16,7 @@ namespace LOTA.Service.Service.IService
         /// <param name="academicYear">Academic year</param>
         /// <param name="trimesterNumber">Trimester number</param>
         /// <returns>Trimester</returns>
-        Task<Trimester> GetByAcademicYearAndTrimesterAsync(string academicYear, string trimesterNumber);
+        Task<Trimester> GetByAcademicYearAndTrimesterAsync(int academicYear, int trimesterNumber);
 
         /// <summary>
         /// Get current trimester based on current date

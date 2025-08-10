@@ -80,7 +80,7 @@ namespace LOTA.Service.Service.IService
         /// <param name="academicYear">Academic year (optional)</param>
         /// <param name="trimesterNumber">Trimester number (optional)</param>
         /// <returns>List of enrolled students</returns>
-        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, string? academicYear = null, string? trimesterNumber = null);
+        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null);
 
         /// <summary>
         /// Add students to a course

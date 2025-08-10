@@ -13,11 +13,11 @@ namespace LOTA.Model
         public string Id { get; set; }
 
         [Required]
-        public string AcademicYear { get; set; }
+        public int AcademicYear { get; set; }
 
-        // eg: tri1, tri2, tri3
+        // stand for tri1, tri2, tri3
         [Required]
-        public string TrimesterNumber { get; set; }
+        public int TrimesterNumber { get; set; }
 
         public bool IsActive { get; set; } = true;
 

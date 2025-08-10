@@ -1333,7 +1333,7 @@
                     document.getElementById('editQualificationName').value = qualification.qualificationName;
                     document.getElementById('editQualificationType').value = qualification.qualificationType;
                     document.getElementById('editQualificationLevel').value = qualification.level || '';
-                    document.getElementById('editQualificationIsActive').checked = qualification.isActive;
+                    //document.getElementById('editQualificationIsActive').checked = qualification.isActive;
                 } else {
                     showError(result.message || 'Failed to load qualification data');
                     editModal.hide();
@@ -1795,14 +1795,14 @@
                                 <option value="10">Level 10</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                        @* <div class="col-12">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="qualificationIsActive" name="isActive" checked>
                                 <label class="form-check-label" for="qualificationIsActive">
                                     Active
                                 </label>
                             </div>
-                        </div>
+                        </div> *@
                     </div>
                 </form>
                 <div class="row g-3">
@@ -1862,14 +1862,14 @@
                                 <option value="10">Level 10</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                       @*  <div class="col-12">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="editQualificationIsActive" name="isActive">
                                 <label class="form-check-label" for="editQualificationIsActive">
                                     Active
                                 </label>
                             </div>
-                        </div>
+                        </div> *@
                     </div>
                 </form>
                 <div class="row g-3">

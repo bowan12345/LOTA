@@ -166,16 +166,13 @@
                             <div class="col-6">
                                 <label for="filterAcademicYear" class="form-label small text-muted">Academic Year</label>
                                 <select class="form-select form-select-sm" id="filterAcademicYear" onchange="filterEnrolledStudents();">
-                                    <option value="">All Years</option>
+                                    <option value="">Select Academic Year</option>
                                 </select>
                             </div>
                             <div class="col-6">
                                 <label for="filterTrimester" class="form-label small text-muted">Trimester</label>
                                 <select class="form-select form-select-sm" id="filterTrimester" onchange="filterEnrolledStudents();">
-                                    <option value="">All Trimesters</option>
-                                    <option value="tri1">Trimester 1</option>
-                                    <option value="tri2">Trimester 2</option>
-                                    <option value="tri3">Trimester 3</option>
+                                    <option value="">Select Trimester</option>
                                 </select>
                             </div>
                         </div>
@@ -380,13 +377,90 @@
 @section Scripts {
     <script src="~/js/sweetalert-utils.js"></script>
     <script>
+        // Flag to prevent duplicate loading of trimesters
+        let trimestersLoaded = false;
+        
         // Load enrolled students when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Load academic years for the filter dropdown
             loadTrimesters();
             
-            // Don't load any students by default - require user to select filters first
-            // Set initial state to show no students
+            // Auto-load current trimester students after a short delay
+            setTimeout(() => {
+                autoLoadCurrentTrimesterStudents();
+            }, 500);
+            
+            // Add modal event listeners to load data when modals are opened
+            const addStudentModal = document.getElementById('addStudentToCourseModal');
+            if (addStudentModal) {
+                addStudentModal.addEventListener('show.bs.modal', function() {
+                    // Only load trimesters if not already loaded
+                    if (!trimestersLoaded) {
+                        loadTrimesters();
+                    }
+                    setupFormEventListeners(); // Setup form event listeners
+                });
+            }
+            
+            const uploadExcelModal = document.getElementById('uploadExcelModal');
+            if (uploadExcelModal) {
+                uploadExcelModal.addEventListener('show.bs.modal', function() {
+                    // Only load trimesters if not already loaded
+                    if (!trimestersLoaded) {
+                        loadTrimesters();
+                    }
+                    setupFormEventListeners(); // Setup form event listeners
+                });
+            }
+        });
+
+        // Auto-load students for current trimester
+        async function autoLoadCurrentTrimesterStudents() {
+            try {
+                const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    const trimesters = data.data;
+                    
+                    // Find current trimester (most recent or current date)
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    
+                    // Try to find current year's trimester, fallback to most recent
+                    let currentTrimester = trimesters.find(t => t.academicYear === currentYear);
+                    if (!currentTrimester) {
+                        currentTrimester = trimesters[0]; // Use first available trimester
+                    }
+                    
+                    if (currentTrimester) {
+                        // Set filter values
+                        document.getElementById('filterAcademicYear').value = currentTrimester.academicYear;
+                        
+                        // Populate trimester dropdown for the selected academic year
+                        const filterTrimesterSelect = document.getElementById('filterTrimester');
+                        populateFilterTrimesterByYear(currentTrimester.academicYear, filterTrimesterSelect);
+                        
+                        // Set trimester value
+                        document.getElementById('filterTrimester').value = currentTrimester.trimesterNumber;
+                        
+                        // Load students for current trimester
+                        loadEnrolledStudents(currentTrimester.academicYear, currentTrimester.trimesterNumber);
+                    } else {
+                        // No trimesters available, show filter message
+                        showFilterMessage();
+                    }
+                } else {
+                    showFilterMessage();
+                }
+            } catch (error) {
+                console.error('Error auto-loading current trimester:', error);
+                showFilterMessage();
+            }
+        }
+
+        // Show filter message when no data is available
+        function showFilterMessage() {
             const container = document.getElementById('enrolledStudentsList');
             const countElement = document.getElementById('enrolledStudentsCount');
             
@@ -398,26 +472,7 @@
                 </div>
             `;
             countElement.textContent = '0';
-            
-
-            
-            // Add modal event listeners to load data when modals are opened
-            const addStudentModal = document.getElementById('addStudentToCourseModal');
-            if (addStudentModal) {
-                addStudentModal.addEventListener('show.bs.modal', function() {
-                    loadTrimesters(); // Load trimesters for the add students modal
-                    setupFormEventListeners(); // Setup form event listeners
-                });
-            }
-            
-            const uploadExcelModal = document.getElementById('uploadExcelModal');
-            if (uploadExcelModal) {
-                uploadExcelModal.addEventListener('show.bs.modal', function() {
-                    loadTrimesters(); // Load trimesters for the upload Excel modal
-                    setupFormEventListeners(); // Setup form event listeners
-                });
-            }
-        });
+        }
 
 
 
@@ -441,12 +496,12 @@
                 let url = `/Admin/Course/GetEnrolledStudents/${document.getElementById('courseId').value}`;
                 const params = new URLSearchParams();
                 
-                // Only append parameters if they are not null or empty
-                if (academicYear && academicYear !== '') {
-                    params.append('academicYear', academicYear);
+                // Only append parameters if they are valid numbers
+                if (academicYear && !isNaN(academicYear)) {
+                    params.append('academicYear', academicYear.toString());
                 }
-                if (trimesterNumber && trimesterNumber !== '') {
-                    params.append('trimesterNumber', trimesterNumber);
+                if (trimesterNumber && !isNaN(trimesterNumber)) {
+                    params.append('trimesterNumber', trimesterNumber.toString());
                 }
                 
                 if (params.toString()) {
@@ -504,11 +559,27 @@
             const academicYear = document.getElementById('filterAcademicYear').value;
             const trimester = document.getElementById('filterTrimester').value;
             
-            // Convert empty strings to null for proper filtering
-            const academicYearParam = academicYear === '' ? null : academicYear;
-            const trimesterParam = trimester === '' ? null : trimester;
-            
-            loadEnrolledStudents(academicYearParam, trimesterParam);
+            // Only load students if both filters are selected
+            if (academicYear && trimester) {
+                // Convert to integers for backend
+                const academicYearParam = parseInt(academicYear);
+                const trimesterParam = parseInt(trimester);
+                
+                loadEnrolledStudents(academicYearParam, trimesterParam);
+            } else {
+                // Show message that both filters are required
+                const container = document.getElementById('enrolledStudentsList');
+                const countElement = document.getElementById('enrolledStudentsCount');
+                
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Please select both Academic Year and Trimester to view enrolled students</p>
+                        <small class="text-muted">Use the filters above to search for students</small>
+                    </div>
+                `;
+                countElement.textContent = '0';
+            }
         }
 
 
@@ -518,18 +589,12 @@
             document.getElementById('filterAcademicYear').value = '';
             document.getElementById('filterTrimester').value = '';
             
-            // Show message that filters need to be selected
-            const container = document.getElementById('enrolledStudentsList');
-            const countElement = document.getElementById('enrolledStudentsCount');
+            // Reset trimester dropdown to show "Please select Academic Year first" message
+            const filterTrimesterSelect = document.getElementById('filterTrimester');
+            filterTrimesterSelect.innerHTML = '<option value="">Please select Academic Year first</option>';
             
-            container.innerHTML = `
-                <div class="text-center py-4">
-                    <i class="fas fa-filter fa-2x text-muted mb-3"></i>
-                    <p class="text-muted mb-0">Please select Academic Year and Trimester to view enrolled students</p>
-                    <small class="text-muted">Use the filters above to search for students</small>
-                </div>
-            `;
-            countElement.textContent = '0';
+            // Try to auto-load current trimester students
+            autoLoadCurrentTrimesterStudents();
         }
 
         // Load trimesters for academic year and trimester selection
@@ -574,7 +639,7 @@
                         filterAcademicYearSelect.appendChild(option3);
                     });
                     
-                    // Populate trimester dropdowns
+                    // Populate trimester dropdowns for modals (these will be populated when academic year is selected)
                     const trimesterSelect = document.getElementById('trimesterNumber');           // Add Students Modal
                     const excelTrimesterSelect = document.getElementById('excelTrimesterNumber'); // Upload Excel Modal
                     
@@ -582,33 +647,15 @@
                     trimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
                     excelTrimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
                     
-                    trimesters.forEach(trimester => {
-                        // Add to add students modal
-                        const option1 = document.createElement('option');
-                        option1.value = trimester.trimesterNumber;
-                        option1.textContent = `Trimester ${trimester.trimesterNumber.replace('tri', '')}`;
-                        trimesterSelect.appendChild(option1);
-                        
-                        // Add to upload excel modal
-                        const option2 = document.createElement('option');
-                        option2.value = trimester.trimesterNumber;
-                        option2.textContent = `Trimester ${trimester.trimesterNumber.replace('tri', '')}`;
-                        excelTrimesterSelect.appendChild(option2);
-                    });
-                    
-                    // Populate filter trimester dropdown
+                    // For the filter dropdown, initially show "Please select Academic Year first"
                     const filterTrimesterSelect = document.getElementById('filterTrimester');
-                    filterTrimesterSelect.innerHTML = '<option value="">All Trimesters</option>';
+                    filterTrimesterSelect.innerHTML = '<option value="">Please select Academic Year first</option>';
                     
-                    // Get unique trimester numbers
-                    const uniqueTrimesters = [...new Set(trimesters.map(t => t.trimesterNumber))].sort();
+                    // Store trimesters data globally for later use
+                    window.availableTrimesters = trimesters;
                     
-                    uniqueTrimesters.forEach(trimesterNumber => {
-                        const option = document.createElement('option');
-                        option.value = trimesterNumber;
-                        option.textContent = `Trimester ${trimesterNumber.replace('tri', '')}`;
-                        filterTrimesterSelect.appendChild(option);
-                    });
+                    // Set flag to prevent duplicate loading
+                    trimestersLoaded = true;
                     
                 } else {
                     console.error('Error loading trimesters:', data.message);
@@ -639,27 +686,51 @@
                     populateTrimesterNumbersByYear(selectedYear, trimesterSelect);
                 });
             }
+            
+            // Filter dropdown - Academic Year change event
+            const filterAcademicYear = document.getElementById('filterAcademicYear');
+            if (filterAcademicYear) {
+                filterAcademicYear.addEventListener('change', function() {
+                    const selectedYear = this.value;
+                    const filterTrimesterSelect = document.getElementById('filterTrimester');
+                    populateFilterTrimesterByYear(selectedYear, filterTrimesterSelect);
+                });
+            }
         }
         
-        // Populate trimester numbers based on selected academic year
+        // Populate trimester numbers based on selected academic year for modals
         function populateTrimesterNumbersByYear(academicYear, trimesterSelect) {
             trimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
             
             if (!academicYear) return;
             
-            // Get trimesters from the filter dropdown options
-            const filterTrimesterSelect = document.getElementById('filterTrimester');
-            const availableTrimesters = Array.from(filterTrimesterSelect.options)
-                .filter(option => option.value && option.value !== 'All Trimesters')
-                .map(option => ({
-                    trimesterNumber: option.value,
-                    displayName: option.textContent
-                }));
+            // Get trimesters from the stored data
+            if (window.availableTrimesters) {
+                const yearTrimesters = window.availableTrimesters.filter(t => t.academicYear == academicYear);
+                yearTrimesters.forEach(trimester => {
+                    const option = new Option(`Trimester ${trimester.trimesterNumber}`, trimester.trimesterNumber);
+                    trimesterSelect.add(option);
+                });
+            }
+        }
+        
+        // Populate filter trimester dropdown based on selected academic year
+        function populateFilterTrimesterByYear(academicYear, filterTrimesterSelect) {
+            filterTrimesterSelect.innerHTML = '<option value="">All Trimesters</option>';
             
-            availableTrimesters.forEach(trimester => {
-                const option = new Option(trimester.displayName, trimester.trimesterNumber);
-                trimesterSelect.add(option);
-            });
+            if (!academicYear) {
+                filterTrimesterSelect.innerHTML = '<option value="">Please select Academic Year first</option>';
+                return;
+            }
+            
+            // Get trimesters from the stored data
+            if (window.availableTrimesters) {
+                const yearTrimesters = window.availableTrimesters.filter(t => t.academicYear == academicYear);
+                yearTrimesters.forEach(trimester => {
+                    const option = new Option(`Trimester ${trimester.trimesterNumber}`, trimester.trimesterNumber);
+                    filterTrimesterSelect.add(option);
+                });
+            }
         }
         
         // Legacy function for backward compatibility
@@ -696,9 +767,6 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Total enrolled: ${students.length}</span>
-                            <button class="btn btn-outline-primary btn-sm" onclick="exportEnrolledStudents()">
-                                <i class="fas fa-download me-1"></i>Export
-                            </button>
                         </div>
                     </div>
                     ${students.map(student => `
@@ -894,7 +962,7 @@
             }
 
             // Get trimester ID based on selected academic year and trimester number
-            const trimesterId = await getTrimesterId(academicYear, trimesterNumber);
+            const trimesterId = await getTrimesterId(parseInt(academicYear), parseInt(trimesterNumber));
             if (!trimesterId) {
                 showError('Invalid trimester selection. Please try again.');
                 return;
@@ -909,14 +977,14 @@
             if (selectedStudents.length > 10) {
                 showConfirm(
                     `Are you sure you want to add ${selectedStudents.length} students to this course?`,
-                    () => performAddStudentsToCourse(courseId, selectedStudents, academicYear, trimesterNumber, trimesterId),
+                    () => performAddStudentsToCourse(courseId, selectedStudents, parseInt(academicYear), parseInt(trimesterNumber), trimesterId),
                     null,
                     'Confirm Bulk Add'
                 );
                 return;
             }
 
-            await performAddStudentsToCourse(courseId, selectedStudents, academicYear, trimesterNumber, trimesterId);
+            await performAddStudentsToCourse(courseId, selectedStudents, parseInt(academicYear), parseInt(trimesterNumber), trimesterId);
         }
 
         // Perform the actual add students operation
@@ -968,7 +1036,7 @@
                     const trimester = document.getElementById('filterTrimester').value;
                     
                     if (academicYear && trimester) {
-                        loadEnrolledStudents(academicYear, trimester);
+                        loadEnrolledStudents(parseInt(academicYear), parseInt(trimester));
                     } else {
                         // Show message that filters need to be selected
                         const container = document.getElementById('enrolledStudentsList');
@@ -1034,7 +1102,7 @@
                             const trimester = document.getElementById('filterTrimester').value;
                             
                             if (academicYear && trimester) {
-                                loadEnrolledStudents(academicYear, trimester);
+                                loadEnrolledStudents(parseInt(academicYear), parseInt(trimester));
                             } else {
                                 // Show message that filters need to be selected
                                 const container = document.getElementById('enrolledStudentsList');
@@ -1081,7 +1149,7 @@
             }
 
             // Get trimester ID based on selected academic year and trimester number
-            const trimesterId = await getTrimesterId(academicYear, trimesterNumber);
+            const trimesterId = await getTrimesterId(parseInt(academicYear), parseInt(trimesterNumber));
             if (!trimesterId) {
                 showError('Invalid trimester selection. Please try again.');
                 return;
@@ -1166,7 +1234,7 @@
                     const trimester = document.getElementById('filterTrimester').value;
                     
                     if (academicYear && trimester) {
-                        loadEnrolledStudents(academicYear, trimester);
+                        loadEnrolledStudents(parseInt(academicYear), parseInt(trimester));
                     } else {
                         // Show message that filters need to be selected
                         const container = document.getElementById('enrolledStudentsList');
@@ -1232,63 +1300,6 @@
             }
         }
 
-        // Export enrolled students to CSV
-        function exportEnrolledStudents() {
-            const courseId = document.getElementById('courseId').value;
-            
-            // Show loading state
-            const exportBtn = document.querySelector('[onclick="exportEnrolledStudents()"]');
-            const originalText = exportBtn.innerHTML;
-            exportBtn.disabled = true;
-            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
-            
-            fetch(`/Admin/Course/GetEnrolledStudents/${courseId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.data.length > 0) {
-                        const students = data.data;
-                        const courseName = '@Model.CourseName';
-                        
-                        // Create CSV content
-                        const headers = ['Student ID', 'First Name', 'Last Name', 'Email', 'Status'];
-                        const csvContent = [
-                            headers.join(','),
-                            ...students.map(student => [
-                                student.studentNo || 'N/A',
-                                student.firstName || '',
-                                student.lastName || '',
-                                student.email || 'N/A',
-                                student.isActive ? 'Active' : 'Inactive'
-                            ].join(','))
-                        ].join('\n');
-                        
-                        // Download CSV file
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        const url = URL.createObjectURL(blob);
-                        link.setAttribute('href', url);
-                        link.setAttribute('download', `${courseName}_EnrolledStudents.csv`);
-                        link.style.visibility = 'hidden';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        
-                        showSuccess(`Successfully exported ${students.length} student(s) to CSV!`);
-                    } else {
-                        showError('No students to export');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error exporting students:', error);
-                    showError('Error exporting students');
-                })
-                .finally(() => {
-                    // Reset button state
-                    exportBtn.disabled = false;
-                    exportBtn.innerHTML = originalText;
-                });
-        }
- 
     </script>
 }
 

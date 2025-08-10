@@ -27,21 +27,23 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, string? academicYear = null, string? trimesterNumber = null)
+        public async Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, int? academicYear, int? trimesterNumber)
         {
+            
+
             var query = _db.StudentCourse
                 .Include(sc => sc.Student)
                 .Include(sc => sc.Trimester)
                 .Where(sc => sc.CourseId == courseId);
 
-            if (!string.IsNullOrEmpty(academicYear))
+            if (academicYear.HasValue && academicYear.Value > 0)
             {
-                query = query.Where(sc => sc.Trimester.AcademicYear == academicYear);
+                 query = query.Where(sc => sc.Trimester.AcademicYear == academicYear.Value);
             }
 
-            if (!string.IsNullOrEmpty(trimesterNumber))
+            if (trimesterNumber.HasValue && trimesterNumber.Value > 0)
             {
-                query = query.Where(sc => sc.Trimester.TrimesterNumber == trimesterNumber);
+                 query = query.Where(sc => sc.Trimester.TrimesterNumber == trimesterNumber.Value);
             }
 
             return await query.ToListAsync();

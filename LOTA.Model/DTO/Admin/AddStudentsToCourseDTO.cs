@@ -11,10 +11,10 @@ namespace LOTA.Model.DTO.Admin
         public List<string> StudentIds { get; set; } = new List<string>();
 
         [Required]
-        public string AcademicYear { get; set; } = string.Empty;
+        public int AcademicYear { get; set; } 
 
         [Required]
-        public string TrimesterNumber { get; set; } = string.Empty;
+        public int TrimesterNumber { get; set; }
 
         [Required]
         public string TrimesterId { get; set; } = string.Empty;
