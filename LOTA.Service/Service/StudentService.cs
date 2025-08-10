@@ -58,7 +58,7 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException($"User with email '{studentDto.Email}' already exists.");
             }
 
-                         // Check if student number already exists
+             // Check if student number already exists
              if (!string.IsNullOrEmpty(studentDto.StudentNo))
              {
                  var existingStudent = _userManager.Users.FirstOrDefault(u => u.StudentNo == studentDto.StudentNo);
@@ -154,7 +154,7 @@ namespace LOTA.Service.Service
              return result.Succeeded;
          }
 
-                public async Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null)
+       public async Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null)
         {
             var allUsers = await _unitOfWork.studentRepository.GetAllAsync();
             var user = allUsers.FirstOrDefault(u => u.Email == email);

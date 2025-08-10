@@ -22,7 +22,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             _courseService = courseService;
         }
 
-        // GET: Admin/Tutor home page
+        // GET: Admin/course home page
         public async Task<IActionResult> Index([FromQuery] string searchTerm = "")
         {
             IEnumerable<CourseReturnDTO> courseList;

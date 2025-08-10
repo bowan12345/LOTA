@@ -18,13 +18,6 @@ namespace LOTA.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Course> CreateCourseAsync(Course course)
-        {
-            await _unitOfWork.courseRepository.AddAsync(course);
-            await _unitOfWork.SaveAsync();  
-            return course;
-        }
-
         public async Task<CourseReturnDTO> CreateCourseAsync(CourseCreateDTO courseDTO)
         {
             // Service layer business logic processing

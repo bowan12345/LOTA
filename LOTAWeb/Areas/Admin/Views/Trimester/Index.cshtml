@@ -1,0 +1,820 @@
+﻿@model IEnumerable<LOTA.Model.DTO.Admin.TrimesterReturnDTO>
+@{
+    ViewData["Title"] = "Trimester Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    // Add anti-forgery token for AJAX requests
+    var token = Html.AntiForgeryToken();
+}
+
+@section Styles {
+    <style>
+        /* Custom datepicker styling */
+        .datepicker {
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .datepicker table tr td.active,
+        .datepicker table tr td.active:hover,
+        .datepicker table tr td.active:focus {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        
+        .datepicker table tr td.active:hover,
+        .datepicker table tr td.active:focus {
+            background-color: #157347;
+            border-color: #146c43;
+        }
+        
+        .datepicker table tr td.today {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .datepicker table tr td.today:hover {
+            background-color: #ffeaa7;
+            border-color: #fdcb6e;
+            color: #856404;
+        }
+        
+        .datepicker table tr td.year {
+            font-weight: 600;
+            padding: 8px 12px;
+        }
+        
+        .datepicker table tr td.year:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+        
+        /* Input field styling for datepicker */
+        .form-control[readonly] {
+            background-color: #fff;
+            cursor: pointer;
+        }
+        
+        .form-control[readonly]:focus {
+            background-color: #fff;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+}
+
+@section Scripts {
+    <!-- Bootstrap Datepicker JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark mb-0">Manage Trimesters</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTrimesterModal">
+                <i class="fas fa-plus me-2"></i>
+                Add Trimester
+            </button>
+        </div>
+    </div>
+
+    <!-- Trimester Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        Trimester List
+                        @if (Model != null && Model.Any())
+                        {
+                            <span class="badge bg-primary ms-2">@Model.Count()</span>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                        {
+                            <span class="badge bg-info ms-2">
+                                <i class="fas fa-search me-1"></i>
+                                "@ViewBag.SearchTerm"
+                            </span>
+                        }
+                    </h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-md-end gap-2">
+                        <form method="get" action="@Url.Action("Index", "Trimester", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
+                                       placeholder="Search trimesters..." value="@ViewBag.SearchTerm">
+                                <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                {
+                                    <a href="@Url.Action("Index", "Trimester", new { area = "Admin" })" 
+                                       class="btn btn-outline-danger border-start-0" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 responsive-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 text-nowrap">Academic Year</th>
+                            <th class="border-0 text-nowrap">Trimester</th>
+                            <th class="border-0 text-nowrap d-none d-md-table-cell">Status</th>
+                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Created Date</th>
+                            <th class="border-0 text-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var trimester in Model)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">
+                                        <span class="fw-semibold">@trimester.AcademicYear</span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <span class="badge bg-info fs-6">Trimester @trimester.TrimesterNumber</span>
+                                    </td>
+                                    <td class="text-nowrap d-none d-md-table-cell">
+                                        @if (trimester.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap d-none d-lg-table-cell">
+                                        @(trimester.CreatedDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-success btn-sm" title="Edit" onclick="editTrimester('@trimester.Id')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteTrimester('@trimester.Id')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="text-muted">
+                                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                        {
+                                            <i class="fas fa-search fa-2x mb-3"></i>
+                                            <p class="mb-0">No trimesters found for "@ViewBag.SearchTerm"</p>
+                                            <small>Try a different search term or <a href="@Url.Action("Index", "Trimester", new { area = "Admin" })" class="text-decoration-none">clear search</a></small>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-calendar-alt fa-2x mb-3"></i>
+                                            <p class="mb-0">No trimesters found</p>
+                                            <small>Click "Add Trimester" to create the first trimester</small>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Trimester Modal -->
+<div class="modal fade" id="addTrimesterModal" tabindex="-1" aria-labelledby="addTrimesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="addTrimesterModalLabel">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    Add Trimester
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTrimesterForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="academicYear" class="form-label">Academic Year</label>
+                            <input type="text" class="form-control" id="academicYear" name="academicYear" 
+                                   placeholder="Select academic year" value="@DateTime.Now.Year" required readonly>
+                            <div class="form-text">Click to select the academic year</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="trimesterNumber" class="form-label">Trimester Number</label>
+                            <select class="form-select" id="trimesterNumber" name="trimesterNumber" required>
+                                <option value="">Select Trimester</option>
+                                <option value="1">Trimester 1</option>
+                                <option value="2">Trimester 2</option>
+                                <option value="3">Trimester 3</option>
+                            </select>
+                        </div>
+                        @* <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                <label class="form-check-label" for="isActive">
+                                    Active Trimester
+                                </label>
+                                <div class="form-text">Active trimesters are available for course enrollment</div>
+                            </div>
+                        </div> *@
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveTrimester()">
+                    <i class="fas fa-save me-2"></i>
+                    Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Trimester Modal -->
+<div class="modal fade" id="editTrimesterModal" tabindex="-1" aria-labelledby="editTrimesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="editTrimesterModalLabel">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Trimester
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTrimesterForm">
+                    <input type="hidden" id="editTrimesterId" name="trimesterId">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="editAcademicYear" class="form-label">Academic Year</label>
+                            <input type="text" class="form-control" id="editAcademicYear" name="academicYear" 
+                                   placeholder="Select academic year" required readonly>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editTrimesterNumber" class="form-label">Trimester Number</label>
+                            <select class="form-select" id="editTrimesterNumber" name="trimesterNumber" required>
+                                <option value="">Select Trimester</option>
+                                <option value="1">Trimester 1</option>
+                                <option value="2">Trimester 2</option>
+                                <option value="3">Trimester 3</option>
+                            </select>
+                        </div>
+                        @* <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive">
+                                <label class="form-check-label" for="editIsActive">
+                                    Active Trimester
+                                </label>
+                            </div>
+                        </div> *@
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="updateTrimester()">
+                    <i class="fas fa-save me-2"></i>
+                    Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap Datepicker for academic year fields
+        $('#academicYear').datepicker({
+            format: 'yyyy',
+            viewMode: 'years',
+            minViewMode: 'years',
+            autoclose: true,
+            startDate: '1900',
+            endDate: '2100',
+            todayHighlight: true
+        });
+        
+        $('#editAcademicYear').datepicker({
+            format: 'yyyy',
+            viewMode: 'years',
+            minViewMode: 'years',
+            autoclose: true,
+            startDate: '1900',
+            endDate: '2100',
+            todayHighlight: true
+        });
+        
+        // Search functionality - Add enter key support and auto-submit
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.closest('form').submit();
+                }
+            });
+            
+            // Auto-submit after 500ms of no typing (debounced search)
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length >= 2 || this.value.length === 0) {
+                        this.closest('form').submit();
+                    }
+                }, 500);
+            });
+        }
+        
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    function saveTrimester() {
+        // Get form data
+        const academicYearInput = document.getElementById('academicYear').value;
+        const trimesterNumber = document.getElementById('trimesterNumber').value;
+        //const isActive = document.getElementById('isActive').checked;
+        
+        // Validate required fields
+        if (!academicYearInput || !trimesterNumber) {
+            showError('Please fill in all required fields!');
+            return;
+        }
+        
+        // Get academic year from datepicker (format: yyyy)
+        const academicYear = parseInt(academicYearInput);
+        
+        // Validate academic year range
+        if (academicYear < 2020 || academicYear > 2030) {
+            showError('Academic year must be between 2020 and 2030!');
+            return;
+        }
+        
+        // Validate trimester number
+        if (trimesterNumber < 1 || trimesterNumber > 3) {
+            showError('Trimester number must be 1, 2, or 3!');
+            return;
+        }
+        
+        // Create request data
+        const requestData = {
+            academicYear: parseInt(academicYear),
+            trimesterNumber: parseInt(trimesterNumber),
+            //isActive: isActive
+        };
+        
+        // Show loading state
+        const saveButton = document.querySelector('#addTrimesterModal .btn-success');
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        saveButton.disabled = true;
+        
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        const tokenValue = token ? token.value : '';
+        
+        // Send AJAX request to backend
+        fetch('/Admin/Trimester/Create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': tokenValue
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showSuccess('Trimester created successfully!');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addTrimesterModal'));
+                modal.hide();
+                
+                // Reset form
+                document.getElementById('addTrimesterForm').reset();
+                document.getElementById('academicYear').value = '@DateTime.Now.Year';
+                //document.getElementById('isActive').checked = true;
+                
+                // Refresh page to show new trimester after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                // Show error message
+                showError('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error creating trimester:', error);
+            showError('An error occurred while creating the trimester. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+        });
+    }
+
+    function editTrimester(trimesterId) {
+        // Load trimester data and open edit modal
+        console.log('Editing trimester:', trimesterId);
+        
+        // Show loading state
+        const editModal = new bootstrap.Modal(document.getElementById('editTrimesterModal'));
+        editModal.show();
+        
+        // Load trimester data from backend
+        fetch(`/Admin/Trimester/GetTrimesterById/${trimesterId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const trimester = data.data;
+                    
+                    // Populate form fields
+                    document.getElementById('editTrimesterId').value = trimester.id;
+                    // Set academic year for datepicker
+                    const year = trimester.academicYear || new Date().getFullYear();
+                    document.getElementById('editAcademicYear').value = year;
+                    document.getElementById('editTrimesterNumber').value = trimester.trimesterNumber || '';
+                   // document.getElementById('editIsActive').checked = trimester.isActive || false;
+                    
+                    console.log('Trimester data loaded:', trimester);
+                } else {
+                    showError('Error loading trimester data: ' + (data.message || 'Unknown error'));
+                    editModal.hide();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading trimester data:', error);
+                showError('An error occurred while loading trimester data. Please try again.');
+                editModal.hide();
+            });
+    }
+
+    function updateTrimester() {
+        // Get form data
+        const trimesterId = document.getElementById('editTrimesterId').value;
+        const academicYearInput = document.getElementById('editAcademicYear').value;
+        const trimesterNumber = document.getElementById('editTrimesterNumber').value;
+       // const isActive = document.getElementById('editIsActive').checked;
+        
+        // Validate required fields
+        if (!academicYearInput || !trimesterNumber) {
+            showError('Please fill in all required fields!');
+            return;
+        }
+        
+        // Get academic year from datepicker (format: yyyy)
+        const academicYear = parseInt(academicYearInput);
+        
+        // Validate academic year range
+        if (academicYear < 2020 || academicYear > 2030) {
+            showError('Academic year must be between 2020 and 2030!');
+            return;
+        }
+        
+        // Validate trimester number
+        if (trimesterNumber < 1 || trimesterNumber > 3) {
+            showError('Trimester number must be 1, 2, or 3!');
+            return;
+        }
+        
+        // Create request data
+        const requestData = {
+            id: trimesterId,
+            academicYear: parseInt(academicYear),
+            trimesterNumber: parseInt(trimesterNumber)
+        };
+        
+        // Show loading state
+        const updateButton = document.querySelector('#editTrimesterModal .btn-success');
+        const originalText = updateButton.innerHTML;
+        updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        updateButton.disabled = true;
+        
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        const tokenValue = token ? token.value : '';
+        
+        // Send AJAX request to backend
+        fetch('/Admin/Trimester/Update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': tokenValue
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showSuccess('Trimester updated successfully!');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editTrimesterModal'));
+                modal.hide();
+                
+                // Refresh page to show updated trimester after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                // Show error message
+                showError('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating trimester:', error);
+            showError('An error occurred while updating the trimester. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
+        });
+    }
+
+    function deleteTrimester(trimesterId) {
+        // Show confirmation dialog using SweetAlert2
+        showConfirm(
+            'Are you sure you want to delete this trimester?',
+            () => confirmDeleteTrimester(trimesterId),
+            null, // No cancel callback needed with SweetAlert2
+            'Delete Trimester'
+        );
+    }
+
+    function confirmDeleteTrimester(trimesterId) {
+        // Show loading message
+        const loadingToast = showLoading('Deleting trimester...');
+        
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        const tokenValue = token ? token.value : '';
+        
+        // Send AJAX request to delete trimester
+        fetch(`/Admin/Trimester/Delete/${trimesterId}`, {
+            method: 'DELETE',
+            headers: {
+                'RequestVerificationToken': tokenValue
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Clear loading toast
+            clearAllToasts();
+            
+            if (data.success) {
+                showSuccess('Trimester deleted successfully!');
+                // Reload the page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showError('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            // Clear loading toast
+            clearAllToasts();
+            showAjaxError(error, 'An error occurred while deleting the trimester. Please try again.');
+        });
+    }
+
+</script>
+
+<style>
+    /* Custom styles for the trimester management page */
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+    
+    /* Modal enhancements */
+    .modal-header.bg-success {
+        border-bottom: none;
+    }
+    
+    .modal-title {
+        color: white;
+    }
+    
+    /* Form styling */
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+    
+    /* Modal layout fixes */
+    .modal {
+        z-index: 1060;
+    }
+    
+    .modal-backdrop {
+        z-index: 1055;
+    }
+    
+    /* Ensure page layout remains stable when modal is open */
+    body.modal-open {
+        overflow: hidden;
+        padding-right: 0 !important;
+    }
+    
+    /* Badge styling */
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+    }
+    
+    /* Responsive table styles */
+    .responsive-table {
+        min-width: 800px; /* Ensure table has minimum width */
+    }
+    
+    /* Table scrollbar styles */
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    /* Responsive breakpoint optimization */
+    @@media (max-width: 1200px) {
+        .responsive-table {
+            min-width: 700px;
+        }
+    }
+    
+    @@media (max-width: 992px) {
+        .responsive-table {
+            min-width: 600px;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .responsive-table {
+            min-width: 500px;
+        }
+        
+        .table-responsive {
+            font-size: 0.8rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+        }
+        
+        .d-flex.gap-2 {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+        
+        .d-flex.gap-2 .btn {
+            width: 100%;
+        }
+        
+        /* Search box takes full width on small screens */
+        .input-group {
+            max-width: 100% !important;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .responsive-table {
+            min-width: 400px;
+        }
+        
+        .table-responsive {
+            font-size: 0.75rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.15rem 0.3rem;
+            font-size: 0.65rem;
+        }
+        
+        .card-header .row {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .card-header .col-md-6 {
+            width: 100%;
+        }
+    }
+    
+    /* Empty state styling */
+    .text-muted .fas {
+        opacity: 0.5;
+    }
+    
+    /* Tooltip styling */
+    .tooltip-inner {
+        max-width: 300px;
+        text-align: left;
+    }
+    
+    /* Enhanced form styling */
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    /* Checkbox styling */
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .form-check-input:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+    
+</style>
