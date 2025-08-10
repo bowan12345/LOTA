@@ -35,7 +35,9 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="card-title text-muted mb-1 fw-semibold">Total Tutors</h6>
-                            <h2 class="mb-0 fw-bold text-primary">9</h2>
+                            <h2 class="mb-0 fw-bold text-primary" id="totalTutors">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -53,7 +55,9 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="card-title text-muted mb-1 fw-semibold">Total Courses</h6>
-                            <h2 class="mb-0 fw-bold text-success">8</h2>
+                            <h2 class="mb-0 fw-bold text-success" id="totalCourses">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -71,13 +75,17 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="card-title text-muted mb-1 fw-semibold">Total Students</h6>
-                            <h2 class="mb-0 fw-bold text-warning">156</h2>
+                            <h2 class="mb-0 fw-bold text-warning" id="totalStudents">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </h2>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+
 
     <!-- Quick Actions -->
     <div class="row">
@@ -99,14 +107,14 @@
                             </a>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-md-6">
-                            <a href="#" class="btn btn-outline-success btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                            <a asp-area="Admin" asp-controller="Course" asp-action="Index" class="btn btn-outline-success btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
                                 <i class="fas fa-book fa-3x mb-3"></i>
                                 <span class="fw-bold fs-5">Manage Courses</span>
                                 <small class="text-muted mt-2 text-center">Create and manage course details</small>
                             </a>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-md-6">
-                            <a href="#" class="btn btn-outline-info btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
+                            <a asp-area="Admin" asp-controller="Student" asp-action="Index" class="btn btn-outline-info btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 action-card">
                                 <i class="fas fa-graduation-cap fa-3x mb-3"></i>
                                 <span class="fw-bold fs-5">Manage Students</span>
                                 <small class="text-muted mt-2 text-center">Handle student registrations and data</small>
@@ -125,6 +133,155 @@
         </div>
     </div>
 </div>
+
+<!-- Dashboard Statistics JavaScript -->
+<script>
+/**
+ * Dashboard Statistics Management
+ * Handles loading and updating dashboard statistics
+ */
+
+class DashboardStats {
+    constructor() {
+        this.statsEndpoint = '/Admin/Home/GetDashboardStats';
+        this.refreshInterval = 30000; // 30 seconds
+        this.init();
+    }
+
+    init() {
+        this.loadStats();
+        this.setupAutoRefresh();
+        this.setupErrorHandling();
+    }
+
+    async loadStats() {
+        try {
+            this.showLoadingState();
+            
+            const response = await fetch(this.statsEndpoint);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.updateStatsDisplay(result.data);
+            } else {
+                this.showErrorState();
+            }
+        } catch (error) {
+            this.showErrorState();
+        }
+    }
+
+    updateStatsDisplay(stats) {
+        const elements = {
+            totalTutors: document.getElementById('totalTutors'),
+            totalCourses: document.getElementById('totalCourses'),
+            totalStudents: document.getElementById('totalStudents')
+        };
+
+        // Try both uppercase and lowercase property names
+        const tutorCount = stats.TotalTutors ?? stats.totalTutors ?? 0;
+        const courseCount = stats.TotalCourses ?? stats.totalCourses ?? 0;
+        const studentCount = stats.TotalStudents ?? stats.totalStudents ?? 0;
+
+        if (elements.totalTutors) {
+            elements.totalTutors.textContent = tutorCount;
+        }
+        if (elements.totalCourses) {
+            elements.totalCourses.textContent = courseCount;
+        }
+        if (elements.totalStudents) {
+            elements.totalStudents.textContent = studentCount;
+        }
+    }
+
+    showLoadingState() {
+        const elements = ['totalTutors', 'totalCourses', 'totalStudents'];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+        });
+    }
+
+    showErrorState() {
+        const elements = ['totalTutors', 'totalCourses', 'totalStudents'];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = '<i class="fas fa-exclamation-triangle text-danger" title="Failed to load data"></i>';
+            }
+        });
+    }
+
+    animateCounters() {
+        const counters = document.querySelectorAll('#totalTutors, #totalCourses, #totalStudents');
+        
+        counters.forEach(counter => {
+            if (counter && !counter.querySelector('.fa-spinner') && !counter.querySelector('.fa-exclamation-triangle')) {
+                counter.style.transform = 'scale(1.1)';
+                counter.style.transition = 'transform 0.3s ease-in-out';
+                
+                setTimeout(() => {
+                    counter.style.transform = 'scale(1)';
+                }, 300);
+            }
+        });
+    }
+
+    setupAutoRefresh() {
+        setInterval(() => {
+            this.loadStats();
+        }, this.refreshInterval);
+    }
+
+    setupErrorHandling() {
+        // Add retry functionality on click
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#totalTutors, #totalCourses, #totalStudents')) {
+                const element = e.target.closest('#totalTutors, #totalCourses, #totalStudents');
+                if (element.querySelector('.fa-exclamation-triangle')) {
+                    this.loadStats();
+                }
+            }
+        });
+    }
+
+    // Public method to manually refresh stats
+    refresh() {
+        this.loadStats();
+    }
+}
+
+// Initialize dashboard stats when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if elements exist before initializing
+    const requiredElements = ['totalTutors', 'totalCourses', 'totalStudents'];
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        return;
+    }
+    
+    try {
+        window.dashboardStats = new DashboardStats();
+    } catch (error) {
+        // Silent error handling
+    }
+});
+
+// Export for potential use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = DashboardStats;
+}
+
+
+</script>
 
 <style>
     .dashboard-card {
@@ -183,7 +340,17 @@
         border-radius: 12px;
     }
     
-         @@media (max-width: 768px) {
+    /* Loading spinner styles */
+    .fa-spinner {
+        color: #6c757d;
+    }
+    
+    /* Error icon styles */
+    .fa-exclamation-triangle {
+        font-size: 1.5rem;
+    }
+    
+    @@media (max-width: 768px) {
         .display-6 {
             font-size: 1.5rem;
         }
@@ -205,7 +372,7 @@
         }
     }
     
-         @@media (max-width: 576px) {
+    @@media (max-width: 576px) {
         .action-card {
             min-height: 160px;
         }
