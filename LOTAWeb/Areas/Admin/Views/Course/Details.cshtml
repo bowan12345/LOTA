@@ -614,7 +614,7 @@
                     // Clear existing options
                     academicYearSelect.innerHTML = '<option value="">Select Academic Year</option>';
                     excelAcademicYearSelect.innerHTML = '<option value="">Select Academic Year</option>';
-                    filterAcademicYearSelect.innerHTML = '<option value="">All Years</option>';
+                    filterAcademicYearSelect.innerHTML = '<option value="">Select Year</option>';
                     
                     // Get unique academic years
                     const uniqueYears = [...new Set(trimesters.map(t => t.academicYear))].sort();
@@ -716,7 +716,7 @@
         
         // Populate filter trimester dropdown based on selected academic year
         function populateFilterTrimesterByYear(academicYear, filterTrimesterSelect) {
-            filterTrimesterSelect.innerHTML = '<option value="">All Trimesters</option>';
+            filterTrimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
             
             if (!academicYear) {
                 filterTrimesterSelect.innerHTML = '<option value="">Please select Academic Year first</option>';
