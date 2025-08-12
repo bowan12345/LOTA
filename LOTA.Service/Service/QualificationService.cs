@@ -21,6 +21,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<QualificationReturnDTO>> GetAllQualificationsAsync()
         {
+           
             var qualifications = await _unitOfWork.qualificationRepository.GetAllQualificationsAsync();
             
             return qualifications.Select(q => new QualificationReturnDTO
@@ -37,6 +38,7 @@ namespace LOTA.Service.Service
 
         public async Task<QualificationReturnDTO?> GetQualificationByIdAsync(string id)
         {
+            
             var qualification = await _unitOfWork.qualificationRepository.GetQualificationByIdAsync(id);
             
             if (qualification == null)
@@ -56,6 +58,7 @@ namespace LOTA.Service.Service
 
         public async Task<QualificationReturnDTO> CreateQualificationAsync(QualificationCreateDTO qualificationDto)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             // Check if qualification name already exists
             if (await _unitOfWork.qualificationRepository.IsQualificationNameExistsAsync(qualificationDto.QualificationName))
             {
@@ -98,6 +101,7 @@ namespace LOTA.Service.Service
 
         public async Task<QualificationReturnDTO> UpdateQualificationAsync(QualificationUpdateDTO qualificationDto)
         {
+            
             var existingQualification = await _unitOfWork.qualificationRepository.GetQualificationByIdAsync(qualificationDto.Id);
             
             if (existingQualification == null)
@@ -141,6 +145,7 @@ namespace LOTA.Service.Service
 
         public async Task<bool> DeleteQualificationAsync(string id)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var qualification = await _unitOfWork.qualificationRepository.GetQualificationByIdAsync(id);
             
             if (qualification == null)
@@ -162,11 +167,13 @@ namespace LOTA.Service.Service
 
         public async Task<bool> IsQualificationNameExistsAsync(string name, string? excludeId = null)
         {
+            
             return await _unitOfWork.qualificationRepository.IsQualificationNameExistsAsync(name, excludeId);
         }
 
         public async Task<IEnumerable<string>> GetAllQualificationTypesAsync()
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var qualificationTypes = await _unitOfWork.qualificationRepository.GetAllQualificationTypesAsync();
             return qualificationTypes;
         }

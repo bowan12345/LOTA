@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LOTA.DataAccess\LOTA.DataAccess.csproj" />
     <ProjectReference Include="..\LOTA.Service\LOTA.Service.csproj" />
     <ProjectReference Include="..\LOTAWeb\LOTAWeb.csproj" />
   </ItemGroup>

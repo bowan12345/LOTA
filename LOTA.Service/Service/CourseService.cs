@@ -20,8 +20,8 @@ namespace LOTA.Service.Service
 
         public async Task<CourseReturnDTO> CreateCourseAsync(CourseCreateDTO courseDTO)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             // Service layer business logic processing
-            
             // Generate new course ID
             var courseId = Guid.NewGuid().ToString();
             
@@ -91,7 +91,6 @@ namespace LOTA.Service.Service
 
         public async Task<CourseReturnDTO> GetCourseByCodeAsync(string courseCode)
         {
-            //throw new NotImplementedException();
             if (string.IsNullOrEmpty(courseCode))
             {
                 throw new NullReferenceException("courseCode is empty");
@@ -121,7 +120,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<CourseReturnDTO>> GetCoursesByNameOrCodeAsync(string courseSearchItem)
         {
-            //throw new NotImplementedException();
+
             // create a combine multipile filter conditions object
             var filter = PredicateBuilder.True<Course>();
 
@@ -139,7 +138,7 @@ namespace LOTA.Service.Service
 
         public async Task RemoveCourse(string courseId)
         {
-            //throw new NotImplementedException();
+          
             if (string.IsNullOrEmpty(courseId))
             {
                 throw new NullReferenceException("courseId is empty");
@@ -160,7 +159,7 @@ namespace LOTA.Service.Service
 
         public async Task UpdateCourse(CourseUpdateDTO courseDTO)
         {
-            //throw new NotImplementedException();
+          
             try
             {
                 if (courseDTO == null)
@@ -394,23 +393,10 @@ namespace LOTA.Service.Service
             };
         }
 
-        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null)
-        {
-            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAndTrimesterAsync(courseId, academicYear, trimesterNumber);
-            return studentCourses.Select(sc => new StudentReturnDTO
-            {
-                Id = sc.Student.Id,
-                FirstName = sc.Student.FirstName,
-                LastName = sc.Student.LastName,
-                Email = sc.Student.Email,
-                StudentNo = sc.Student.StudentNo,
-                IsActive = sc.Student.IsActive,
-                EnrolledCoursesCount = 0 // We don't need this for this context
-            });
-        }
 
         public async Task AddStudentsToCourseAsync(string courseId, List<string> studentIds, string trimesterId)
         {
+            
             // Validate trimester exists
             var trimester = await _unitOfWork.trimesterRepository.GetAsync(t => t.Id == trimesterId);
             if (!trimester.Any())
@@ -453,6 +439,7 @@ namespace LOTA.Service.Service
 
         public async Task RemoveStudentFromCourseAsync(string courseId, string studentId)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var enrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
             if (enrollment != null)
             {
@@ -548,9 +535,5 @@ namespace LOTA.Service.Service
             return (successCount, errors);
         }
 
-        public async Task<IEnumerable<Trimester>> GetActiveTrimestersAsync()
-        {
-            return await _unitOfWork.trimesterRepository.GetActiveTrimestersAsync();
-        }
     }
 }

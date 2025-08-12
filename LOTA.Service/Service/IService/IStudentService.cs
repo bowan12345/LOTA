@@ -12,5 +12,14 @@ namespace LOTA.Service.Service.IService
         Task<bool> DeleteStudentAsync(string id);
         Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null);
         Task<bool> IsStudentNoExistsAsync(string studentNo, string? excludeId = null);
+
+        /// <summary>
+        /// Get enrolled students for a course
+        /// </summary>
+        /// <param name="courseId">Course ID</param>
+        /// <param name="academicYear">Academic year (optional)</param>
+        /// <param name="trimesterNumber">Trimester number (optional)</param>
+        /// <returns>List of enrolled students</returns>
+        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null);
     }
 }

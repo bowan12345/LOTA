@@ -19,6 +19,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<StudentReturnDTO>> GetAllStudentsAsync()
         {
+            
             // Use Repository's GetAllAsync method, then filter users with StudentNo
             var allUsers = await _unitOfWork.studentRepository.GetAllAsync();
             var students = allUsers.Where(u => !string.IsNullOrEmpty(u.StudentNo));
@@ -27,6 +28,7 @@ namespace LOTA.Service.Service
 
         public async Task<StudentReturnDTO?> GetStudentByIdAsync(string id)
         {
+            
             var student = await _unitOfWork.studentRepository.GetByIdAsync(id);
             // Check if StudentNo exists, if yes then consider as student
             return student != null && !string.IsNullOrEmpty(student.StudentNo) ? MapToDTO(student) : null;
@@ -34,6 +36,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<StudentReturnDTO>> GetStudentsByNameOrEmailAsync(string searchTerm)
         {
+            
             // Use Repository's GetAllAsync method, then filter and search
             var allUsers = await _unitOfWork.studentRepository.GetAllAsync();
             var students = allUsers.Where(u => !string.IsNullOrEmpty(u.StudentNo));
@@ -52,6 +55,7 @@ namespace LOTA.Service.Service
 
         public async Task<StudentReturnDTO> CreateStudentAsync(StudentCreateDTO studentDto)
         {
+            
             // Check if email already exists
             if (await _userManager.FindByEmailAsync(studentDto.Email) != null)
             {
@@ -95,6 +99,7 @@ namespace LOTA.Service.Service
 
         public async Task<StudentReturnDTO> UpdateStudentAsync(StudentUpdateDTO studentDto)
         {
+            
             var existingStudent = await _userManager.FindByIdAsync(studentDto.Id);
             if (existingStudent == null)
             {
@@ -108,7 +113,7 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException($"User with email '{studentDto.Email}' already exists.");
             }
 
-                         // Check if student number already exists (excluding current student)
+             // Check if student number already exists (excluding current student)
              if (!string.IsNullOrEmpty(studentDto.StudentNo))
              {
                  var existingStudentWithNo = _userManager.Users.FirstOrDefault(u => u.StudentNo == studentDto.StudentNo && u.Id != studentDto.Id);
@@ -137,7 +142,8 @@ namespace LOTA.Service.Service
 
         public async Task<bool> DeleteStudentAsync(string id)
          {
-             var student = await _userManager.FindByIdAsync(id);
+            
+            var student = await _userManager.FindByIdAsync(id);
              if (student == null)
              {
                  return false;
@@ -156,6 +162,7 @@ namespace LOTA.Service.Service
 
        public async Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null)
         {
+            
             var allUsers = await _unitOfWork.studentRepository.GetAllAsync();
             var user = allUsers.FirstOrDefault(u => u.Email == email);
             
@@ -170,17 +177,23 @@ namespace LOTA.Service.Service
 
         public async Task<bool> IsStudentNoExistsAsync(string studentNo, string? excludeId = null)
         {
-            if (string.IsNullOrEmpty(studentNo))
+            
+            if (string.IsNullOrEmpty(studentNo)) 
+            {
                 return false;
-
+            }
             var allUsers = await _unitOfWork.studentRepository.GetAllAsync();
             var student = allUsers.FirstOrDefault(u => u.StudentNo == studentNo);
             
             if (student == null)
+            {
                 return false;
+            }
 
             if (!string.IsNullOrEmpty(excludeId))
+            {
                 return student.Id != excludeId;
+            }
 
             return true;
         }
@@ -197,6 +210,21 @@ namespace LOTA.Service.Service
                 IsActive = student.IsActive,
                 EnrolledCoursesCount = student.StudentCourses?.Count ?? 0
             };
+        }
+
+        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null)
+        {
+            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAndTrimesterAsync(courseId, academicYear, trimesterNumber);
+            return studentCourses.Select(sc => new StudentReturnDTO
+            {
+                Id = sc.Student.Id,
+                FirstName = sc.Student.FirstName,
+                LastName = sc.Student.LastName,
+                Email = sc.Student.Email,
+                StudentNo = sc.Student.StudentNo,
+                IsActive = sc.Student.IsActive,
+                EnrolledCoursesCount = 0 // We don't need this for this context
+            });
         }
     }
 }

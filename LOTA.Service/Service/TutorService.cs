@@ -35,7 +35,7 @@ namespace LOTA.Service.Service
 
         public async Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses)
         {
-            //throw new NotImplementedException();
+            
             List<TutorCourse> tutorCourses = new List<TutorCourse>();
             foreach (string course in AssignedCourses)
             {
@@ -54,6 +54,7 @@ namespace LOTA.Service.Service
 
         public async Task<ApplicationUser> GetTutorByIdAsync(string id)
         {
+          
             var tutors = await _unitOfWork.tutorRepository.GetAllAsync(
                 filter: u => u.Id == id,
                 includeProperties: "TutorCourse.Course"
@@ -63,6 +64,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<TutorCourse>> GetTutorCoursesAsync(string tutorId)
         {
+            
             return await _unitOfWork.tutorCourseRepository.GetAllAsync(
                 filter: tc => tc.TutorId == tutorId,
                 includeProperties: "Course"
@@ -71,6 +73,7 @@ namespace LOTA.Service.Service
 
         public async Task RemoveAllTutorCoursesAsync(string tutorId)
         {
+            
             var existingCourses = await _unitOfWork.tutorCourseRepository.GetAllAsync(
                 filter: tc => tc.TutorId == tutorId
             );
@@ -84,6 +87,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<ApplicationUser>> SearchTutorsAsync(string searchTerm)
         {
+           
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 // If search term is empty, return all tutors

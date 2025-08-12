@@ -15,11 +15,13 @@ namespace LOTAWeb.Areas.Admin.Controllers
     public class CourseController : Controller
     {
         private readonly ICourseService _courseService;
+        private readonly IStudentService _studentService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(ICourseService courseService)
+        public CourseController(ICourseService courseService, IStudentService studentService)
         {
             _courseService = courseService;
+            _studentService = studentService;
         }
 
         // GET: Admin/course home page
@@ -291,7 +293,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                var students = await _courseService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
+                var students = await _studentService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
                 return Json(new { success = true, data = students });
             }
             catch (Exception ex)

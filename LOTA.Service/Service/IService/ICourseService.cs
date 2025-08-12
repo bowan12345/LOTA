@@ -74,15 +74,6 @@ namespace LOTA.Service.Service.IService
         Task<byte[]> GenerateExcelTemplateAsync();
 
         /// <summary>
-        /// Get enrolled students for a course
-        /// </summary>
-        /// <param name="courseId">Course ID</param>
-        /// <param name="academicYear">Academic year (optional)</param>
-        /// <param name="trimesterNumber">Trimester number (optional)</param>
-        /// <returns>List of enrolled students</returns>
-        Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null);
-
-        /// <summary>
         /// Add students to a course
         /// </summary>
         /// <param name="courseId">The course ID</param>

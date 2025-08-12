@@ -17,6 +17,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<TrimesterReturnDTO>> GetActiveTrimestersAsync()
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             IEnumerable<Trimester> List = await _unitOfWork.trimesterRepository.GetActiveTrimestersAsync();
             var returnDTOList = List.Select(trimester => new TrimesterReturnDTO
             {
@@ -32,6 +33,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<TrimesterReturnDTO>> GetByAcademicYearAsync(int academicYear)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             IEnumerable<Trimester> trimesterList = await _unitOfWork.trimesterRepository.GetByAcademicYearAsync(academicYear);
             var returnListDTO = trimesterList.Select(trimester => new TrimesterReturnDTO
             {
@@ -47,6 +49,7 @@ namespace LOTA.Service.Service
 
         public async Task<TrimesterReturnDTO> GetByAcademicYearAndTrimesterAsync(int academicYear, int trimesterNumber)
         {
+            
             Trimester trimester = await _unitOfWork.trimesterRepository.GetByAcademicYearAndTrimesterAsync(academicYear, trimesterNumber);
             var returnDTO = new TrimesterReturnDTO()
             {
@@ -62,6 +65,7 @@ namespace LOTA.Service.Service
 
         public async Task<TrimesterReturnDTO> GetCurrentTrimesterAsync()
         {
+            
             var currentDate = DateTime.Now;
             var currentYear = currentDate.Year;
             var currentMonth = currentDate.Month;
@@ -96,6 +100,7 @@ namespace LOTA.Service.Service
 
         public async Task<TrimesterReturnDTO> GetByIdAsync(string id)
         {
+            
             Trimester trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(id);
             if (trimester == null)
             {
@@ -115,7 +120,7 @@ namespace LOTA.Service.Service
 
         public async Task<TrimesterReturnDTO> CreateAsync(TrimesterCreateDTO trimesterDTO)
         {
-
+            
             //check if trimester already exists
             var trimesterReturn = await _unitOfWork.trimesterRepository.GetByAcademicYearAndTrimesterAsync(trimesterDTO.AcademicYear, trimesterDTO.TrimesterNumber);
             if (trimesterReturn != null)
@@ -151,7 +156,7 @@ namespace LOTA.Service.Service
 
         public async Task<TrimesterReturnDTO> UpdateAsync(TrimesterUpdateDTO trimesterDTO)
         {
-
+            
             // Get trimester by id
             var trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(trimesterDTO.Id);
             if (trimester == null)
@@ -190,7 +195,7 @@ namespace LOTA.Service.Service
 
         public async Task DeleteAsync(string id)
         {
-
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(id);
             if (trimester != null)
             {
