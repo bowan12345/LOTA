@@ -19,6 +19,7 @@ namespace LOTA.Model.DTO.Admin
 
         public string? Password { get; set; }
 
+        public string? ConfirmPassword { get; set; }
 
         public List<string> AssignedCourses { get; set; } = new List<string>();
     }

@@ -144,11 +144,22 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 // Update password if provided
                 if (!string.IsNullOrEmpty(tutorUpdateDTO.Password))
                 {
+                    // Validate password confirmation
+                    if (string.IsNullOrEmpty(tutorUpdateDTO.ConfirmPassword))
+                    {
+                        return Json(new { success = false, message = "Confirm Password is required when updating password." });
+                    }
+
+                    if (tutorUpdateDTO.Password != tutorUpdateDTO.ConfirmPassword)
+                    {
+                        return Json(new { success = false, message = "Password and Confirm Password do not match." });
+                    }
+
                     var token = await _userManager.GeneratePasswordResetTokenAsync(tutor);
                     var result = await _userManager.ResetPasswordAsync(tutor, token, tutorUpdateDTO.Password);
                     if (!result.Succeeded)
                     {
-                        return Json(new { success = false, message = "Failed to update password" });
+                        return Json(new { success = false, message = $"Failed to update password" });
                     }
                 }
 
