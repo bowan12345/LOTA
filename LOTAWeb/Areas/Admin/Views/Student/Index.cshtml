@@ -82,7 +82,6 @@
                             <th class="border-0 text-nowrap d-none d-lg-table-cell">Email</th>
                             <th class="border-0 text-nowrap">Password</th>
                             <th class="border-0 text-nowrap d-none d-md-table-cell">Status</th>
-                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Enrolled Courses</th>
                             <th class="border-0 text-nowrap">Actions</th>
                         </tr>
                     </thead>
@@ -104,9 +103,6 @@
                                             @(student.IsActive ? "Active" : "Inactive")
                                         </span>
                                     </td>
-                                    <td class="text-nowrap d-none d-xl-table-cell">
-                                        <span class="badge bg-info">@student.EnrolledCoursesCount</span>
-                                    </td>
                                     <td class="text-nowrap">
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-success btn-sm" title="Edit" onclick="editStudent('@student.Id')">
@@ -123,7 +119,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <div class="text-muted">
                                         @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                                         {
@@ -244,8 +240,18 @@
                             <input type="email" class="form-control" id="editEmail" name="editEmail" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editStudentNo" class="form-label">Student ID <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="editStudentNo" name="editStudentNo">
+                            <label for="editStudentNo" class="form-label">Student ID</label>
+                            <input type="text" class="form-control" id="editStudentNo" name="editStudentNo" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="editPassword" name="editPassword" placeholder="Leave blank to keep current password">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editConfirmPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="editConfirmPassword" name="editConfirmPassword" placeholder="Leave blank to keep current password">
                         </div>
                     </div>
                     @* <div class="mb-3">
@@ -344,7 +350,7 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const studentNo = document.getElementById('studentNo').value;
-            const isActive = document.getElementById('isActive').checked;
+            const isActive = true; // Default to true since the checkbox is commented out
 
             // Validate required fields
             if (!firstName || !lastName || !email || !password) {
@@ -439,6 +445,8 @@
                         document.getElementById('editLastName').value = student.lastName || '';
                         document.getElementById('editEmail').value = student.email || '';
                         document.getElementById('editStudentNo').value = student.studentNo || '';
+                        document.getElementById('editPassword').value = ''; // Clear password fields
+                        document.getElementById('editConfirmPassword').value = ''; // Clear confirm password field
                         //document.getElementById('editIsActive').checked = student.isActive;
                     } else {
                         showError('Failed to load student data');
@@ -459,11 +467,19 @@
             const lastName = document.getElementById('editLastName').value;
             const email = document.getElementById('editEmail').value;
             const studentNo = document.getElementById('editStudentNo').value;
+            const password = document.getElementById('editPassword').value;
+            const confirmPassword = document.getElementById('editConfirmPassword').value;
             //const isActive = document.getElementById('editIsActive').checked;
 
             // Validate required fields
             if (!firstName || !lastName || !email) {
                 showError('Please fill in all required fields!');
+                return;
+            }
+
+            // Validate password confirmation if password is provided
+            if (password && password !== confirmPassword) {
+                showError('Password and Confirm Password do not match!');
                 return;
             }
 
@@ -474,6 +490,8 @@
                 lastName: lastName,
                 email: email,
                 studentNo: studentNo || null,
+                password: password || null, // Only send password if provided
+                confirmPassword: confirmPassword || null, // Only send confirm password if provided
                 //isActive: isActive
             };
 
@@ -791,6 +809,18 @@
         .input-group .form-control:focus {
             border-color: #80bdff;
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        /* Readonly input styling */
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .form-control[readonly]:focus {
+            border-color: #ced4da;
+            box-shadow: none;
         }
     </style>
 }

@@ -79,11 +79,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = $"Failed to create student: {errors}" });
                 }
 
-                // Add student role
-                await _userManager.AddToRoleAsync(student, "Student");
-
-                var resultDto = await _studentService.GetStudentByIdAsync(student.Id);
-                return Json(new { success = true, data = resultDto, message = "Student created successfully" });
+                //var resultDto = await _studentService.GetStudentByIdAsync(student.Id);
+                return Json(new { success = true, data = result, message = "Student created successfully" });
             }
             catch (Exception ex)
             {
@@ -153,6 +150,29 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 existingStudent.UserName = studentDto.Email;
                 existingStudent.StudentNo = studentDto.StudentNo;
                 existingStudent.IsActive = studentDto.IsActive;
+
+                // Update password if provided
+                if (!string.IsNullOrEmpty(studentDto.Password))
+                {
+                    // Validate password confirmation
+                    if (string.IsNullOrEmpty(studentDto.ConfirmPassword))
+                    {
+                        return Json(new { success = false, message = "Confirm Password is required when updating password." });
+                    }
+
+                    if (studentDto.Password != studentDto.ConfirmPassword)
+                    {
+                        return Json(new { success = false, message = "Password and Confirm Password do not match." });
+                    }
+
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(existingStudent);
+                    var passwordResult = await _userManager.ResetPasswordAsync(existingStudent, token, studentDto.Password);
+                    if (!passwordResult.Succeeded)
+                    {
+                        var errors = string.Join(", ", passwordResult.Errors.Select(e => e.Description));
+                        return Json(new { success = false, message = $"Failed to update password: {errors}" });
+                    }
+                }
 
                 var result = await _userManager.UpdateAsync(existingStudent);
                 if (!result.Succeeded)

@@ -17,8 +17,14 @@ namespace LOTA.Model.DTO.Admin
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = string.Empty;
 
-        [StringLength(255, ErrorMessage = "Student No cannot exceed 255 characters")]
+        [StringLength(50, ErrorMessage = "Student No cannot exceed 50 characters")]
         public string? StudentNo { get; set; }
+
+        [StringLength(100, ErrorMessage = "Password cannot exceed 100 characters")]
+        public string? Password { get; set; }
+
+        [StringLength(100, ErrorMessage = "Confirm Password cannot exceed 100 characters")]
+        public string? ConfirmPassword { get; set; }
 
         public bool IsActive { get; set; } = true;
     }
