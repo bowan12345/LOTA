@@ -7,14 +7,16 @@ namespace LOTA.Model.DTO.Admin
         [Required]
         public string Id { get; set; }
 
-        [Required]
+        [StringLength(50, ErrorMessage = "First Name cannot exceed 50 characters")]
+        [RegularExpression(@"^(?!\d+$).*$", ErrorMessage = "FirstName cannot be only numbers")]
         public string FirstName { get; set; }
 
-        [Required]
+        [StringLength(50, ErrorMessage = "Last Name cannot exceed 50 characters")]
+        [RegularExpression(@"^(?!\d+$).*$", ErrorMessage = "SurName cannot be only numbers")]
         public string LastName { get; set; }
 
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; }
 
         public string? Password { get; set; }

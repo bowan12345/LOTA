@@ -184,11 +184,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="firstName" class="form-label">FirstName </label>
-                            <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            <input type="text" class="form-control" id="firstName" name="firstName" >
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="lastName" class="form-label">SurName </label>
-                            <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            <input type="text" class="form-control" id="lastName" name="lastName" >
                         </div>
                     </div>
                     <div class="row">
@@ -250,11 +250,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="editFirstName" class="form-label">FirstName </label>
-                            <input type="text" class="form-control" id="editFirstName" name="editFirstName" required>
+                            <input type="text" class="form-control" id="editFirstName" name="editFirstName" >
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="editLastName" class="form-label">SurName </label>
-                            <input type="text" class="form-control" id="editLastName" name="editLastName" required>
+                            <input type="text" class="form-control" id="editLastName" name="editLastName" >
                         </div>
                     </div>
                     <div class="row">
@@ -378,8 +378,8 @@
             const isActive = true; // Default to true since the checkbox is commented out
 
             // Validate required fields
-            if (!firstName || !lastName || !email || !password) {
-                showError('Please fill in all required fields!');
+            if (!email || !password) {
+                showError('Please fill in all required fields- email and password!');
                 return;
             }
 
@@ -497,8 +497,8 @@
             //const isActive = document.getElementById('editIsActive').checked;
 
             // Validate required fields
-            if (!firstName || !lastName || !email) {
-                showError('Please fill in all required fields!');
+            if (!email) {
+                showError('Please fill in required email!');
                 return;
             }
 

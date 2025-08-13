@@ -210,11 +210,11 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="firstName" class="form-label">FirstName</label>
-                            <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            <input type="text" class="form-control" id="firstName" name="firstName" >
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="lastName" class="form-label">SurName</label>
-                            <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            <input type="text" class="form-control" id="lastName" name="lastName" >
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="email" class="form-label">Email</label>
@@ -273,11 +273,11 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="editFirstName" class="form-label">FirstName</label>
-                            <input type="text" class="form-control" id="editFirstName" name="firstName" required>
+                            <input type="text" class="form-control" id="editFirstName" name="firstName" >
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="editLastName" class="form-label">SurName</label>
-                            <input type="text" class="form-control" id="editLastName" name="lastName" required>
+                            <input type="text" class="form-control" id="editLastName" name="lastName" >
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="editEmail" class="form-label">Email</label>
@@ -344,10 +344,10 @@
                      </h6>
                      <p class="mb-0">Your Excel file should contain the following columns:</p>
                      <ul class="mb-0 mt-2">
-                         <li><strong>Surname</strong> (Required)</li>
-                         <li><strong>FirstName</strong> (Required)</li>
-                         <li><strong>Email</strong> (Required)</li>
-                         <li><strong>Password</strong> (Optional - will generate random password if not provided)</li>
+                            <li><strong>Surname</strong> (Optional)</li>
+                            <li><strong>FirstName</strong> (Optional)</li>
+                            <li><strong>Email</strong> (Required)</li>
+                            <li><strong>Password</strong> (Required)</li>
                      </ul>
                      <div class="mt-3">
                          <small class="text-muted">
@@ -506,8 +506,8 @@
         const selectedCourseIds = getSelectedCourses(courseSelect);
         
         // Validate required fields
-        if (!firstName || !lastName || !email || !password) {
-            showError('Please fill in all required fields!');
+        if ( !email || !password) {
+            showError('Please fill in all required fields- email and password!');
             return;
         }
         
@@ -653,8 +653,8 @@
         const selectedCourseIds = getSelectedCourses(editCourseSelect);
         
         // Validate required fields
-        if (!firstName || !lastName || !email) {
-            showError('Please fill in all required fields!');
+        if (!email) {
+            showError('Please fill in required email!');
             return;
         }
         

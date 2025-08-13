@@ -5,14 +5,16 @@ namespace LOTA.Model.DTO.Admin
     public class TutorCreateDTO
     {
 
-        [Required]
+        [StringLength(50, ErrorMessage = "First Name cannot exceed 50 characters")]
+        [RegularExpression(@"^(?!\d+$)[A-Za-z0-9]+$", ErrorMessage = "FirstName can only contain letters and numbers, and cannot be only numbers")]
         public string FirstName { get; set; }
 
-        [Required]
+        [StringLength(50, ErrorMessage = "Last Name cannot exceed 50 characters")]
+        [RegularExpression(@"^(?!\d+$)[A-Za-z0-9]+$", ErrorMessage = "SurName can only contain letters and numbers, and cannot be only numbers")]
         public string LastName { get; set; }
 
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; }
 
         [Required]

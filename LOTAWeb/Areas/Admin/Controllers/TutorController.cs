@@ -462,7 +462,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             // Generate password if not provided
                             if (string.IsNullOrWhiteSpace(password))
                             {
-                                password = GenerateDefaultPassword();
+                                errors.Add($"Row {row}: Invalid email format: {password}");
+                                errorCount++;
+                                continue;
                             }
 
                             tutors.Add(new TutorExcelDTO

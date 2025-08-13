@@ -13,7 +13,7 @@ namespace LOTA.DataAccess.Repository
         {
             return await _db.Trimester
                 .Where(t => t.IsActive)
-                .OrderBy(t => t.AcademicYear)
+                .OrderByDescending(t => t.AcademicYear)
                 .ThenBy(t => t.TrimesterNumber)
                 .ToListAsync();
         }
