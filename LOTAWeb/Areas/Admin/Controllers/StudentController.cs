@@ -472,8 +472,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         var result = await _userManager.CreateAsync(student, defaultPassword);
                         if (result.Succeeded)
                         {
-                            // Add student role
-                            await _userManager.AddToRoleAsync(student, "Student");
                             successCount++;
                         }
                         else

@@ -559,12 +559,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Cell(2, 1).Value = "Smith";
                      worksheet.Cell(2, 2).Value = "John";
                      worksheet.Cell(2, 3).Value = "john.smith@example.com";
-                     worksheet.Cell(2, 4).Value = "password123";
+                     worksheet.Cell(2, 4).Value = "Password123!";
 
                      worksheet.Cell(3, 1).Value = "Johnson";
                      worksheet.Cell(3, 2).Value = "Jane";
                      worksheet.Cell(3, 3).Value = "jane.johnson@example.com";
-                     worksheet.Cell(3, 4).Value = "password123";
+                     worksheet.Cell(3, 4).Value = "Password123!";
 
                      // Auto-fit columns
                      worksheet.Columns().AdjustToContents();

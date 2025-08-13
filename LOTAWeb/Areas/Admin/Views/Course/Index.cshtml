@@ -414,11 +414,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label for="excelFile" class="form-label">Select Excel File</label>
-                    <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls" required>
-                    <div class="form-text">Supported formats: .xlsx, .xls</div>
-                </div>
+                <form id="uploadExcelForm">
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Select Excel File</label>
+                        <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls" required>
+                        <div class="form-text">Supported formats: .xlsx, .xls</div>
+                    </div>
                 <div class="alert alert-info">
                     <h6 class="alert-heading">
                         <i class="fas fa-info-circle me-2"></i>
@@ -442,6 +443,7 @@
                         Download Template
                     </a>
                 </div>
+                </form>
             </div>
             <div class="modal-footer flex-column flex-sm-row gap-2">
                 <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
@@ -774,7 +776,6 @@
             }
         })
         .catch(error => {
-            console.error('Error creating course:', error);
             showError('An error occurred while creating the course. Please try again.');
         })
         .finally(() => {
@@ -791,7 +792,6 @@
 
     function editCourse(courseId) {
         // Load course data and open edit modal
-        console.log('Editing course:', courseId);
         
         // Show loading state
         const editModal = new bootstrap.Modal(document.getElementById('editCourseModal'));
@@ -833,14 +833,12 @@
                     
 
                     
-                    console.log('Course data loaded:', course);
                 } else {
                     showError('Error loading course data: ' + (data.message || 'Unknown error'));
                     editModal.hide();
                 }
             })
             .catch(error => {
-                console.error('Error loading course data:', error);
                 showError('An error occurred while loading course data. Please try again.');
                 editModal.hide();
             });
@@ -914,7 +912,6 @@
             }
         })
         .catch(error => {
-            console.error('Error updating course:', error);
             showError('An error occurred while updating the course. Please try again.');
         })
         .finally(() => {
@@ -1013,37 +1010,158 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Show success message with details
-                let message = data.message;
+                // Check if there are any errors to display
                 if (data.data && data.data.errors && data.data.errors.length > 0) {
-                    message += '\n\nFirst few errors:\n' + data.data.errors.join('\n');
+                    // Show errors using SweetAlert
+                    showUploadResultWithErrors(data.data.errors, data.data.successCount, data.data.errorCount);
+                    
+                    // Close modal after showing errors
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('uploadExcelForm').reset();
+                } else {
+                    // No errors, show success using SweetAlert
+                    showUploadSuccess(data.data.successCount);
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('uploadExcelForm').reset();
                 }
-                
-                showSuccess(message);
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
-                modal.hide();
-                
-                // Reset file input
-                fileInput.value = '';
-                
-                // Refresh page to show new courses after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
             } else {
                 showError('Error: ' + data.message);
             }
         })
         .catch(error => {
-            console.error('Error uploading Excel file:', error);
             showError('An error occurred while uploading the Excel file. Please try again.');
         })
         .finally(() => {
             // Reset button state
             uploadButton.innerHTML = originalText;
             uploadButton.disabled = false;
+        });
+    }
+
+    // Function to show upload success using SweetAlert
+    function showUploadSuccess(successCount) {
+        if (typeof Swal === 'undefined') {
+            alert('Upload successful! ' + successCount + ' courses imported. SweetAlert not available.');
+            return;
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Upload Successful!',
+            html: `
+                <div class="text-center">
+                    <div class="mb-2">
+                        <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
+                    </div>
+                    <h6 class="text-success mb-2">Courses imported successfully!</h6>
+                    <div class="alert alert-success py-2">
+                        <strong>${successCount}</strong> courses have been imported to the system.
+                    </div>
+                    <p class="text-muted mt-2 mb-0">
+                        <small>The page will refresh after you click OK.</small>
+                    </p>
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#28a745',
+            width: '400px',
+            customClass: {
+                popup: 'swal-small',
+                title: 'text-success'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Refresh page after clicking OK
+                location.reload();
+            }
+        });
+    }
+
+    // Function to show upload result with errors using SweetAlert
+    function showUploadResultWithErrors(errors, successCount, errorCount) {
+        if (typeof Swal === 'undefined') {
+            alert('Upload completed with errors. ' + successCount + ' courses imported, ' + errorCount + ' errors found. SweetAlert not available.');
+            return;
+        }
+        // Create error list HTML
+        let errorListHtml = '';
+        errors.forEach((error, index) => {
+            errorListHtml += `
+                <div class="text-start mb-1 p-1 bg-light rounded">
+                    <i class="fas fa-times-circle text-danger me-1"></i>
+                    <span class="text-danger small">${error}</span>
+                </div>
+            `;
+        });
+
+        // Add note about error limit if there are more than 10 errors
+        if (errorCount > 10) {
+            errorListHtml += `
+                <div class="alert alert-info mt-2 py-1">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <small><strong>Note:</strong> Showing first 10 errors. Total errors: ${errorCount}</small>
+                </div>
+            `;
+        }
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Upload Completed with Errors',
+            html: `
+                <div class="text-center">
+                    <div class="mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <div class="alert alert-success mb-0 py-1">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <small><strong>${successCount}</strong> courses imported</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="alert alert-danger mb-0 py-1">
+                                <i class="fas fa-times-circle me-1"></i>
+                                <small><strong>${errorCount}</strong> errors found</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-start">
+                        <h6 class="text-danger mb-1">Error Details:</h6>
+                        <div class="error-list" style="max-height: 150px; overflow-y: auto;">
+                            ${errorListHtml}
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted mt-2 mb-0">
+                        <small>The page will refresh after you click OK.</small>
+                    </p>
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#ffc107',
+            width: '450px',
+            customClass: {
+                popup: 'swal-small',
+                title: 'text-warning'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Refresh page after clicking OK
+                location.reload();
+            }
         });
     }
 
@@ -1074,7 +1192,6 @@
                 }
             })
             .catch(error => {
-                console.error('Error loading qualifications:', error);
                 showError('Failed to load qualifications');
                 displayQualifications([]);
             });
@@ -1088,7 +1205,6 @@
                 if (result.success) {
                     populateQualificationTypeDropdowns(result.data);
                 } else {
-                    console.error('Failed to load qualification types:', result.message);
                     // Fallback to default options if API fails
                     populateQualificationTypeDropdowns([
                         'Bachelor', 'Diploma', 'Certificate', 'Master', 
@@ -1097,7 +1213,6 @@
                 }
             })
             .catch(error => {
-                console.error('Error loading qualification types:', error);
                 // Fallback to default options if API fails
                 populateQualificationTypeDropdowns([
                     'Bachelor', 'Diploma', 'Certificate', 'Master', 
@@ -1114,11 +1229,9 @@
                 if (result.success) {
                     populateQualificationDropdowns(result.data);
                 } else {
-                    console.error('Failed to load qualifications:', result.message);
                 }
             })
             .catch(error => {
-                console.error('Error loading qualifications:', error);
             });
     }
 
@@ -1305,7 +1418,6 @@
             }
         })
         .catch(error => {
-            console.error('Error creating qualification:', error);
             showError('Failed to create qualification');
         })
         .finally(() => {
@@ -1340,7 +1452,6 @@
                 }
             })
             .catch(error => {
-                console.error('Error loading qualification:', error);
                 showError('Failed to load qualification data');
                 editModal.hide();
             });
@@ -1403,7 +1514,6 @@
             }
         })
         .catch(error => {
-            console.error('Error updating qualification:', error);
             showError('Failed to update qualification');
         })
         .finally(() => {
@@ -1441,7 +1551,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error deleting qualification:', error);
                     clearAllToasts();
                     showError('Failed to delete qualification');
                 });
@@ -1752,6 +1861,112 @@
      .nav-tabs .nav-link .badge {
          font-size: 0.75rem;
          padding: 0.25rem 0.5rem;
+     }
+     
+     /* SweetAlert custom styling */
+     .swal-wide {
+         max-width: 600px !important;
+     }
+     
+     .swal-wide .swal2-html {
+         text-align: left;
+     }
+     
+     .swal-wide .error-list {
+         max-height: 200px;
+         overflow-y: auto;
+         border: 1px solid #dee2e6;
+         border-radius: 0.375rem;
+         padding: 0.5rem;
+         background-color: #f8f9fa;
+     }
+     
+     .swal-wide .error-list::-webkit-scrollbar {
+         width: 6px;
+     }
+     
+     .swal-wide .error-list::-webkit-scrollbar-track {
+         background: #f1f1f1;
+         border-radius: 3px;
+     }
+     
+     .swal-wide .error-list::-webkit-scrollbar-thumb {
+         background: #6c757d;
+         border-radius: 3px;
+     }
+     
+     .swal-wide .error-list::-webkit-scrollbar-thumb:hover {
+         background: #495057;
+     }
+     
+     .swal-wide .alert {
+         margin-bottom: 0.5rem;
+         padding: 0.5rem 0.75rem;
+         border-radius: 0.375rem;
+         font-size: 0.875rem;
+     }
+     
+     .swal-wide .bg-light {
+         background-color: #f8f9fa !important;
+     }
+     
+     .swal-wide .text-start {
+         text-align: left !important;
+     }
+     
+     /* Small SweetAlert styling */
+     .swal-small {
+         max-width: 450px !important;
+     }
+     
+     .swal-small .swal2-html {
+         text-align: left;
+     }
+     
+     .swal-small .error-list {
+         max-height: 150px;
+         overflow-y: auto;
+         border: 1px solid #dee2e6;
+         border-radius: 0.375rem;
+         padding: 0.25rem;
+         background-color: #f8f9fa;
+     }
+     
+     .swal-small .error-list::-webkit-scrollbar {
+         width: 4px;
+     }
+     
+     .swal-small .error-list::-webkit-scrollbar-track {
+         background: #f1f1f1;
+         border-radius: 2px;
+     }
+     
+     .swal-small .error-list::-webkit-scrollbar-thumb {
+         background: #6c757d;
+         border-radius: 2px;
+     }
+     
+     .swal-small .error-list::-webkit-scrollbar-thumb:hover {
+         background: #495057;
+     }
+     
+     .swal-small .alert {
+         margin-bottom: 0.25rem;
+         padding: 0.25rem 0.5rem;
+         border-radius: 0.25rem;
+         font-size: 0.8rem;
+     }
+     
+     .swal-small .bg-light {
+         background-color: #f8f9fa !important;
+     }
+     
+     .swal-small .text-start {
+         text-align: left !important;
+     }
+     
+     .swal-small .small {
+         font-size: 0.8rem !important;
      }
 </style>
 
