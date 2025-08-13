@@ -519,13 +519,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
          {
              try
              {
-                 // This is a simplified implementation - you might want to add a method to CourseService
                  // to get courses by codes and return their IDs
                  var courseIds = new List<string>();
-                 
-                 // For now, we'll return an empty list - you can implement this based on your course structure
-                 // You might want to add a method like GetCoursesByCodesAsync to your CourseService
-                 
                  return courseIds;
              }
              catch (Exception ex)

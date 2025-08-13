@@ -7,6 +7,7 @@ using LOTAWeb.Models;
 using LOTA.Service.Service;
 using LOTA.Model.DTO;
 using LOTA.Model.DTO.Admin;
+using ClosedXML.Excel;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -230,7 +231,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 // Validate file extension
-                var allowedExtensions = new[] { ".xlsx", ".xls", ".csv" };
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
@@ -244,6 +245,37 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 using var stream = file.OpenReadStream();
+                var workbook = new XLWorkbook(stream);
+                // Get first worksheet
+                var worksheet = workbook.Worksheet(1);
+                // Get the used range
+                var usedRange = worksheet.RangeUsed();
+                // At least header + 1 data row
+                if (usedRange == null || usedRange.RowCount() < 2)
+                {
+                    return Json(new { success = false, message = "Excel file is empty or has no data rows" });
+                }
+                // Validate headers
+                var headers = new List<string>();
+                var headerRow = worksheet.Row(1);
+                for (int col = 1; col <= usedRange.ColumnCount(); col++)
+                {
+                    var headerValue = headerRow.Cell(col).Value.ToString()?.Trim();
+                    if (!string.IsNullOrEmpty(headerValue))
+                    {
+                        headers.Add(headerValue);
+                    }
+                }
+
+                // Check required headers
+                var requiredHeaders = new[] { "CourseName", "CourseCode"};
+                var missingHeaders = requiredHeaders.Where(h => !headers.Any(header =>
+                    string.Equals(header, h, StringComparison.OrdinalIgnoreCase))).ToList();
+
+                if (missingHeaders.Any())
+                {
+                    return Json(new { success = false, message = $"Missing required headers: {string.Join(", ", missingHeaders)}" });
+                }
                 var (successCount, errors) = await _courseService.ImportCoursesFromExcelAsync(stream);
 
                 var message = $"Successfully imported {successCount} courses.";

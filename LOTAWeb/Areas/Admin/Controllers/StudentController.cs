@@ -294,7 +294,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 using var stream = excelFile.OpenReadStream();
-                using var workbook = new XLWorkbook(stream);
+                var workbook = new XLWorkbook(stream);
                 // Get first worksheet
                 var worksheet = workbook.Worksheet(1);
                 // Get the used range
@@ -325,10 +325,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 {
                     return Json(new { success = false, message = $"Missing required headers: {string.Join(", ", missingHeaders)}" });
                 }
-
-
-
-
+                // Import students
                 var (successCount, errors) = await ImportStudentsFromExcelAsync(stream);
 
                 var message = $"Successfully imported {successCount} students.";
