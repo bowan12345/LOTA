@@ -274,6 +274,80 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
+        // POST: Admin/Tutor/DeleteSelected
+        [HttpPost]
+        public async Task<IActionResult> DeleteSelected([FromBody] DeleteSelectedDTO request)
+        {
+            try
+            {
+                if (request?.Ids == null || !request.Ids.Any())
+                {
+                    return Json(new { success = false, message = "No tutors selected for deletion" });
+                }
+
+                var deletedCount = 0;
+                var errors = new List<string>();
+
+                foreach (var id in request.Ids)
+                {
+                    try
+                    {
+                        var tutor = await _userManager.FindByIdAsync(id);
+                        if (tutor == null)
+                        {
+                            errors.Add($"Tutor with ID {id} not found");
+                            continue;
+                        }
+
+                        // Step 1: Delete all course assignments (sub-table) first
+                        try
+                        {
+                            await _tutorService.RemoveAllTutorCoursesAsync(id);
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add($"Failed to remove course assignments for {tutor.Email}: {ex.Message}");
+                            continue;
+                        }
+
+                        // Step 2: Delete the tutor (main table)
+                        var result = await _userManager.DeleteAsync(tutor);
+                        if (result.Succeeded)
+                        {
+                            deletedCount++;
+                        }
+                        else
+                        {
+                            errors.Add($"Failed to delete {tutor.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Error processing tutor {id}: {ex.Message}");
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    var message = $"Successfully deleted {deletedCount} tutor(s)";
+                    if (errors.Any())
+                    {
+                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
+                    }
+                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No tutors were deleted. Errors: " + string.Join("; ", errors) });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in batch deletion: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred during batch deletion. Please try again or contact support." });
+            }
+        }
+
         // POST: Admin/Tutor/UploadExcel
         [HttpPost]
         public async Task<IActionResult> UploadExcel(IFormFile file)

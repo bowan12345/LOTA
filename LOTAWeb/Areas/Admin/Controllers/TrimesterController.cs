@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LOTA.Model.DTO;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -195,6 +196,63 @@ namespace LOTAWeb.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Failed to delete trimester" });
+            }
+        }
+
+        /// <summary>
+        /// Delete multiple trimesters
+        /// </summary>
+        /// <param name="request">Request containing list of trimester IDs</param>
+        /// <returns>Success status</returns>
+        [HttpPost]
+        public async Task<IActionResult> DeleteSelected([FromBody] DeleteSelectedDTO request)
+        {
+            try
+            {
+                if (request?.Ids == null || !request.Ids.Any())
+                {
+                    return Json(new { success = false, message = "No trimesters selected for deletion" });
+                }
+
+                var deletedCount = 0;
+                var errors = new List<string>();
+
+                foreach (var id in request.Ids)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(id))
+                        {
+                            errors.Add("Trimester ID is required");
+                            continue;
+                        }
+
+                        await _trimesterService.DeleteAsync(id);
+                        deletedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Failed to delete trimester {id}: {ex.Message}");
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    var message = $"Successfully deleted {deletedCount} trimester(s)";
+                    if (errors.Any())
+                    {
+                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
+                    }
+                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No trimesters were deleted. Errors: " + string.Join("; ", errors) });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred during batch deletion. Please try again or contact support." });
             }
         }
 

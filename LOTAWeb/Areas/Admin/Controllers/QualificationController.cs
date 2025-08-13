@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using LOTA.Model.DTO.Admin;
 using LOTA.Utility;
+using LOTA.Model.DTO;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -216,6 +217,70 @@ namespace LOTAWeb.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "An error occurred while deleting the qualification" });
+            }
+        }
+
+        /// <summary>
+        /// Delete multiple qualifications
+        /// </summary>
+        /// <param name="request">Request containing list of qualification IDs</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> DeleteSelected([FromBody] DeleteSelectedDTO request)
+        {
+            try
+            {
+                if (request?.Ids == null || !request.Ids.Any())
+                {
+                    return Json(new { success = false, message = "No qualifications selected for deletion" });
+                }
+
+                var deletedCount = 0;
+                var errors = new List<string>();
+
+                foreach (var id in request.Ids)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(id))
+                        {
+                            errors.Add("Qualification ID is required");
+                            continue;
+                        }
+
+                        var result = await _qualificationService.DeleteQualificationAsync(id);
+                        if (result)
+                        {
+                            deletedCount++;
+                        }
+                        else
+                        {
+                            errors.Add($"Qualification with ID {id} not found");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Failed to delete qualification {id}: {ex.Message}");
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    var message = $"Successfully deleted {deletedCount} qualification(s)";
+                    if (errors.Any())
+                    {
+                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
+                    }
+                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No qualifications were deleted. Errors: " + string.Join("; ", errors) });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred during batch deletion. Please try again or contact support." });
             }
         }
 

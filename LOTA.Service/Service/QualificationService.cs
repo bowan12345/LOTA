@@ -159,7 +159,7 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException($"Cannot delete qualification '{qualification.QualificationName}' because it has associated courses.");
             }
 
-            _unitOfWork.qualificationRepository.Remove(qualification);
+            _unitOfWork.qualificationRepository.Remove(qualification.Id);
             await _unitOfWork.SaveAsync();
             
             return true;

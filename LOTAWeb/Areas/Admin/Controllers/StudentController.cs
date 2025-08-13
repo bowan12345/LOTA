@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.IO;
+using LOTA.Model.DTO;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -224,6 +225,75 @@ namespace LOTAWeb.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "An error occurred while deleting the student" });
+            }
+        }
+
+        // POST: Admin/Student/DeleteSelected
+        [HttpPost]
+        public async Task<IActionResult> DeleteSelected([FromBody] DeleteSelectedDTO request)
+        {
+            try
+            {
+                if (request?.Ids == null || !request.Ids.Any())
+                {
+                    return Json(new { success = false, message = "No students selected for deletion" });
+                }
+
+                var deletedCount = 0;
+                var errors = new List<string>();
+
+                foreach (var id in request.Ids)
+                {
+                    try
+                    {
+                        var student = await _userManager.FindByIdAsync(id);
+                        if (student == null)
+                        {
+                            errors.Add($"Student with ID {id} not found");
+                            continue;
+                        }
+
+                        // Check if student has enrolled courses,delete all enrolled course
+                        var enrolledCourses = student.StudentCourses?.Count ?? 0;
+                        if (enrolledCourses > 0)
+                        {
+                            errors.Add($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
+                            continue;
+                        }
+
+                        var result = await _userManager.DeleteAsync(student);
+                        if (result.Succeeded)
+                        {
+                            deletedCount++;
+                        }
+                        else
+                        {
+                            errors.Add($"Failed to delete {student.FirstName} {student.LastName}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Error processing student {id}: {ex.Message}");
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    var message = $"Successfully deleted {deletedCount} student(s)";
+                    if (errors.Any())
+                    {
+                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
+                    }
+                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No students were deleted. Errors: " + string.Join("; ", errors) });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred during batch deletion. Please try again or contact support." });
             }
         }
 
@@ -492,6 +562,21 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
 
             return (successCount, errors);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetEnrolledStudents(string id, int? academicYear = null, int? trimesterNumber = null)
+        {
+            try
+            {
+                var students = await _studentService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
+                return Json(new { success = true, data = students });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

@@ -130,11 +130,31 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Batch Actions -->
+        <div class="card-body border-bottom py-2" id="batchActions" style="display: none;">
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllTrimesters()">
+                    <i class="fas fa-check-square me-1"></i>Select All
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllTrimesters()">
+                    <i class="fas fa-square me-1"></i>Deselect All
+                </button>
+                <div class="vr"></div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteSelectedTrimesters()">
+                    <i class="fas fa-trash me-1"></i>Delete Selected
+                </button>
+            </div>
+        </div>
+        
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 responsive-table">
                     <thead class="table-light">
                         <tr>
+                            <th class="border-0 text-nowrap" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
+                            </th>
                             <th class="border-0 text-nowrap">Academic Year</th>
                             <th class="border-0 text-nowrap">Trimester</th>
                             <th class="border-0 text-nowrap d-none d-md-table-cell">Status</th>
@@ -148,6 +168,9 @@
                             foreach (var trimester in Model)
                             {
                                 <tr>
+                                    <td class="text-nowrap">
+                                        <input type="checkbox" class="form-check-input trimester-checkbox" value="@trimester.Id" onchange="updateBatchActions()">
+                                    </td>
                                     <td class="text-nowrap">
                                         <span class="fw-semibold">@trimester.AcademicYear</span>
                                     </td>
@@ -183,7 +206,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5" class="text-center py-4">
+                                <td colspan="6" class="text-center py-4">
                                     <div class="text-muted">
                                         @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                                         {
@@ -616,6 +639,116 @@
             // Clear loading toast
             clearAllToasts();
             showAjaxError(error, 'An error occurred while deleting the trimester. Please try again.');
+        });
+    }
+
+    // Batch selection functions
+    function toggleSelectAll(checkbox) {
+        const checkboxes = document.querySelectorAll('.trimester-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+        });
+        updateBatchActions();
+    }
+
+    function selectAllTrimesters() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const checkboxes = document.querySelectorAll('.trimester-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+        });
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+        updateBatchActions();
+    }
+
+    function deselectAllTrimesters() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const checkboxes = document.querySelectorAll('.trimester-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        updateBatchActions();
+    }
+
+    function updateBatchActions() {
+        const checkboxes = document.querySelectorAll('.trimester-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const selectedCount = document.getElementById('selectedCount');
+
+        let allChecked = true;
+        let noneChecked = true;
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                noneChecked = false;
+            } else {
+                allChecked = false;
+            }
+        });
+
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+
+        const batchActionsDiv = document.getElementById('batchActions');
+        if (checkboxes.length > 0) {
+            batchActionsDiv.style.display = 'flex';
+            selectedCount.textContent = checkboxes.filter(cb => cb.checked).length;
+        } else {
+            batchActionsDiv.style.display = 'none';
+            selectedCount.textContent = '0';
+        }
+    }
+
+    function deleteSelectedTrimesters() {
+        const selectedTrimesterIds = Array.from(document.querySelectorAll('.trimester-checkbox:checked')).map(cb => cb.value);
+        if (selectedTrimesterIds.length === 0) {
+            showError('Please select at least one trimester to delete.');
+            return;
+        }
+
+        showConfirm(
+            `Are you sure you want to delete ${selectedTrimesterIds.length} selected trimester(s)? This action cannot be undone.`,
+            () => confirmDeleteSelectedTrimesters(selectedTrimesterIds),
+            null,
+            'Delete Selected Trimesters'
+        );
+    }
+
+    function confirmDeleteSelectedTrimesters(selectedTrimesterIds) {
+        const loadingToast = showLoading('Deleting selected trimesters...');
+        
+        // Get anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        const tokenValue = token ? token.value : '';
+
+        // Send AJAX request to delete selected trimesters
+        fetch('/Admin/Trimester/DeleteSelected', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': tokenValue
+            },
+            body: JSON.stringify({ Ids: selectedTrimesterIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(`${selectedTrimesterIds.length} trimesters deleted successfully!`);
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showError('Error: ' + data.message);
+                loadingToast.hide();
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting selected trimesters:', error);
+            showError('An error occurred while deleting the selected trimesters. Please try again.');
+            loadingToast.hide();
         });
     }
 

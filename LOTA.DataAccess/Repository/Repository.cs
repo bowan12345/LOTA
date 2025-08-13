@@ -88,14 +88,14 @@ namespace LOTA.DataAccess.Repository
             dbset.Update(entity);
         }
 
-        public void Remove(T entity)
+        public void Remove(string id)
         {
-            dbset.Remove(entity);
+            dbset.Where(e => EF.Property<string>(e, "Id") == id).ExecuteDelete();
         }
 
-        public void RemoveRange(IEnumerable<T> entities)
+        public void RemoveRange(IEnumerable<string> ids)
         {
-            dbset.RemoveRange(entities);
+            dbset.Where(e => ids.Contains(EF.Property<string>(e, "Id"))).ExecuteDelete();
         }
 
 

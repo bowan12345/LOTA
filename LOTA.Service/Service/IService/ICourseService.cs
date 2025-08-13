@@ -61,6 +61,13 @@ namespace LOTA.Service.Service.IService
         Task RemoveCourse(string courseId);
 
         /// <summary>
+        /// remove a list courses
+        /// </summary>
+        /// <param name="courseId"> The course ids to remove </param>
+        /// <returns></returns>
+        Task RemoveRangeCourse(List<string> courseIds);
+
+        /// <summary>
         /// Import courses from Excel file
         /// </summary>
         /// <param name="fileStream">Excel file stream</param>

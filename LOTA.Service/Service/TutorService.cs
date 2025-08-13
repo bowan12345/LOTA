@@ -80,7 +80,7 @@ namespace LOTA.Service.Service
             
             if (existingCourses.Any())
             {
-                _unitOfWork.tutorCourseRepository.RemoveRange(existingCourses);
+                _unitOfWork.tutorCourseRepository.RemoveRange(existingCourses.Select(co=>co.Id));
                 await _unitOfWork.SaveAsync();
             }
         }

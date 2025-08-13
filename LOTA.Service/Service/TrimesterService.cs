@@ -199,7 +199,7 @@ namespace LOTA.Service.Service
             var trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(id);
             if (trimester != null)
             {
-                _unitOfWork.trimesterRepository.Remove(trimester);
+                _unitOfWork.trimesterRepository.Remove(trimester.Id);
                 await _unitOfWork.SaveAsync();
             }
         }

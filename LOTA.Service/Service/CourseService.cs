@@ -6,6 +6,8 @@ using LOTA.Service.Service.IService;
 using LOTA.Utility;
 using ClosedXML.Excel;
 using System.Data;
+using Microsoft.IdentityModel.Tokens;
+using Azure.Core;
 
 namespace LOTA.Service.Service
 {
@@ -144,10 +146,9 @@ namespace LOTA.Service.Service
                 throw new NullReferenceException("courseId is empty");
             }
             //remove course
-            var course = new Course() { Id = courseId };
             try
             {
-                _unitOfWork.courseRepository.Remove(course);
+                _unitOfWork.courseRepository.Remove(courseId);
                 await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
@@ -229,7 +230,7 @@ namespace LOTA.Service.Service
                     var learningOutcomesToRemove = existingLearningOutcomes.Where(lo => !updatedLearningOutcomeIds.Contains(lo.Id)).ToList();
                     if (learningOutcomesToRemove.Any())
                     {
-                        _unitOfWork.learningOutcomeRepository.RemoveRange(learningOutcomesToRemove);
+                        _unitOfWork.learningOutcomeRepository.RemoveRange(learningOutcomesToRemove.Select(lo => lo.Id));
                     }
                 }
                 else
@@ -237,7 +238,7 @@ namespace LOTA.Service.Service
                     // Remove all learning outcomes if no learning outcomes are provided
                     if (existingLearningOutcomes.Any())
                     {
-                        _unitOfWork.learningOutcomeRepository.RemoveRange(existingLearningOutcomes);
+                        _unitOfWork.learningOutcomeRepository.RemoveRange(existingLearningOutcomes.Select(lo=>lo.Id));
                     }
                 }
 
@@ -443,7 +444,7 @@ namespace LOTA.Service.Service
             var enrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
             if (enrollment != null)
             {
-                _unitOfWork.studentCourseRepository.Remove(enrollment);
+                _unitOfWork.studentCourseRepository.Remove(enrollment.Id);
                 await _unitOfWork.SaveAsync();
             }
         }
@@ -535,5 +536,22 @@ namespace LOTA.Service.Service
             return (successCount, errors);
         }
 
+        public async Task RemoveRangeCourse(List<string> courseIds)
+        {
+            if (courseIds == null || !courseIds.Any())
+            {
+                throw new NullReferenceException ("No courses selected for deletion" );
+            }
+            //remove courses
+            try
+            {   
+                _unitOfWork.courseRepository.RemoveRange(courseIds);
+                await _unitOfWork.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new NotImplementedException(ex.Message);
+            }
+        }
     }
 }

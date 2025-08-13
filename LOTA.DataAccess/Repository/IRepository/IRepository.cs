@@ -50,13 +50,13 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// remove object
         /// </summary>
         /// <param name="entity"> object to remove </param>
-        void Remove(T entity);
+        void Remove(TKey entity);
 
         /// <summary>
         ///  remove range of objects
         /// </summary>
-        /// <param name="entities"> objects to remove </param>
-        void RemoveRange(IEnumerable<T> entities);
+        /// <param name="ids"> ids to remove </param>
+        void RemoveRange(IEnumerable<TKey> ids);
 
         /// <summary>
         /// update object

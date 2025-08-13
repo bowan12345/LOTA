@@ -7,7 +7,6 @@ using LOTAWeb.Models;
 using LOTA.Service.Service;
 using LOTA.Model.DTO;
 using LOTA.Model.DTO.Admin;
-using ClosedXML.Excel;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -16,13 +15,13 @@ namespace LOTAWeb.Areas.Admin.Controllers
     public class CourseController : Controller
     {
         private readonly ICourseService _courseService;
-        private readonly IStudentService _studentService;
+        private readonly ITrimesterService _trimesterService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(ICourseService courseService, IStudentService studentService)
+        public CourseController(ICourseService courseService, ITrimesterService trimesterService)
         {
             _courseService = courseService;
-            _studentService = studentService;
+            _trimesterService = trimesterService;
         }
 
         // GET: Admin/course home page
@@ -216,6 +215,65 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         /// <summary>
+        /// Delete multiple courses
+        /// </summary>
+        /// <param name="request">Request containing list of course IDs</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> DeleteSelected([FromBody] DeleteSelectedDTO request)
+        {
+            try
+            {
+                if (request?.Ids == null || !request.Ids.Any())
+                {
+                    return Json(new { success = false, message = "No courses selected for deletion" });
+                }
+
+                var deletedCount = 0;
+                var errors = new List<string>();
+
+                foreach (var id in request.Ids)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(id))
+                        {
+                            errors.Add("Course ID is required");
+                            continue;
+                        }
+
+                        // Call Service layer to handle business logic
+                        await _courseService.RemoveCourse(id);
+                        deletedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Failed to delete course {id}: {ex.Message}");
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    var message = $"Successfully deleted {deletedCount} course(s)";
+                    if (errors.Any())
+                    {
+                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
+                    }
+                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No courses were deleted. Errors: " + string.Join("; ", errors) });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in batch deletion: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred during batch deletion. Please try again or contact support." });
+            }
+        }
+
+        /// <summary>
         /// Upload Excel file to import courses
         /// </summary>
         /// <param name="file">Excel file</param>
@@ -231,7 +289,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 // Validate file extension
-                var allowedExtensions = new[] { ".xlsx", ".xls" };
+                var allowedExtensions = new[] { ".xlsx", ".xls", ".csv" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
@@ -245,37 +303,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 using var stream = file.OpenReadStream();
-                var workbook = new XLWorkbook(stream);
-                // Get first worksheet
-                var worksheet = workbook.Worksheet(1);
-                // Get the used range
-                var usedRange = worksheet.RangeUsed();
-                // At least header + 1 data row
-                if (usedRange == null || usedRange.RowCount() < 2)
-                {
-                    return Json(new { success = false, message = "Excel file is empty or has no data rows" });
-                }
-                // Validate headers
-                var headers = new List<string>();
-                var headerRow = worksheet.Row(1);
-                for (int col = 1; col <= usedRange.ColumnCount(); col++)
-                {
-                    var headerValue = headerRow.Cell(col).Value.ToString()?.Trim();
-                    if (!string.IsNullOrEmpty(headerValue))
-                    {
-                        headers.Add(headerValue);
-                    }
-                }
-
-                // Check required headers
-                var requiredHeaders = new[] { "CourseName", "CourseCode"};
-                var missingHeaders = requiredHeaders.Where(h => !headers.Any(header =>
-                    string.Equals(header, h, StringComparison.OrdinalIgnoreCase))).ToList();
-
-                if (missingHeaders.Any())
-                {
-                    return Json(new { success = false, message = $"Missing required headers: {string.Join(", ", missingHeaders)}" });
-                }
                 var (successCount, errors) = await _courseService.ImportCoursesFromExcelAsync(stream);
 
                 var message = $"Successfully imported {successCount} courses.";
@@ -319,22 +346,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = $"Failed to generate template: {ex.Message}" });
             }
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetEnrolledStudents(string id, int? academicYear = null, int? trimesterNumber = null)
-        {
-            try
-            {
-                var students = await _studentService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
-                return Json(new { success = true, data = students });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-
 
         [HttpPost]
         public async Task<IActionResult> AddStudentsToCourse([FromBody] AddStudentsToCourseDTO request)
@@ -435,6 +446,58 @@ namespace LOTAWeb.Areas.Admin.Controllers
 
                 await _courseService.RemoveStudentFromCourseAsync(request.CourseId, request.StudentId);
                 return Json(new { success = true, message = "Student removed from course successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get courses tree structure with qualifications and trimesters
+        /// </summary>
+        /// <returns>JSON result with tree structure</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCoursesTree()
+        {
+            try
+            {
+                var courses = await _courseService.GetAllCoursesAsync();
+                var trimesters = await _trimesterService.GetActiveTrimestersAsync();
+                
+                // Group courses by qualification
+                var treeData = courses
+                    .Where(c => !string.IsNullOrEmpty(c.QualificationId))
+                    .GroupBy(c => new { 
+                        QualificationId = c.QualificationId, 
+                        QualificationName = c.QualificationName,
+                        QualificationType = c.QualificationType,
+                        Level = c.Level
+                    })
+                    .Select(qualGroup => new
+                    {
+                        QualificationId = qualGroup.Key.QualificationId,
+                        QualificationName = qualGroup.Key.QualificationName,
+                        QualificationType = qualGroup.Key.QualificationType,
+                        Level = qualGroup.Key.Level,
+                        Courses = qualGroup.Select(course => new
+                        {
+                            CourseId = course.Id,
+                            CourseName = course.CourseName,
+                            CourseCode = course.CourseCode,
+                            Description = course.Description,
+                            Trimesters = trimesters.Select(t => new
+                            {
+                                TrimesterId = t.Id,
+                                AcademicYear = t.AcademicYear,
+                                TrimesterNumber = t.TrimesterNumber,
+                                DisplayName = $"Trimester {t.TrimesterNumber} ({t.AcademicYear})"
+                            }).ToList()
+                        }).ToList()
+                    })
+                    .ToList();
+
+                return Json(new { success = true, data = treeData });
             }
             catch (Exception ex)
             {
