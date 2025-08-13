@@ -5,6 +5,8 @@ using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Authorization;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System.IO;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -292,6 +294,41 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 using var stream = excelFile.OpenReadStream();
+                using var workbook = new XLWorkbook(stream);
+                // Get first worksheet
+                var worksheet = workbook.Worksheet(1);
+                // Get the used range
+                var usedRange = worksheet.RangeUsed();
+                // At least header + 1 data row
+                if (usedRange == null || usedRange.RowCount() < 2)
+                {
+                    return Json(new { success = false, message = "Excel file is empty or has no data rows" });
+                }
+                // Validate headers
+                var headers = new List<string>();
+                var headerRow = worksheet.Row(1);
+                for (int col = 1; col <= usedRange.ColumnCount(); col++)
+                {
+                    var headerValue = headerRow.Cell(col).Value.ToString()?.Trim();
+                    if (!string.IsNullOrEmpty(headerValue))
+                    {
+                        headers.Add(headerValue);
+                    }
+                }
+
+                // Check required headers
+                var requiredHeaders = new[] { "StudentID", "SurName", "FirstName", "Email" };
+                var missingHeaders = requiredHeaders.Where(h => !headers.Any(header =>
+                    string.Equals(header, h, StringComparison.OrdinalIgnoreCase))).ToList();
+
+                if (missingHeaders.Any())
+                {
+                    return Json(new { success = false, message = $"Missing required headers: {string.Join(", ", missingHeaders)}" });
+                }
+
+
+
+
                 var (successCount, errors) = await ImportStudentsFromExcelAsync(stream);
 
                 var message = $"Successfully imported {successCount} students.";
@@ -306,7 +343,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     data = new { 
                         successCount, 
                         errorCount = errors.Count,
-                        errors = errors.Take(10).ToList() // Return first 10 errors
+                        // Return first 10 errors
+                        errors = errors.Take(10).ToList() 
                     }
                 });
             }
@@ -326,10 +364,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 var worksheet = workbook.Worksheets.Add("Students");
 
                 // Add headers
-                worksheet.Cell("A1").Value = "FirstName";
-                worksheet.Cell("B1").Value = "LastName";
-                worksheet.Cell("C1").Value = "Email";
-                worksheet.Cell("D1").Value = "StudentID";
+                worksheet.Cell("A1").Value = "StudentID";
+                worksheet.Cell("B1").Value = "FirstName";
+                worksheet.Cell("C1").Value = "SurName";
+                worksheet.Cell("D1").Value = "Email";
 
                 // Style headers
                 var headerRow = worksheet.Row(1);
@@ -337,15 +375,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 headerRow.Style.Fill.BackgroundColor = XLColor.LightGray;
 
                 // Add sample data
-                worksheet.Cell("A2").Value = "John";
+                worksheet.Cell("A2").Value = "STU001";
                 worksheet.Cell("B2").Value = "Doe";
-                worksheet.Cell("C2").Value = "john.doe@example.com";
-                worksheet.Cell("D2").Value = "STU001";
+                worksheet.Cell("C2").Value = "John";
+                worksheet.Cell("D2").Value = "john.doe@example.com";
 
-                worksheet.Cell("A3").Value = ""; // Optional First Name
-                worksheet.Cell("B3").Value = ""; // Optional Last Name
-                worksheet.Cell("C3").Value = "jane.smith@example.com";
-                worksheet.Cell("D3").Value = "STU002";
+                worksheet.Cell("A3").Value = "STU002";
+                // Optional First Name
+                worksheet.Cell("B3").Value = "";
+                // Optional Last Name
+                worksheet.Cell("C3").Value = "";
+                worksheet.Cell("D3").Value = "jane.smith@example.com";
 
                 // Auto-fit columns
                 worksheet.Columns().AdjustToContents();
@@ -371,9 +411,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
             try
             {
                 using var workbook = new XLWorkbook(fileStream);
-                var worksheet = workbook.Worksheet(1); // Get first worksheet
-                var rows = worksheet.RowsUsed().Skip(1); // Skip header row
-
+                // Get first worksheet
+                var worksheet = workbook.Worksheet(1);
+                // Skip header row
+                var rows = worksheet.RowsUsed().Skip(1);
                 foreach (var row in rows)
                 {
                     try

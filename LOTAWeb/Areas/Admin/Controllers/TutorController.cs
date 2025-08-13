@@ -311,7 +311,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
 
                     // Get the used range
                     var usedRange = worksheet.RangeUsed();
-                    if (usedRange == null || usedRange.RowCount() < 2) // At least header + 1 data row
+                    // At least header + 1 data row
+                    if (usedRange == null || usedRange.RowCount() < 2) 
                     {
                         return Json(new { success = false, message = "Excel file is empty or has no data rows" });
                     }
