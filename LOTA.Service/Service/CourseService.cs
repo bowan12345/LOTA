@@ -553,5 +553,73 @@ namespace LOTA.Service.Service
                 throw new NotImplementedException(ex.Message);
             }
         }
+
+        /// <summary>
+        /// Generate Excel template for uploading students to course
+        /// </summary>
+        /// <returns>Excel file as byte array</returns>
+        public async Task<byte[]> GenerateStudentsExcelTemplateAsync()
+        {
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Students");
+
+            // Add headers
+            worksheet.Cell("A1").Value = "StudentId";
+            worksheet.Cell("B1").Value = "Email";
+
+            // Style headers
+            var headerRange = worksheet.Range("A1:B1");
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+            headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+            // Add sample data
+            worksheet.Cell("A2").Value = "STU001";
+            worksheet.Cell("B2").Value = "student1@example.com";
+
+            worksheet.Cell("A3").Value = "STU002";
+            worksheet.Cell("B3").Value = "student2@example.com";
+
+            worksheet.Cell("A4").Value = "STU003";
+            worksheet.Cell("B4").Value = "student3@example.com";
+
+            // Auto-fit columns
+            worksheet.Columns().AdjustToContents();
+
+            // Add data validation for required fields
+            var studentIdValidation = worksheet.Range("A2:A1000").CreateDataValidation();
+            studentIdValidation.Custom("=LEN(A2)>0");
+            studentIdValidation.ErrorMessage = "Student ID is required";
+
+            var emailValidation = worksheet.Range("B2:B1000").CreateDataValidation();
+            emailValidation.Custom("=LEN(B2)>0");
+            emailValidation.ErrorMessage = "Email is required";
+
+            // Add instructions sheet
+            var instructionsSheet = workbook.Worksheets.Add("Instructions");
+            instructionsSheet.Cell("A1").Value = "Instructions for Uploading Students Excel";
+            instructionsSheet.Cell("A1").Style.Font.Bold = true;
+            instructionsSheet.Cell("A1").Style.Font.FontSize = 14;
+
+            instructionsSheet.Cell("A3").Value = "Required Format:";
+            instructionsSheet.Cell("A3").Style.Font.Bold = true;
+            instructionsSheet.Cell("A4").Value = "• Column A: Student ID (Student Number)";
+            instructionsSheet.Cell("A5").Value = "• Column B: Email Address";
+            instructionsSheet.Cell("A6").Value = "";
+            instructionsSheet.Cell("A7").Value = "Important Notes:";
+            instructionsSheet.Cell("A7").Style.Font.Bold = true;
+            instructionsSheet.Cell("A8").Value = "• Both Student ID and Email must match existing student records";
+            instructionsSheet.Cell("A9").Value = "• Students will be enrolled in the selected course and trimester";
+            instructionsSheet.Cell("A10").Value = "• Duplicate enrollments will be skipped";
+            instructionsSheet.Cell("A11").Value = "• Only active students can be enrolled";
+
+            // Auto-fit instructions sheet
+            instructionsSheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
     }
 }

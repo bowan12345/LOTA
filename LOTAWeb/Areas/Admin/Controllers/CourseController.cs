@@ -347,6 +347,25 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
+        /// <summary>
+        /// Download Excel template for uploading students to course
+        /// </summary>
+        /// <returns>Excel file download</returns>
+        [HttpGet]
+        public async Task<IActionResult> DownloadStudentsTemplate()
+        {
+            try
+            {
+                var excelBytes = await _courseService.GenerateStudentsExcelTemplateAsync();
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StudentsUploadTemplate.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DownloadStudentsTemplate: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to generate students template: {ex.Message}" });
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddStudentsToCourse([FromBody] AddStudentsToCourseDTO request)
         {

@@ -302,7 +302,7 @@
                         <label for="excelFile" class="form-label">Excel File</label>
                         <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls,.csv" required>
                         <div class="form-text">
-                            <strong>Required format:</strong> Excel file with columns: Student ID (A) and Email (B)<br>
+                            <strong>Required format:</strong> Excel file with columns: Student ID (A) and Email (B)
                         </div>
                     </div>
                     
@@ -314,6 +314,13 @@
                             <li>Students will be verified by Student ID or Email</li>
                             <li>Only existing students can be added to the course</li>
                         </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="downloadStudentsTemplate()">
+                            <i class="fas fa-download me-1"></i>
+                            Download Template
+                        </button>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1297,6 +1304,25 @@
             const countElement = document.getElementById('selectedStudentsCount');
             if (countElement) {
                 countElement.textContent = `${selectedCount} student(s) selected`;
+            }
+        }
+
+        // Download students Excel template
+        function downloadStudentsTemplate() {
+            try {
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = '/Admin/Course/DownloadStudentsTemplate';
+                link.download = 'StudentsUploadTemplate.xlsx';
+                
+                // Append to body, click, and remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (error) {
+                console.error('Error downloading template:', error);
+                showError('Failed to download template. Please try again.');
             }
         }
 

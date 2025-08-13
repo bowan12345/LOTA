@@ -105,5 +105,11 @@ namespace LOTA.Service.Service.IService
         /// <param name="studentId">The student ID to remove</param>
         /// <returns></returns>
         Task RemoveStudentFromCourseAsync(string courseId, string studentId);
+
+        /// <summary>
+        /// Generate Excel template for uploading students to course
+        /// </summary>
+        /// <returns>Excel file as byte array</returns>
+        Task<byte[]> GenerateStudentsExcelTemplateAsync();
     }
 }
