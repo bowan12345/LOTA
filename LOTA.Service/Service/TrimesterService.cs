@@ -1,3 +1,5 @@
+using Azure.Core;
+using LOTA.DataAccess.Repository;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
@@ -199,9 +201,22 @@ namespace LOTA.Service.Service
             var trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(id);
             if (trimester != null)
             {
+                //delete trimester data and  automatelly delete related course and student under trimester
                 _unitOfWork.trimesterRepository.Remove(trimester.Id);
                 await _unitOfWork.SaveAsync();
             }
+        }
+
+        public async Task DeleteAllAsync(IEnumerable<string> ids)
+        {
+            //check if empty
+            if (ids == null || !ids.Any())
+            {
+                throw new InvalidOperationException("Trimester already exists.");
+            }
+            //delete trimester data and  automatelly delete related course and student under trimester
+            _unitOfWork.trimesterRepository.RemoveRange(ids);
+            await _unitOfWork.SaveAsync();
         }
     }
 }

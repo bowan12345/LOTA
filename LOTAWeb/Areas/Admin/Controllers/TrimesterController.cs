@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using LOTA.Service.Service.IService;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LOTA.Model.DTO;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -213,42 +215,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 {
                     return Json(new { success = false, message = "No trimesters selected for deletion" });
                 }
+                
+                await _trimesterService.DeleteAllAsync(request.Ids);
+                return Json(new { success = true, message = "Trimester deleted successfully" });
 
-                var deletedCount = 0;
-                var errors = new List<string>();
-
-                foreach (var id in request.Ids)
-                {
-                    try
-                    {
-                        if (string.IsNullOrEmpty(id))
-                        {
-                            errors.Add("Trimester ID is required");
-                            continue;
-                        }
-
-                        await _trimesterService.DeleteAsync(id);
-                        deletedCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.Add($"Failed to delete trimester {id}: {ex.Message}");
-                    }
-                }
-
-                if (deletedCount > 0)
-                {
-                    var message = $"Successfully deleted {deletedCount} trimester(s)";
-                    if (errors.Any())
-                    {
-                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
-                    }
-                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "No trimesters were deleted. Errors: " + string.Join("; ", errors) });
-                }
             }
             catch (Exception ex)
             {

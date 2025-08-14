@@ -54,6 +54,13 @@ namespace LOTA.Service.Service.IService
         Task DeleteAsync(string id);
 
         /// <summary>
+        /// Delete add trimester
+        /// </summary>
+        /// <param name="ids"> a list of Trimester ID</param>
+        /// <returns></returns>
+        Task DeleteAllAsync(IEnumerable<string> ids);
+
+        /// <summary>
         /// get trimesters by academic year
         /// </summary>
         /// <param name="academicYear"> Academic year</param>

@@ -15,5 +15,17 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// <param name="trimesterNumber">Trimester number (optional)</param>
         /// <returns>List of student courses</returns>
         Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, int? academicYear, int? trimesterNumber);
+
+        /// <summary>
+        ///  delete all student courses by trimester id
+        /// </summary>
+        /// <param name="id"> trimester id</param>
+        void RemoveAllByTrimesterId(string id);
+
+        /// <summary>
+        ///  delete all student courses by trimester ids
+        /// </summary>
+        /// <param name="ids"> a list of trimester id</param>
+        void RemoveAllByTrimesterIds(IEnumerable<string> ids);
     }
 }

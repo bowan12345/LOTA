@@ -56,5 +56,15 @@ namespace LOTA.DataAccess.Repository
                 .Include(sc => sc.Student)
                 .FirstOrDefaultAsync(sc => sc.StudentId == studentId && sc.CourseId == courseId);
         }
+
+        public void RemoveAllByTrimesterId(string id)
+        {
+            dbset.Where(e => EF.Property<string>(e, "TrimesterId") == id).ExecuteDelete();
+        }
+
+        public void RemoveAllByTrimesterIds(IEnumerable<string> ids)
+        {
+            dbset.Where(e => ids.Contains(EF.Property<string>(e, "TrimesterId"))).ExecuteDelete();
+        }
     }
 }
