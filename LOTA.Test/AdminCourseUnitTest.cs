@@ -202,7 +202,7 @@ namespace LOTA.Test
 
             // Assert
             // Verify that Remove is called once and that the Course object Id passed in is the expected value
-            courseRepositoryMock.Verify(r => r.Remove(It.Is<Course>(c => c.Id == testCourseId)), Times.Once);
+            courseRepositoryMock.Verify(r => r.Remove(It.Is<string>(id => id == testCourseId)), Times.Once);
             // Verify that SaveAsync is called once
             mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
         }
@@ -309,7 +309,7 @@ namespace LOTA.Test
 
             // Assert
             // Verify that Remove is called once and that the Course object Id passed in is the expected value
-            studentCourseRepositoryMock.Verify(r => r.Remove(It.Is<StudentCourse>(c => c.CourseId == testCourseId && c.StudentId == studentId)), Times.Once);
+            studentCourseRepositoryMock.Verify(r => r.Remove(It.Is<string>(id => id == enrollment.Id)), Times.Once);
             // Verify that SaveAsync is called once
             mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
         }

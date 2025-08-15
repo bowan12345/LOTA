@@ -139,14 +139,14 @@ namespace LOTA.Test
             };
             _mockTutorCourseRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<TutorCourse, bool>>>(), null))
                 .ReturnsAsync(existingCourses);
-            _mockTutorCourseRepo.Setup(r => r.RemoveRange(existingCourses));
+            _mockTutorCourseRepo.Setup(r => r.RemoveRange(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(existingCourses.Select(c => c.Id)))));
             _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
 
             // Act
             await _service.RemoveAllTutorCoursesAsync(tutorId);
 
             // Assert
-            _mockTutorCourseRepo.Verify(r => r.RemoveRange(existingCourses), Times.Once);
+            _mockTutorCourseRepo.Verify(r => r.RemoveRange(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(existingCourses.Select(c => c.Id)))), Times.Once);
             _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
         }
 

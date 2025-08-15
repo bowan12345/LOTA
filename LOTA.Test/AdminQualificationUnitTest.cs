@@ -198,7 +198,7 @@ namespace LOTA.Test
                 .ReturnsAsync(qualification);
 
             _qualificationRepoMock
-                .Setup(r => r.Remove(qualification));
+                .Setup(r => r.Remove(qualification.Id));
 
             _unitOfWorkMock
                 .Setup(u => u.SaveAsync())

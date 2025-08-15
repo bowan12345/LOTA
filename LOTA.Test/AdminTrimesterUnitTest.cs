@@ -154,7 +154,7 @@ namespace LOTA.Test
 
             await _service.DeleteAsync("7");
 
-            _trimesterRepoMock.Verify(r => r.Remove(trimester), Times.Once);
+            _trimesterRepoMock.Verify(r => r.Remove(trimester.Id), Times.Once);
             _unitOfWorkMock.Verify(u => u.SaveAsync(), Times.Once);
         }
     }
