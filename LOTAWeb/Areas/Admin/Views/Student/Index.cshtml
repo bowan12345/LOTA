@@ -198,7 +198,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="studentNo" class="form-label">Student ID <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="studentNo" name="studentNo">
+                            <input type="text" class="form-control" id="studentNo" name="studentNo" required>
                         </div>
                     </div>
                     <div class="row">
@@ -395,7 +395,7 @@
                 lastName: lastName,
                 email: email,
                 password: password,
-                studentNo: studentNo || null,
+                studentNo: studentNo,
                 isActive: isActive
             };
 

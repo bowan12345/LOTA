@@ -20,6 +20,7 @@ namespace LOTA.Model.DTO.Admin
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
         public string Password { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Student ID is required")]
         [StringLength(50, ErrorMessage = "Student No cannot exceed 50 characters")]
         public string? StudentNo { get; set; }
 
