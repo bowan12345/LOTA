@@ -289,11 +289,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 // Validate file extension
-                var allowedExtensions = new[] { ".xlsx", ".xls", ".csv" };
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
-                    return Json(new { success = false, message = "Please select a valid Excel file (.xlsx or .xls or .csv)" });
+                    return Json(new { success = false, message = "Please select a valid Excel file (.xlsx or .xls)" });
                 }
 
                 // Validate file size (max 10MB)

@@ -165,12 +165,17 @@ namespace LOTA.Service.Service
             {
                 if (courseDTO == null)
                 {
-                    throw new NullReferenceException("course is empty");
+                    throw new NullReferenceException("Course is empty");
                 }
                 var course = await _unitOfWork.courseRepository.GetByIdAsync(courseDTO.Id);
                 if (course == null)
                 {
-                    throw new NullReferenceException("course not found");
+                    throw new NullReferenceException("Course not found");
+                }
+                var courseCode = await _unitOfWork.courseRepository.GetCourseByCodeAsync(courseDTO.CourseCode);
+                if (courseCode != null && courseCode.Id != course.Id) 
+                {
+                    throw new NullReferenceException("Course code has already existed");
                 }
                 course.CourseCode = courseDTO.CourseCode;
                 course.CourseName = courseDTO.CourseName;
