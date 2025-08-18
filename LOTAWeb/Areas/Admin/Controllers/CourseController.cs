@@ -334,7 +334,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     }
 
                     // Check required headers
-                    var requiredHeaders = new[] { "CourseName", "CourseCode" };
+                    var requiredHeaders = new[] { "CourseName", "CourseCode"};
                     var missingHeaders = requiredHeaders.Where(h => !headers.Any(header =>
                         string.Equals(header, h, StringComparison.OrdinalIgnoreCase))).ToList();
 
