@@ -148,6 +148,12 @@ namespace LOTA.DataAccess.Data
                 new QualificationType
                 {
                     Id = "007",
+                    QualificationTypeName = "Postgraduate Diploma",
+                }
+                ,
+                new QualificationType
+                {
+                    Id = "008",
                     QualificationTypeName = "Postgraduate Certificate",
                 }
             );

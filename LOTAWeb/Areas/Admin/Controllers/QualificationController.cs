@@ -108,6 +108,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 {
                     return Json(new { success = false, message = " PostgraduateCertificate  Level is 8" });
                 }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PostgraduateDiploma.ToString() && qualification.Level != 8)
+                {
+                    return Json(new { success = false, message = " PostgraduateDiploma  Level is 8" });
+                }
                 if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Master.ToString() && (qualification.Level < 8 || qualification.Level > 9))
                 {
                     return Json(new { success = false, message = " Master  Level between 8 and 9" });
@@ -169,6 +173,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PostgraduateCertificate.ToString() && qualification.Level != 8)
                 {
                     return Json(new { success = false, message = " PostgraduateCertificate  Level is 8" });
+                }
+                if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.PostgraduateDiploma.ToString() && qualification.Level != 8)
+                {
+                    return Json(new { success = false, message = " PostgraduateDiploma  Level is 8" });
                 }
                 if (qualification.QualificationType.Replace(" ", "") == QualificationTypeEnum.Master.ToString() && (qualification.Level < 8 || qualification.Level > 9))
                 {

@@ -13,6 +13,7 @@ namespace LOTA.Utility
         Bachelor,
         GraduateDiploma,
         PostgraduateCertificate,
+        PostgraduateDiploma,
         Master,
         PhD
     }
