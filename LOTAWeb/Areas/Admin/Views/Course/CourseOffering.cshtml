@@ -1,0 +1,1815 @@
+﻿@*
+    Course Offering Management - Set course information for each trimester
+*@
+@{
+    ViewData["Title"] = "Course Offerings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>
+                Course Offerings
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCourseOfferingModal">
+                <i class="fas fa-plus me-2"></i>
+                Add Course Offering
+            </button>
+        </div>
+    </div>
+
+    <!-- Course Offerings Layout -->
+    <div class="row">
+        <!-- Left Sidebar - Course List -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-list text-primary me-2"></i>
+                            Course List
+                            <span class="badge bg-primary ms-2" id="courseOfferingListCount">0</span>
+                        </h5>
+                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCourseOfferingModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Add
+                        </button>
+                    </div>
+                    <!-- Filter Controls -->
+                    <div class="mt-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="trimesterFilter">
+                                    <option value="">All Trimesters</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="courseFilter">
+                                    <option value="">All Courses</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1 mt-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="applyFilters()">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="courseOfferingList">
+                        <div class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p class="mb-0">Loading course offerings...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Course Details -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Course Offering Details
+                    </h5>
+                </div>
+                <div class="card-body" id="courseOfferingDetails">
+                    <div class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
+                            <h5>Select a Course</h5>
+                            <p class="mb-0">Choose a course from the left sidebar to view and edit its details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Course Offering Modal -->
+<div class="modal fade" id="addCourseOfferingModal" tabindex="-1" aria-labelledby="addCourseOfferingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="addCourseOfferingModalLabel">
+                    <i class="fas fa-plus me-2"></i>
+                    Add Course Offering
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCourseOfferingForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="trimesterId" class="form-label">Trimester <span class="text-danger">*</span></label>
+                            <select class="form-select" id="trimesterId" name="trimesterId" required>
+                                <option value="">Select Trimester</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="courseId" class="form-label">Course <span class="text-danger">*</span></label>
+                            <select class="form-select" id="courseId" name="courseId" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="tutorId" class="form-label">Tutor</label>
+                            <select class="form-select" id="tutorId" name="tutorId">
+                                <option value="">Select Tutor (Optional)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="isActive" class="form-label">Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                <label class="form-check-label" for="isActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="saveCourseOffering()">
+                                <i class="fas fa-save me-2"></i>
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Course Offering Modal -->
+<div class="modal fade" id="editCourseOfferingModal" tabindex="-1" aria-labelledby="editCourseOfferingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editCourseOfferingModalLabel">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Course Offering
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseOfferingForm">
+                    <input type="hidden" id="editCourseOfferingHiddenId" name="id">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="editTrimesterId" class="form-label">Trimester <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editTrimesterId" name="trimesterId" required>
+                                <option value="">Select Trimester</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editCourseId" class="form-label">Course <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editCourseId" name="courseId" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editTutorId" class="form-label">Tutor</label>
+                            <select class="form-select" id="editTutorId" name="tutorId">
+                                <option value="">Select Tutor (Optional)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="editIsActive" class="form-label">Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive">
+                                <label class="form-check-label" for="editIsActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="updateCourseOffering()">
+                                <i class="fas fa-save me-2"></i>
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Students to Course Modal -->
+<div class="modal fade" id="addStudentToCourseModal" tabindex="-1" aria-labelledby="addStudentToCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentToCourseModalLabel">
+                    <i class="fas fa-user-plus text-success me-2"></i>
+                    Add Students to Course
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addStudentsToCourseForm">
+                <div class="modal-body">
+                    <input type="hidden" id="modalCourseOfferingId" name="courseOfferingId">
+                    <input type="hidden" id="modalCourseId" name="courseId">
+                    <input type="hidden" id="modalTrimesterId" name="trimesterId">
+                    
+                                         <!-- Trimester Selection -->
+                     <div class="row mb-3">
+                         <div class="col-md-12">
+                             <label for="trimesterSelection" class="form-label">Trimester <span class="text-danger">*</span></label>
+                             <select class="form-select" id="trimesterSelection" required>
+                                 <option value="">Select Trimester</option>
+                             </select>
+                         </div>
+                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="studentSearch" class="form-label">Search Students</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="studentSearch" placeholder="Search by name, email, or student ID..." oninput="searchStudents()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="searchStudents()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="clearStudentSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Available Students</label>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small" id="selectedStudentsCount">0 student(s) selected</span>
+                        </div>
+                        <div id="availableStudentsList" class="border rounded p-3 student-search-results">
+                            <div class="text-center py-4">
+                                <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">Search for students to add to this course</p>
+                                <small class="text-muted">Search by name, email, or student ID</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>
+                        Add Selected Students
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Excel Modal -->
+<div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadExcelModalLabel">
+                    <i class="fas fa-file-excel text-info me-2"></i>
+                    Upload Students Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadExcelForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="excelCourseOfferingId" name="courseOfferingId">
+                    <input type="hidden" id="excelCourseId" name="courseId">
+                    <input type="hidden" id="excelTrimesterId" name="trimesterId">
+                    
+                                         <!-- Trimester Selection -->
+                     <div class="row mb-3">
+                         <div class="col-md-12">
+                             <label for="excelTrimesterSelection" class="form-label">Trimester <span class="text-danger">*</span></label>
+                             <select class="form-select" id="excelTrimesterSelection" required>
+                                 <option value="">Select Trimester</option>
+                             </select>
+                         </div>
+                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Excel File</label>
+                        <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls,.csv" required>
+                        <div class="form-text">
+                            <strong>Required format:</strong> Excel file with columns: Student ID (A) and Email (B)
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Instructions:</h6>
+                        <ul class="mb-0">
+                            <li>First column (A) should contain Student ID</li>
+                            <li>Second column (B) should contain Email</li>
+                            <li>Students will be verified by Student ID or Email</li>
+                            <li>Only existing students can be added to the course</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="downloadStudentsTemplate()">
+                            <i class="fas fa-download me-1"></i>
+                            Download Template
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload and Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item.active {
+        background-color: #e3f2fd;
+        border-color: #2196f3;
+        color: #1976d2;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+    
+    .list-group-item.active:hover {
+        background-color: #e3f2fd;
+    }
+    
+    .course-item-badge {
+        font-size: 0.75rem;
+    }
+    
+    .course-item-title {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .course-item-code {
+        color: #666;
+        font-size: 0.875rem;
+    }
+    
+    .student-card {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .student-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-check-input:checked + .form-check-label {
+        background-color: #e7f3ff;
+        border-color: #0d6efd;
+    }
+    
+    .form-check-input:checked + .form-check-label .fw-semibold {
+        color: #0d6efd !important;
+    }
+    
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .student-search-results {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .enrolled-students-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCourseOfferings();
+            loadTrimesterOptions();
+            loadCourseOptions();
+            loadTutorOptions();
+        });
+
+        // Load course offerings data
+        function loadCourseOfferings() {
+            const listContainer = document.getElementById('courseOfferingList');
+            listContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p class="mb-0">Loading course offerings...</p>
+                    </div>
+                </div>
+            `;
+            
+            console.log('Loading course offerings...');
+            
+            // Call API endpoint
+            fetch('/Admin/Course/GetCourseOfferings')
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    return response.json();
+                })
+                .then(result => {
+                    console.log('API Response data:', result);
+                    if (result.success) {
+                        console.log('Course offerings loaded successfully, count:', result.data.length);
+                        displayCourseOfferings(result.data);
+                        updateCourseOfferingCount(result.data.length);
+                    } else {
+                        console.error('API returned error:', result.message);
+                        showError(result.message || 'Failed to load course offerings');
+                        displayCourseOfferings([]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading course offerings:', error);
+                    showError('Failed to load course offerings');
+                    displayCourseOfferings([]);
+                });
+        }
+
+        // Load trimester options
+        function loadTrimesterOptions() {
+            fetch('/Admin/Trimester/GetActiveTrimesters')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        populateTrimesterDropdowns(result.data);
+                    } else {
+                        showError('Failed to load trimester options');
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to load trimester options');
+                });
+        }
+
+        // Load course options
+        function loadCourseOptions() {
+            fetch('/Admin/Course/SearchCourses')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        populateCourseDropdowns(result.data);
+                    } else {
+                        showError('Failed to load course options');
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to load course options');
+                });
+        }
+
+        // Load tutor options
+        function loadTutorOptions() {
+            fetch('/Admin/Tutor/GetTutors')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        populateTutorDropdowns(result.data);
+                    } else {
+                        showError('Failed to load tutor options');
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to load tutor options');
+                });
+        }
+
+        // Populate trimester dropdowns
+        function populateTrimesterDropdowns(trimesters) {
+            const addDropdown = document.getElementById('trimesterId');
+            const editDropdown = document.getElementById('editTrimesterId');
+            const filterDropdown = document.getElementById('trimesterFilter');
+            
+            const options = trimesters.map(trimester => 
+                `<option value="${trimester.id}">${trimester.academicYear} - Tri${trimester.trimesterNumber}</option>`
+            ).join('');
+            
+            if (addDropdown) addDropdown.innerHTML = '<option value="">Select Trimester</option>' + options;
+            if (editDropdown) editDropdown.innerHTML = '<option value="">Select Trimester</option>' + options;
+            if (filterDropdown) filterDropdown.innerHTML = '<option value="">All Trimesters</option>' + options;
+        }
+
+        // Populate course dropdowns
+        function populateCourseDropdowns(courses) {
+            const addDropdown = document.getElementById('courseId');
+            const editDropdown = document.getElementById('editCourseId');
+            const filterDropdown = document.getElementById('courseFilter');
+            
+            const options = courses.map(course => 
+                `<option value="${course.id}">${course.courseCode} - ${course.courseName}</option>`
+            ).join('');
+            
+            if (addDropdown) addDropdown.innerHTML = '<option value="">Select Course</option>' + options;
+            if (editDropdown) editDropdown.innerHTML = '<option value="">Select Course</option>' + options;
+            if (filterDropdown) filterDropdown.innerHTML = '<option value="">All Courses</option>' + options;
+        }
+
+        // Populate tutor dropdowns
+        function populateTutorDropdowns(tutors) {
+            const addDropdown = document.getElementById('tutorId');
+            const editDropdown = document.getElementById('editTutorId');
+            
+            const options = tutors.map(tutor => 
+                `<option value="${tutor.id}">${tutor.firstName} ${tutor.lastName}</option>`
+            ).join('');
+            
+            if (addDropdown) addDropdown.innerHTML = '<option value="">Select Tutor (Optional)</option>' + options;
+            if (editDropdown) editDropdown.innerHTML = '<option value="">Select Tutor (Optional)</option>' + options;
+        }
+
+        // Display course offerings in sidebar list
+        function displayCourseOfferings(offerings) {
+            const listContainer = document.getElementById('courseOfferingList');
+            
+            console.log('Displaying course offerings:', offerings);
+            console.log('Offerings length:', offerings ? offerings.length : 'null');
+            
+            if (!offerings || offerings.length === 0) {
+                console.log('No course offerings to display');
+                listContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-chalkboard-teacher fa-2x mb-3"></i>
+                            <p class="mb-0">No course offerings found</p>
+                            <small>Click "Add" to create the first offering</small>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            listContainer.innerHTML = offerings.map(offering => `
+                <div class="list-group-item list-group-item-action p-3" 
+                     onclick="selectCourseOffering('${offering.id}')" 
+                     id="course-item-${offering.id}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 course-item-title">${offering.course?.courseName || 'N/A'}</h6>
+                            <small class="course-item-code">${offering.course?.courseCode || 'N/A'}</small>
+                            <div class="mt-1">
+                                <span class="badge bg-info bg-opacity-75 course-item-badge">${offering.trimester?.academicYear || 'N/A'} - Tri${offering.trimester?.trimesterNumber || 'N/A'}</span>
+                                <span class="badge ${offering.isActive ? 'bg-success' : 'bg-secondary'} ms-1 course-item-badge">
+                                    ${offering.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false"
+                                    onclick="event.stopPropagation()">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="editCourseOffering('${offering.id}'); event.stopPropagation();">
+                                    <i class="fas fa-edit me-2"></i>Edit
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteCourseOffering('${offering.id}'); event.stopPropagation();">
+                                    <i class="fas fa-trash me-2"></i>Delete
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select course offering to show details
+        function selectCourseOffering(offeringId) {
+            // Remove active class from all items
+            document.querySelectorAll('#courseOfferingList .list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected item
+            const selectedItem = document.getElementById(`course-item-${offeringId}`);
+            if (selectedItem) {
+                selectedItem.classList.add('active');
+            }
+            
+            // Load and display course offering details
+            loadCourseOfferingDetails(offeringId);
+        }
+
+        // Load course offering details
+        function loadCourseOfferingDetails(offeringId) {
+            const detailsContainer = document.getElementById('courseOfferingDetails');
+            
+            // Show loading state
+            detailsContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p class="mb-0">Loading course offering details...</p>
+                    </div>
+                </div>
+            `;
+            
+            // Fetch course offering details
+            fetch(`/Admin/Course/GetCourseOffering?id=${offeringId}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        displayCourseOfferingDetails(result.data);
+                    } else {
+                        showError(result.message || 'Failed to load course offering details');
+                        detailsContainer.innerHTML = `
+                            <div class="text-center py-4">
+                                <div class="text-danger">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                    <p class="mb-0">Failed to load details</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to load course offering details');
+                    detailsContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="text-danger">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                <p class="mb-0">Error loading details</p>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+
+                 // Display course offering details
+         function displayCourseOfferingDetails(offering) {
+             const detailsContainer = document.getElementById('courseOfferingDetails');
+             
+             // Store current selected offering globally for other functions to access
+             window.currentSelectedOffering = offering;
+             
+             detailsContainer.innerHTML = `
+                 <div class="row">
+                     <div class="col-12">
+                         <div class="d-flex justify-content-between align-items-center mb-4">
+                             <h4 class="mb-0">${offering.course?.courseName || 'N/A'}</h4>
+                             <div class="d-flex gap-2">
+                                 <button class="btn btn-success btn-sm" onclick="showAddStudentsModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
+                                     <i class="fas fa-user-plus me-1"></i>Add Students
+                                 </button>
+                                 <button class="btn btn-info btn-sm" onclick="showUploadExcelModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
+                                     <i class="fas fa-file-excel me-1"></i>Upload Excel
+                                 </button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                 
+                  
+                  <!-- Enrolled Students Section -->
+                  <div class="row">
+                      <div class="col-12">
+                          <div class="card border-0 bg-light">
+                              <div class="card-body">
+                                  <div class="d-flex justify-content-between align-items-center mb-3">
+                                      <h6 class="card-title fw-bold mb-0">
+                                          <i class="fas fa-users text-primary me-2"></i>
+                                          Enrolled Students
+                                          <span class="badge bg-primary ms-2" id="enrolledStudentsCount">0</span>
+                                      </h6>
+                                      
+                                  </div>
+                                  
+                                                                     <!-- Filter Controls -->
+                                   <div class="mb-3">
+                                       <div class="row g-2">
+                                           <div class="col-md-8">
+                                               <label for="filterTrimester" class="form-label small text-muted">Trimester</label>
+                                               <select class="form-select form-select-sm" id="filterTrimester" onchange="filterEnrolledStudents()">
+                                                   <option value="">Select Trimester</option>
+                                               </select>
+                                           </div>
+                                           <div class="col-md-4 d-flex align-items-end">
+                                               <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearEnrolledStudentsFilters()">
+                                                   <i class="fas fa-times me-1"></i>Clear
+                                               </button>
+                                           </div>
+                                       </div>
+                                   </div>
+                                  
+                                  <div id="enrolledStudentsList" class="enrolled-students-list">
+                                      <div class="text-center py-4">
+                                          <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                                          <p class="text-muted mb-0">Please select a Trimester to view enrolled students</p>
+                                          <small class="text-muted">Use the filter above to search for students</small>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              `;
+             
+             // Load trimesters data for the filter dropdowns immediately
+             loadTrimestersForDetails();
+         }
+
+        // Update course offering count
+        function updateCourseOfferingCount(count) {
+            document.getElementById('courseOfferingListCount').textContent = count;
+        }
+
+        // Save course offering
+        function saveCourseOffering() {
+            const form = document.getElementById('addCourseOfferingForm');
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            const trimesterId = formData.get('trimesterId');
+            const courseId = formData.get('courseId');
+            
+            if (!trimesterId || !courseId) {
+                showError('Please select both Trimester and Course!');
+                return;
+            }
+            
+            // Show loading state
+            const saveButton = document.querySelector('#addCourseOfferingModal .btn-success');
+            const originalText = saveButton.innerHTML;
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            saveButton.disabled = true;
+            
+            // Prepare data for API call
+            const offeringData = {
+                trimesterId: trimesterId,
+                courseId: courseId,
+                tutorId: formData.get('tutorId') || null,
+                isActive: formData.get('isActive') === 'on'
+            };
+            
+            // Call API
+            fetch('/Admin/Course/CreateCourseOffering', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(offeringData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showSuccess(result.message || 'Course offering created successfully!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addCourseOfferingModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Reload offerings
+                    loadCourseOfferings();
+                } else {
+                    showError(result.message || 'Failed to create course offering');
+                }
+            })
+            .catch(error => {
+                showError('Failed to create course offering');
+            })
+            .finally(() => {
+                // Reset button state
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
+            });
+        }
+
+        // Edit course offering
+        function editCourseOffering(offeringId) {
+            // Show loading state
+            const editModal = new bootstrap.Modal(document.getElementById('editCourseOfferingModal'));
+            editModal.show();
+            
+            // Load offering data
+            fetch(`/Admin/Course/GetCourseOffering?id=${offeringId}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        const offering = result.data;
+                        
+                        // Populate form fields
+                        document.getElementById('editCourseOfferingHiddenId').value = offering.id;
+                        document.getElementById('editTrimesterId').value = offering.trimesterId;
+                        document.getElementById('editCourseId').value = offering.courseId;
+                        document.getElementById('editTutorId').value = offering.tutorId || '';
+                        document.getElementById('editIsActive').checked = offering.isActive;
+                    } else {
+                        showError(result.message || 'Failed to load course offering data');
+                        editModal.hide();
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to load course offering data');
+                    editModal.hide();
+                });
+        }
+
+        // Update course offering
+        function updateCourseOffering() {
+            const form = document.getElementById('editCourseOfferingForm');
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            const trimesterId = formData.get('trimesterId');
+            const courseId = formData.get('courseId');
+            
+            if (!trimesterId || !courseId) {
+                showError('Please select both Trimester and Course!');
+                return;
+            }
+            
+            // Show loading state
+            const updateButton = document.querySelector('#editCourseOfferingModal .btn-primary');
+            const originalText = updateButton.innerHTML;
+            updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+            updateButton.disabled = true;
+            
+            // Prepare data for API call
+            const offeringData = {
+                id: formData.get('id'),
+                trimesterId: trimesterId,
+                courseId: courseId,
+                tutorId: formData.get('tutorId') || null,
+                isActive: formData.get('isActive') === 'on'
+            };
+            
+            // Call API
+            fetch('/Admin/Course/UpdateCourseOffering', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(offeringData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showSuccess(result.message || 'Course offering updated successfully!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseOfferingModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Reload offerings
+                    loadCourseOfferings();
+                } else {
+                    showError(result.message || 'Failed to update course offering');
+                }
+            })
+            .catch(error => {
+                showError('Failed to update course offering');
+            })
+            .finally(() => {
+                // Reset button state
+                updateButton.innerHTML = originalText;
+                updateButton.disabled = false;
+            });
+        }
+
+        // Delete course offering
+        function deleteCourseOffering(offeringId) {
+            showConfirm(
+                'Are you sure you want to delete this course offering?',
+                () => {
+                    // Show loading message
+                    const loadingToast = showLoading('Deleting course offering...');
+                    
+                    // Call API
+                    fetch(`/Admin/Course/DeleteCourseOffering?id=${offeringId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        // Clear loading toast
+                        clearAllToasts();
+                        
+                        if (result.success) {
+                            showSuccess(result.message || 'Course offering deleted successfully!');
+                            // Reload offerings
+                            loadCourseOfferings();
+                        } else {
+                            showError(result.message || 'Failed to delete course offering');
+                        }
+                    })
+                    .catch(error => {
+                        clearAllToasts();
+                        showError('Failed to delete course offering');
+                    });
+                },
+                null,
+                'Delete Course Offering'
+            );
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const trimesterFilter = document.getElementById('trimesterFilter').value;
+            const courseFilter = document.getElementById('courseFilter').value;
+            
+            // Reload offerings with filters
+            loadCourseOfferings();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('trimesterFilter').value = '';
+            document.getElementById('courseFilter').value = '';
+            loadCourseOfferings();
+        }
+
+        // ===== ENROLLED STUDENTS FUNCTIONS =====
+        
+        // Flag to prevent duplicate loading of trimesters
+        let trimestersLoaded = false;
+        
+        // Show Add Students Modal
+        function showAddStudentsModal(courseOfferingId, courseId, trimesterId) {
+            // Set modal values
+            document.getElementById('modalCourseOfferingId').value = courseOfferingId;
+            document.getElementById('modalCourseId').value = courseId;
+            document.getElementById('modalTrimesterId').value = trimesterId;
+            
+            // Load trimesters if not already loaded
+            if (!trimestersLoaded) {
+                loadTrimesters();
+            }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('addStudentToCourseModal'));
+            modal.show();
+            
+            // Setup form event listeners
+            setupFormEventListeners();
+        }
+        
+        // Show Upload Excel Modal
+        function showUploadExcelModal(courseOfferingId, courseId, trimesterId) {
+            // Set modal values
+            document.getElementById('excelCourseOfferingId').value = courseOfferingId;
+            document.getElementById('excelCourseId').value = courseId;
+            document.getElementById('excelTrimesterId').value = trimesterId;
+            
+            // Load trimesters if not already loaded
+            if (!trimestersLoaded) {
+                loadTrimesters();
+            }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('uploadExcelModal'));
+            modal.show();
+            
+            // Setup form event listeners
+            setupFormEventListeners();
+        }
+        
+                 // Load trimesters for Details page filter dropdowns
+         async function loadTrimestersForDetails() {
+             try {
+                 const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
+                 const data = await response.json();
+
+                 if (data.success) {
+                     const trimesters = data.data;
+                     
+                     // Populate filter dropdown in Details page
+                     const filterTrimesterSelect = document.getElementById('filterTrimester');
+                     
+                     if (filterTrimesterSelect) {
+                         // Clear existing options
+                         filterTrimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
+                         
+                                                 // Add combined options with trimester ID as value
+                                 trimesters.forEach(trimester => {
+             const option = document.createElement('option');
+             option.value = trimester.id; // Use trimester ID as value
+             option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
+             filterTrimesterSelect.appendChild(option);
+         });
+                         
+                         // Store trimesters data globally for later use
+                         window.availableTrimesters = trimesters;
+                     }
+                 } else {
+                     console.error('Error loading trimesters for details:', data.message);
+                 }
+             } catch (error) {
+                 console.error('Error loading trimesters for details:', error);
+             }
+         }
+         
+         // Load trimesters for modal dropdowns
+         async function loadTrimesters() {
+            try {
+                const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
+                const data = await response.json();
+
+                if (data.success) {
+                    const trimesters = data.data;
+                    
+                    // Populate trimester dropdowns for modals
+                    const trimesterSelectionSelect = document.getElementById('trimesterSelection');
+                    const excelTrimesterSelectionSelect = document.getElementById('excelTrimesterSelection');
+                    
+                    if (trimesterSelectionSelect) {
+                        // Clear existing options
+                        trimesterSelectionSelect.innerHTML = '<option value="">Select Trimester</option>';
+                        
+                                            // Add combined options with trimester ID as value
+                             trimesters.forEach(trimester => {
+             const option = document.createElement('option');
+             option.value = trimester.id; // Use trimester ID as value
+             option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
+             trimesterSelectionSelect.appendChild(option);
+         });
+                    }
+                    
+                    if (excelTrimesterSelectionSelect) {
+                        // Clear existing options
+                        excelTrimesterSelectionSelect.innerHTML = '<option value="">Select Trimester</option>';
+                        
+                        // Add combined options with trimester ID as value
+                        trimesters.forEach(trimester => {
+                            const option = document.createElement('option');
+                            option.value = trimester.id; // Use trimester ID as value
+                            option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
+                            excelTrimesterSelectionSelect.appendChild(option);
+                        });
+                    }
+                    
+                    // Store trimesters data globally for later use
+                    window.availableTrimesters = trimesters;
+                    
+                    // Set flag to prevent duplicate loading
+                    trimestersLoaded = true;
+                    
+                } else {
+                    console.error('Error loading trimesters:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading trimesters:', error);
+            }
+        }
+        
+        // Setup form event listeners (no longer needed for trimester linkage as we use combined dropdowns)
+        function setupFormEventListeners() {
+            // Event listeners setup is no longer needed since we use combined dropdowns
+        }
+        
+        // Setup event listeners for Details page dropdowns (no longer needed as we use combined dropdown)
+        function setupDetailsPageEventListeners() {
+            // Event listeners setup is no longer needed since we use combined dropdown
+        }
+        
+        // Get trimester data by ID from stored trimesters
+        function getTrimesterById(trimesterId) {
+            return window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
+        }
+        
+        // Filter enrolled students based on selected criteria
+        function filterEnrolledStudents() {
+            const trimesterId = document.getElementById('filterTrimester').value;
+            
+            if (trimesterId) {
+                // Get trimester data from stored trimesters
+                const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
+                
+                if (selectedTrimester) {
+                    loadEnrolledStudents(selectedTrimester.academicYear, selectedTrimester.trimesterNumber);
+                } else {
+                    showInvalidSelectionMessage();
+                }
+            } else {
+                // Show message that trimester selection is required
+                showNoSelectionMessage();
+            }
+        }
+        
+        // Show message when no trimester is selected
+        function showNoSelectionMessage() {
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-filter fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">Please select a Trimester to view enrolled students</p>
+                    <small class="text-muted">Use the filter above to search for students</small>
+                </div>
+            `;
+            countElement.textContent = '0';
+        }
+        
+        // Show message when invalid selection is made
+        function showInvalidSelectionMessage() {
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                    <p class="text-muted mb-0">Invalid trimester selection</p>
+                    <small class="text-muted">Please select a valid trimester</small>
+                </div>
+            `;
+            countElement.textContent = '0';
+        }
+        
+        // Clear enrolled students filters
+        function clearEnrolledStudentsFilters() {
+            document.getElementById('filterTrimester').value = '';
+            
+            // Show filter message
+            showNoSelectionMessage();
+        }
+        
+        // Load enrolled students for this course
+        async function loadEnrolledStudents(academicYear = null, trimesterNumber = null) {
+            const container = document.getElementById('enrolledStudentsList');
+            const countElement = document.getElementById('enrolledStudentsCount');
+            
+            // Show loading state
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mb-0">Loading enrolled students...</p>
+                </div>
+            `;
+            
+                         try {
+                 // Get course offering ID from the selected offering
+                 const courseOfferingId = window.currentSelectedOffering?.id;
+                 
+                 // Use trimesterId from filter dropdown if academicYear and trimesterNumber are provided
+                 let trimesterId;
+                 if (academicYear && trimesterNumber) {
+                     // Find trimesterId based on academicYear and trimesterNumber
+                     const selectedTrimester = window.availableTrimesters?.find(t => 
+                         t.academicYear === academicYear && t.trimesterNumber === trimesterNumber
+                     );
+                     trimesterId = selectedTrimester?.id;
+                 } else {
+                     // Fallback to currentSelectedOffering trimesterId
+                     trimesterId = window.currentSelectedOffering?.trimesterId;
+                 }
+                 
+                 if (!courseOfferingId) {
+                     throw new Error('Course Offering ID not found');
+                 }
+                 
+                 let url = `/Admin/Student/GetEnrolledStudents`;
+                 const params = new URLSearchParams();
+                 
+                 // Always append courseOfferingId
+                 params.append('courseOfferingId', courseOfferingId);
+                 
+                 // Always append trimesterId if available
+                 if (trimesterId) {
+                     params.append('trimesterId', trimesterId);
+                 }
+                 
+                 if (params.toString()) {
+                     url += '?' + params.toString();
+                 }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const students = data.data;
+                    
+                    if (students && students.length > 0) {
+                        // Display enrolled students in the list
+                        displayEnrolledStudents(students);
+                        countElement.textContent = students.length;
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">No students enrolled for the selected criteria</p>
+                                <small class="text-muted">Try changing the filters or adding students to this course</small>
+                            </div>
+                        `;
+                        countElement.textContent = '0';
+                    }
+                } else {
+                    console.error('Error loading enrolled students:', data.message);
+                    container.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                            <p class="text-muted mb-0">Error loading enrolled students</p>
+                            <small class="text-danger">${data.message}</small>
+                        </div>
+                    `;
+                    countElement.textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading enrolled students:', error);
+                container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                         <p class="text-muted mb-0">Error loading enrolled students</p>
+                         <small class="text-danger">${error.message}</small>
+                     </div>
+                 `;
+                 countElement.textContent = '0';
+             }
+         }
+         
+         // Display enrolled students in the list
+         function displayEnrolledStudents(students) {
+             const container = document.getElementById('enrolledStudentsList');
+             const countElement = document.getElementById('enrolledStudentsCount');
+
+             if (students && students.length > 0) {
+                 countElement.textContent = students.length;
+                 container.innerHTML = `
+                     <div class="mb-3">
+                         <div class="d-flex justify-content-between align-items-center">
+                             <span class="text-muted small">Total enrolled: ${students.length}</span>
+                         </div>
+                     </div>
+                     ${students.map(student => `
+                         <div class="d-flex align-items-center mb-3 p-3 border rounded bg-light student-card">
+                             <div class="flex-grow-1">
+                                 <div class="d-flex align-items-center mb-1">
+                                     <div class="fw-semibold text-dark me-2">${student.firstName || ''} ${student.lastName || ''}</div>
+                                     <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'} small">
+                                         ${student.isActive ? 'Active' : 'Inactive'}
+                                     </span>
+                                 </div>
+                                 <div class="text-muted small">
+                                     <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
+                                 </div>
+                                 <div class="text-muted small">
+                                     <i class="text-muted small">
+                                     <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
+                                 </div>
+                             </div>
+                             <div class="ms-2">
+                                 <button class="btn btn-outline-danger btn-sm" onclick="removeStudentFromCourse('${student.id}')" title="Remove from course">
+                                     <i class="fas fa-times"></i>
+                                 </button>
+                             </div>
+                         </div>
+                     `).join('')}
+                 `;
+             } else {
+                 countElement.textContent = '0';
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                         <p class="text-muted mb-0">No students enrolled yet</p>
+                         <small class="text-muted">Use the "Add Students" button above to enroll students</small>
+                     </div>
+                 `;
+             }
+         }
+         
+         // Search timeout for debouncing
+         let searchTimeout;
+         
+         // Search for available students
+         async function searchStudents() {
+             const searchTerm = document.getElementById('studentSearch').value.trim();
+             const container = document.getElementById('availableStudentsList');
+
+             if (!searchTerm) {
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                         <p class="text-muted mb-0">Enter a search term to find students</p>
+                     </div>
+                 `;
+                 return;
+             }
+
+             // Show typing indicator for better UX
+             if (searchTerm.length < 3) {
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-keyboard fa-2x text-muted mb-3"></i>
+                         <p class="text-muted mb-0">Type at least 3 characters to search</p>
+                     </div>
+                 `;
+                 return;
+             }
+
+             // Clear previous timeout
+             if (searchTimeout) {
+                 clearTimeout(searchTimeout);
+             }
+
+             // Set new timeout for debounced search
+             searchTimeout = setTimeout(async () => {
+                 await performStudentSearch(searchTerm, container);
+             }, 300);
+         }
+         
+         // Perform the actual student search
+         async function performStudentSearch(searchTerm, container) {
+             // Show loading state
+             container.innerHTML = `
+                 <div class="text-center py-4">
+                     <div class="spinner-border text-primary mb-3" role="status">
+                         <span class="visually-hidden">Loading...</span>
+                     </div>
+                     <p class="text-muted mb-0">Searching for students...</p>
+                 </div>
+             `;
+
+             try {
+                 const response = await fetch(`/Admin/Student/SearchStudents?searchTerm=${encodeURIComponent(searchTerm)}`);
+                 const data = await response.json();
+
+                 if (data.success) {
+                     displayAvailableStudents(data.data);
+                 } else {
+                     container.innerHTML = `
+                         <div class="text-center py-4">
+                             <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                             <p class="text-muted mb-0">Error: ${data.message}</p>
+                         </div>
+                     `;
+                 }
+             } catch (error) {
+                 console.error('Error searching students:', error);
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                         <p class="text-muted mb-0">Error searching for students</p>
+                     </div>
+                 `;
+             }
+         }
+         
+         // Display available students in the modal
+         function displayAvailableStudents(students) {
+             const container = document.getElementById('availableStudentsList');
+
+             if (students && students.length > 0) {
+                 container.innerHTML = `
+                     <div class="mb-3">
+                         <div class="d-flex justify-content-between align-items-center mb-2">
+                             <span class="text-muted small">Found ${students.length} student(s)</span>
+                             <div>
+                                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllStudents()">
+                                     <i class="fas fa-check-double me-1"></i>Select All
+                                 </button>
+                                 <button type="button" class="btn btn-outline-secondary btn-sm ms-1" onclick="deselectAllStudents()">
+                                     <i class="fas fa-times me-1"></i>Deselect All
+                                 </button>
+                             </div>
+                         </div>
+                     </div>
+                     ${students.map(student => `
+                         <div class="form-check mb-3 p-3 border rounded student-card">
+                             <input class="form-check-input" type="checkbox" value="${student.id}" id="student_${student.id}" onchange="updateSelectedStudentsCount()">
+                             <label class="form-check-label w-100" for="student_${student.id}">
+                                 <div class="d-flex justify-content-between align-items-start">
+                                     <div class="flex-grow-1">
+                                         <div class="fw-semibold text-dark">${student.firstName || ''} ${student.lastName || ''}</div>
+                                         <div class="text-muted small">
+                                             <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
+                                         </div>
+                                         <div class="text-muted small">
+                                             <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
+                                         </div>
+                                     </div>
+                                     <div class="ms-2">
+                                         <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'}">
+                                             ${student.isActive ? 'Active' : 'Inactive'}
+                                         </span>
+                                     </div>
+                                 </div>
+                             </label>
+                         </div>
+                     `).join('')}
+                 `;
+             } else {
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                         <p class="text-muted mb-0">No students found</p>
+                         <small class="text-muted">Try different search terms or check spelling</small>
+                     </div>
+                 `;
+             }
+         }
+         
+                          // Add students to course form submission
+         const addStudentsForm = document.getElementById('addStudentsToCourseForm');
+         
+         if (addStudentsForm) {
+             addStudentsForm.addEventListener('submit', function(e) {
+                 e.preventDefault();
+                 addStudentsToCourse();
+             });
+         }
+         
+                 // Add selected students to the course
+                async function addStudentsToCourse() {
+            const courseOfferingId = document.getElementById('modalCourseOfferingId').value;
+             const trimesterId = document.getElementById('trimesterSelection').value;
+             const selectedStudents = Array.from(document.querySelectorAll('#availableStudentsList input[type="checkbox"]:checked'))
+                 .map(checkbox => checkbox.value);
+
+
+
+             if (!trimesterId) {
+                 showError('Please select a Trimester.');
+                 return;
+             }
+
+             // Get trimester data from stored trimesters
+             const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
+             
+             if (!selectedTrimester) {
+                 showError('Invalid trimester selection. Please select a valid trimester.');
+                 return;
+             }
+
+             const { academicYear, trimesterNumber } = selectedTrimester;
+
+             if (selectedStudents.length === 0) {
+                 showError('Please select at least one student to add to the course.');
+                 return;
+             }
+
+             // Show confirmation dialog for large number of students
+             if (selectedStudents.length > 10) {
+                                 showConfirm(
+                    `Are you sure you want to add ${selectedStudents.length} students to this course?`,
+                    () => performAddStudentsToCourse(courseOfferingId, selectedStudents, academicYear, trimesterNumber, trimesterId),
+                    null,
+                    'Confirm Bulk Add'
+                );
+                 return;
+             }
+
+             await performAddStudentsToCourse(courseOfferingId, selectedStudents, academicYear, trimesterNumber, trimesterId);
+         }
+         
+                 // Perform the actual add students operation
+        async function performAddStudentsToCourse(courseOfferingId, selectedStudents, academicYear, trimesterNumber, trimesterId) {
+
+            // Show loading state
+            const submitBtn = document.querySelector('#addStudentsToCourseForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding Students...';
+
+            try {
+                 const requestBody = {
+                     courseOfferingId: courseOfferingId,
+                     studentIds: selectedStudents,
+                     academicYear: parseInt(academicYear) || 0,
+                     trimesterNumber: parseInt(trimesterNumber) || 0,
+                     trimesterId: trimesterId
+                 };
+                 
+
+                 
+                 const response = await fetch('/Admin/Course/AddStudentsToCourseOffering', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify(requestBody)
+                 });
+
+                 const data = await response.json();
+
+                 if (data.success) {
+                     showSuccess(`Successfully added ${selectedStudents.length} student(s) to the course!`);
+                     
+                     // Close modal
+                     const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentToCourseModal'));
+                     modal.hide();
+                     
+                     // Reset form and search
+                     document.getElementById('addStudentsToCourseForm').reset();
+                     document.getElementById('studentSearch').value = '';
+                     document.getElementById('availableStudentsList').innerHTML = `
+                         <div class="text-center py-4">
+                             <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                             <p class="text-muted mb-0">Search for students to add to this course</p>
+                         </div>
+                     `;
+                     
+                     // Reload enrolled students if filter is selected
+                     const filterTrimesterId = document.getElementById('filterTrimester').value;
+                     
+                     if (filterTrimesterId) {
+                         const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(filterTrimesterId));
+                         if (selectedTrimester) {
+                             loadEnrolledStudents(selectedTrimester.academicYear, selectedTrimester.trimesterNumber);
+                         }
+                     }
+                 } else {
+                     if (data.errors && Array.isArray(data.errors)) {
+                         showValidationErrors(data.errors);
+                     } else {
+                         showError('Error: ' + data.message);
+                     }
+                 }
+             } catch (error) {
+                 console.error('Error adding students to course:', error);
+                 showError('An error occurred while adding students to the course.');
+             } finally {
+                 // Reset button state
+                 submitBtn.disabled = false;
+                 submitBtn.innerHTML = originalText;
+             }
+         }
+         
+                  // Remove student from course
+         async function removeStudentFromCourse(studentId) {
+             // Get course offering ID from the current selected offering
+             const courseOfferingId = window.currentSelectedOffering?.id;
+             const currentTrimesterId = window.currentSelectedOffering?.trimesterId;
+             
+             if (!courseOfferingId) {
+                 showError('Course Offering ID not found');
+                 return;
+             }
+             
+             // Get student name for better confirmation
+             const studentElement = document.querySelector(`[onclick="removeStudentFromCourse('${studentId}')"]`).closest('.student-card');
+             const studentName = studentElement ? studentElement.querySelector('.fw-semibold').textContent.trim() : 'this student';
+ 
+             showConfirm(
+                 `Are you sure you want to remove ${studentName} from the course?`,
+                 async () => {
+                     try {
+                         const response = await fetch('/Admin/Course/RemoveStudentFromCourseOffering', {
+                             method: 'POST',
+                             headers: {
+                                 'Content-Type': 'application/json',
+                             },
+                             body: JSON.stringify({
+                                 courseOfferingId: courseOfferingId,
+                                 studentId: studentId
+                             })
+                         });
+ 
+                         const data = await response.json();
+ 
+                         if (data.success) {
+                             showSuccess('Student removed from course successfully!');
+                             
+                             // Reload enrolled students if filters are selected
+                             const filterTrimesterId = document.getElementById('filterTrimester').value;
+                             
+                             if (filterTrimesterId) {
+                                 const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(filterTrimesterId));
+                                 if (selectedTrimester) {
+                                     loadEnrolledStudents(selectedTrimester.academicYear, selectedTrimester.trimesterNumber);
+                                 }
+                             }
+                         } else {
+                             showError('Error: ' + data.message);
+                         }
+                     } catch (error) {
+                         console.error('Error removing student from course:', error);
+                         showError('An error occurred while removing the student from the course.');
+                     }
+                 },
+                 null,
+                 'Remove Student'
+             );
+         }
+         
+         // Excel upload form submission
+         document.getElementById('uploadExcelForm').addEventListener('submit', function(e) {
+             e.preventDefault();
+             uploadStudentsExcel();
+         });
+         
+                   // Upload students Excel file
+          async function uploadStudentsExcel() {
+              const courseOfferingId = document.getElementById('excelCourseOfferingId').value;
+              const selectedTrimesterId = document.getElementById('excelTrimesterSelection').value;
+              const fileInput = document.getElementById('excelFile');
+
+              if (!selectedTrimesterId) {
+                  showError('Please select a Trimester.');
+                  return;
+              }
+
+              // Get trimester data from stored trimesters
+              const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
+              
+              if (!selectedTrimester) {
+                  showError('Invalid trimester selection. Please select a valid trimester.');
+                  return;
+              }
+
+              const { academicYear, trimesterNumber } = selectedTrimester;
+
+              if (!fileInput.files || fileInput.files.length === 0) {
+                  showError('Please select a file to upload.');
+                  return;
+              }
+
+              // Validate file type
+              const file = fileInput.files[0];
+              const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
+              if (!allowedTypes.includes(file.type)) {
+                  showError('Please select a valid Excel or CSV file.');
+                  return;
+              }
+
+              // Validate file size (max 5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                  showError('File size must be less than 5MB.');
+                  return;
+              }
+
+              // Show loading state
+              const submitBtn = document.querySelector('#uploadExcelForm button[type="submit"]');
+              const originalText = submitBtn.innerHTML;
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+
+              // Get trimesterId from current selected offering
+              const currentTrimesterId = window.currentSelectedOffering?.trimesterId;
+
+             const formData = new FormData();
+             formData.append('file', fileInput.files[0]);
+             formData.append('courseOfferingId', courseOfferingId);
+             if (selectedTrimesterId) {
+                 formData.append('trimesterId', selectedTrimesterId);
+             }
+
+             try {
+                 const response = await fetch('/Admin/Course/UploadStudentsExcelToCourseOffering', {
+                     method: 'POST',
+                     body: formData
+                 });
+
+                 const data = await response.json();
+
+                 if (data.success) {
+                     const successMessage = data.message;
+                     const resultData = data.data;
+                     
+                     if (resultData && resultData.errors && resultData.errors.length > 0) {
+                         // Show success with warnings about errors
+                         Swal.fire({
+                             title: 'Import Completed with Warnings',
+                             html: `
+                                 <div class="text-start">
+                                     <p class="text-success"><i class="fas fa-check-circle me-2"></i>${successMessage}</p>
+                                     <div class="mt-3">
+                                         <h6 class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Errors Found:</h6>
+                                         <div class="text-start" style="max-height: 200px; overflow-y: auto;">
+                                             ${resultData.errors.map(error => `<div class="text-danger small mb-2"></i>${error}</div>`).join('')}
+                                         </div>
+                                     </div>
+                                 </div>
+                             `,
+                             icon: 'warning',
+                             confirmButtonColor: '#ffc107'
+                         });
+                     } else {
+                         showSuccess(successMessage);
+                     }
+                     
+                     // Close modal
+                     const modal = bootstrap.Modal.getInstance(document.getElementById('uploadExcelModal'));
+                     modal.hide();
+                     
+                     // Reset form and file input
+                     document.getElementById('uploadExcelForm').reset();
+                     document.getElementById('excelFile').value = '';
+                     
+                     // Reload enrolled students if filter is selected
+                     const filterTrimesterId = document.getElementById('filterTrimester').value;
+                     
+                     if (filterTrimesterId) {
+                         const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(filterTrimesterId));
+                         if (selectedTrimester) {
+                             loadEnrolledStudents(selectedTrimester.academicYear, selectedTrimester.trimesterNumber);
+                         }
+                     }
+                 } else {
+                     showError('Error: ' + data.message);
+                 }
+             } catch (error) {
+                 console.error('Error uploading Excel file:', error);
+                 showError('An error occurred while uploading the Excel file.');
+             } finally {
+                 // Reset button state
+                 submitBtn.disabled = false;
+                 submitBtn.innerHTML = originalText;
+             }
+         }
+         
+         // Clear student search
+         function clearStudentSearch() {
+             document.getElementById('studentSearch').value = '';
+             document.getElementById('availableStudentsList').innerHTML = `
+                 <div class="text-center py-4">
+                     <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                     <p class="text-muted mb-0">Search for students to add to this course</p>
+                 </div>
+             `;
+         }
+         
+         // Select all students
+         function selectAllStudents() {
+             const checkboxes = document.querySelectorAll('#availableStudentsList input[type="checkbox"]');
+             checkboxes.forEach(checkbox => {
+                 checkbox.checked = true;
+             });
+             updateSelectedStudentsCount();
+         }
+         
+         // Deselect all students
+         function deselectAllStudents() {
+             const checkboxes = document.querySelectorAll('#availableStudentsList input[type="checkbox"]');
+             checkboxes.forEach(checkbox => {
+                 checkbox.checked = false;
+             });
+             updateSelectedStudentsCount();
+         }
+         
+         // Update selected students count
+         function updateSelectedStudentsCount() {
+             const selectedCount = document.querySelectorAll('#availableStudentsList input[type="checkbox"]:checked').length;
+             const countElement = document.getElementById('selectedStudentsCount');
+             if (countElement) {
+                 countElement.textContent = `${selectedCount} student(s) selected`;
+             }
+         }
+         
+         // Download students Excel template
+         function downloadStudentsTemplate() {
+             try {
+                 // Create a temporary link element
+                 const link = document.createElement('a');
+                 link.href = '/Admin/Course/DownloadStudentsTemplate';
+                 link.download = 'StudentsUploadTemplate.xlsx';
+                 
+                 // Append to body, click, and remove
+                 document.body.appendChild(link);
+                 link.click();
+                 document.body.removeChild(link);
+                 
+             } catch (error) {
+                 console.error('Error downloading template:', error);
+                 showError('Failed to download template. Please try again.');
+             }
+         }
+    </script>
+}

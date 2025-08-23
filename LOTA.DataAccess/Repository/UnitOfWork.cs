@@ -1,6 +1,7 @@
 ﻿using LOTA.DataAccess.Data;
 using LOTA.DataAccess.Repository;
 using LOTA.DataAccess.Repository.IRepository;
+using LOTA.DataAccess.Interface;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,8 @@ namespace LOTA.DataAccess.Repository
         public IStudentRepository studentRepository { get; private set; }
         public IStudentCourseRepository studentCourseRepository { get; private set; }
         public ITrimesterRepository trimesterRepository { get; private set; }
+        public ITrimesterCourseRepository trimesterCourseRepository { get; private set; }
+        public IAssessmentRepository assessmentRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -33,6 +36,8 @@ namespace LOTA.DataAccess.Repository
             studentRepository = new StudentRepository(_db);
             studentCourseRepository = new StudentCourseRepository(_db);
             trimesterRepository = new TrimesterRepository(_db);
+            trimesterCourseRepository = new TrimesterCourseRepository(_db);
+            assessmentRepository = new AssessmentRepository(_db);
         }
 
         public async Task<int> SaveAsync()

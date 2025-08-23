@@ -2,6 +2,7 @@
 using LOTA.DataAccess.Repository;
 using LOTA.Service.Service.IService;
 using LOTA.Service.Service;
+using LOTA.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LOTA.Service
@@ -24,6 +25,8 @@ namespace LOTA.Service
             services.AddScoped<IQualificationService, QualificationService>();
             services.AddScoped<IStudentService, StudentService>();
             services.AddScoped<ITrimesterService, TrimesterService>();
+            services.AddScoped<ITrimesterCourseService, TrimesterCourseService>();
+            services.AddScoped<IAssessmentService, AssessmentService>();
 
             return services;
         }

@@ -400,7 +400,7 @@ namespace LOTA.Service.Service
         }
 
 
-        public async Task AddStudentsToCourseAsync(string courseId, List<string> studentIds, string trimesterId)
+        public async Task AddStudentsToCourseOfferingAsync(string courseOfferingId, List<string> studentIds, string trimesterId)
         {
             
             // Validate trimester exists
@@ -415,7 +415,7 @@ namespace LOTA.Service.Service
                 // Check if student is already enrolled in this course for this trimester
                 var existingEnrollment = await _unitOfWork.studentCourseRepository.GetAsync(sc => 
                     sc.StudentId == studentId && 
-                    sc.CourseId == courseId && 
+                    sc.CourseOfferingId == courseOfferingId && 
                     sc.TrimesterId == trimesterId);
 
                 if (!existingEnrollment.Any())
@@ -424,7 +424,7 @@ namespace LOTA.Service.Service
                     {
                         Id = Guid.NewGuid().ToString(),
                         StudentId = studentId,
-                        CourseId = courseId,
+                        CourseOfferingId = courseOfferingId,
                         TrimesterId = trimesterId,
                         IsActive = true,
                         RegistrationDate = DateTime.UtcNow,
@@ -443,10 +443,10 @@ namespace LOTA.Service.Service
             await _unitOfWork.SaveAsync();
         }
 
-        public async Task RemoveStudentFromCourseAsync(string courseId, string studentId)
+        public async Task RemoveStudentFromCourseOfferingAsync(string courseOfferingId, string studentId)
         {
             //throw new NotImplementedException("TDD Red phase: method not implemented yet");
-            var enrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseId);
+            var enrollment = await _unitOfWork.studentCourseRepository.GetByStudentAndCourseAsync(studentId, courseOfferingId);
             if (enrollment != null)
             {
                 _unitOfWork.studentCourseRepository.Remove(enrollment.Id);
@@ -454,7 +454,7 @@ namespace LOTA.Service.Service
             }
         }
 
-        public async Task<(int successCount, List<string> errors)> ImportStudentsFromExcelAsync(string courseId, string trimesterId, Stream fileStream)
+        public async Task<(int successCount, List<string> errors)> ImportStudentsFromExcelCourseOfferingAsync(string courseOfferingId, string trimesterId, Stream fileStream)
         {
             var errors = new List<string>();
             var successCount = 0;
@@ -500,7 +500,7 @@ namespace LOTA.Service.Service
                         // Check if student is already enrolled in this course for this trimester
                         var existingEnrollment = await _unitOfWork.studentCourseRepository.GetAsync(sc => 
                             sc.StudentId == studentEntity.Id && 
-                            sc.CourseId == courseId && 
+                            sc.CourseOfferingId == courseOfferingId && 
                             sc.TrimesterId == trimesterId);
 
                         if (!existingEnrollment.Any())
@@ -509,7 +509,7 @@ namespace LOTA.Service.Service
                             {
                                 Id = Guid.NewGuid().ToString(),
                                 StudentId = studentEntity.Id,
-                                CourseId = courseId,
+                                CourseOfferingId = courseOfferingId,
                                 TrimesterId = trimesterId,
                                 IsActive = true,
                                 RegistrationDate = DateTime.UtcNow,

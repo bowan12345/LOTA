@@ -28,7 +28,7 @@ namespace LOTA.Model
         public Qualification? Qualification { get; set; }
 
         // Relationships
-        public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
+        public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
         public ICollection<LearningOutcome> LearningOutcomes { get; set; } = new List<LearningOutcome>();
         public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
         public ICollection<TutorCourse> TutorCourses { get; set; } = new List<TutorCourse>();

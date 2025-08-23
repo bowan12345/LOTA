@@ -14,47 +14,36 @@ namespace LOTA.DataAccess.Repository
         public async Task<IEnumerable<StudentCourse>> GetByStudentIdAsync(string studentId)
         {
             return await _db.StudentCourse
-                .Include(sc => sc.Course)
+                .Include(sc => sc.TrimesterCourse)
                 .Where(sc => sc.StudentId == studentId)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<StudentCourse>> GetByCourseIdAsync(string courseId)
+        public async Task<IEnumerable<StudentCourse>> GetByCourseOfferingIdAsync(string courseOfferingId)
         {
             return await _db.StudentCourse
                 .Include(sc => sc.Student)
-                .Where(sc => sc.CourseId == courseId)
+                .Include(sc => sc.TrimesterCourse)
+                .Where(sc => sc.TrimesterCourse.Id == courseOfferingId)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<StudentCourse>> GetByCourseIdAndTrimesterAsync(string courseId, int? academicYear, int? trimesterNumber)
+        public async Task<IEnumerable<StudentCourse>> GetByCourseOfferingIdAndTrimesterAsync(string courseOfferingId,string trimesterId)
         {
-            
-
             var query = _db.StudentCourse
                 .Include(sc => sc.Student)
-                .Include(sc => sc.Trimester)
-                .Where(sc => sc.CourseId == courseId);
-
-            if (academicYear.HasValue && academicYear.Value > 0)
-            {
-                 query = query.Where(sc => sc.Trimester.AcademicYear == academicYear.Value);
-            }
-
-            if (trimesterNumber.HasValue && trimesterNumber.Value > 0)
-            {
-                 query = query.Where(sc => sc.Trimester.TrimesterNumber == trimesterNumber.Value);
-            }
+                .Include(sc => sc.TrimesterCourse)
+                .Where(sc => sc.TrimesterCourse.Id == courseOfferingId && sc.TrimesterId == trimesterId);
 
             return await query.ToListAsync();
         }
 
-        public async Task<StudentCourse?> GetByStudentAndCourseAsync(string studentId, string courseId)
+        public async Task<StudentCourse?> GetByStudentAndCourseAsync(string studentId, string courseOfferingId)
         {
             return await _db.StudentCourse
-                .Include(sc => sc.Course)
+                .Include(sc => sc.TrimesterCourse)
                 .Include(sc => sc.Student)
-                .FirstOrDefaultAsync(sc => sc.StudentId == studentId && sc.CourseId == courseId);
+                .FirstOrDefaultAsync(sc => sc.StudentId == studentId && sc.TrimesterCourse.Id == courseOfferingId);
         }
 
         public void RemoveAllByTrimesterId(string id)

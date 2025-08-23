@@ -60,9 +60,9 @@
                         </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Trimester" asp-action="Index">
-                            <i class="fas fa-calendar-week me-3"></i>
-                            Manage Trimesters
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Student" asp-action="Index">
+                            <i class="fas fa-graduation-cap me-3"></i>
+                            Manage Students
                         </a>
                     </li>
                     <li class="nav-item mb-2">
@@ -71,22 +71,52 @@
                             Manage Courses
                         </a>
                     </li>
+                    
+                    <!-- Manage Programs Dropdown -->
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Student" asp-action="Index">
-                            <i class="fas fa-graduation-cap me-3"></i>
-                            Manage Students
-                        </a>
+                        <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#manageProgramsCollapse" 
+                                type="button"
+                                aria-expanded="false" 
+                                aria-controls="manageProgramsCollapse"
+                                id="manageProgramsToggle">
+                            <i class="fas fa-cogs me-3"></i>
+                            Manage Programs
+                        </button>
+                        <div class="collapse" id="manageProgramsCollapse">
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item mb-1">
+                                    <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Trimester" asp-action="Index">
+                                        <i class="fas fa-calendar-week me-3"></i>
+                                        Manage Trimesters
+                                    </a>
+                                </li>
+                                <li class="nav-item mb-1">
+                                    <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Qualification" asp-action="Index">
+                                        <i class="fas fa-certificate me-3"></i>
+                                        Manage Qualifications
+                                    </a>
+                                </li>
+                                <li class="nav-item mb-1">
+                                    <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Course" asp-action="CourseOffering">
+                                        <i class="fas fa-chalkboard-teacher me-3"></i>
+                                        Course Offering
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
+                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" asp-area="Admin" asp-controller="Assessment" asp-action="Index">
                             <i class="fas fa-file-alt me-3"></i>
-                            Assignment & Exam
+                            Manage Assessments
                         </a>
                     </li>
                     <li class="nav-item mb-2">
                         <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded" href="#">
                             <i class="fas fa-list me-3"></i>
-                            LO Mark
+                            LO Scores
                         </a>
                     </li>
                     <li class="nav-item mb-2">
@@ -151,18 +181,81 @@
          
          // Set active navigation based on current page
          function setActiveNavigation() {
-             const currentPath = window.location.pathname;
-             const navLinks = document.querySelectorAll('#sidebar .nav-link');
+             const currentPath = window.location.pathname.toLowerCase();
+             const allNavLinks = document.querySelectorAll('#sidebar .nav-link, #sidebar button.nav-link');
+             const manageProgramsCollapse = document.getElementById('manageProgramsCollapse');
+             const manageProgramsToggle = document.getElementById('manageProgramsToggle');
              
-             navLinks.forEach(link => {
-                 link.classList.remove('active', 'bg-primary', 'text-white');
-                 link.classList.add('text-dark');
+             let hasActiveSubMenu = false;
+             
+             // Reset all navigation items first
+             allNavLinks.forEach(item => {
+                 item.classList.remove('active', 'bg-primary', 'text-white');
+                 item.classList.add('text-dark');
+             });
+             
+             // Check all navigation links for matches
+             allNavLinks.forEach((link) => {
+                 // Skip the dropdown toggle button for href checking
+                 if (link.id === 'manageProgramsToggle') {
+                     return;
+                 }
                  
-                 if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href'))) {
-                     link.classList.add('active', 'bg-primary', 'text-white');
-                     link.classList.remove('text-dark');
+                 // Get the href and normalize it
+                 const href = link.getAttribute('href');
+                 
+                 if (href && href !== '#') {
+                     let normalizedHref = href.toLowerCase();
+                     
+                     // Create more flexible matching logic
+                     let isMatch = false;
+                     
+                     // Match using contains logic with more flexible patterns
+                     if ((normalizedHref.includes('/course') && currentPath.includes('/course')) && 
+                         !normalizedHref.includes('courseoffering') && !currentPath.includes('courseoffering')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/course/courseoffering') && currentPath.includes('/course/courseoffering')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/trimester') && currentPath.includes('/trimester')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/qualification') && currentPath.includes('/qualification')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/assessment') && currentPath.includes('/assessment')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/student') && currentPath.includes('/student')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/tutor') && currentPath.includes('/tutor')) {
+                         isMatch = true;
+                     } else if (normalizedHref.includes('/home') && currentPath.includes('/home')) {
+                         isMatch = true;
+                     }
+                     
+                     if (isMatch) {
+                         // Highlight the matched navigation item
+                         link.classList.add('active', 'bg-primary', 'text-white');
+                         link.classList.remove('text-dark');
+                         
+                         // Check if this active link is inside the Manage Programs submenu
+                         if (link.closest('#manageProgramsCollapse')) {
+                             hasActiveSubMenu = true;
+                         }
+                     }
                  }
              });
+             
+             // If any submenu item is active, expand the dropdown but don't highlight the parent
+             if (hasActiveSubMenu && manageProgramsToggle && manageProgramsCollapse) {
+                 // Expand the submenu
+                 manageProgramsCollapse.classList.add('show');
+                 manageProgramsToggle.setAttribute('aria-expanded', 'true');
+                 
+                 // Don't highlight the parent menu - only expand it
+                 // The submenu item itself should be highlighted instead
+             } else if (manageProgramsToggle && manageProgramsCollapse) {
+                 // Ensure submenu is collapsed if no submenu items are active
+                 manageProgramsCollapse.classList.remove('show');
+                 manageProgramsToggle.setAttribute('aria-expanded', 'false');
+             }
          }
          
          // Call the function when page loads
@@ -192,6 +285,61 @@
         #sidebar .nav-link.active {
             background-color: #0d6efd !important;
             color: white !important;
+        }
+        
+        /* Manage Programs dropdown styles */
+        #manageProgramsCollapse {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        #manageProgramsCollapse .nav-link {
+            font-size: 0.9rem;
+            padding-left: 2.5rem;
+            border-left: 2px solid #e9ecef;
+            margin-left: 0.5rem;
+        }
+        
+        #manageProgramsCollapse .nav-link:hover {
+            background-color: #f8f9fa !important;
+            border-left-color: #0d6efd;
+        }
+        
+        .dropdown-toggle::after {
+            margin-left: auto;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
+        }
+        
+        /* Style for active parent menu when submenu is active */
+        #manageProgramsToggle.active {
+            background-color: #0d6efd !important;
+            color: white !important;
+        }
+        
+        /* Ensure submenu active items are properly styled */
+        #manageProgramsCollapse .nav-link.active {
+            background-color: #0d6efd !important;
+            color: white !important;
+            border-left-color: #ffffff;
+        }
+        
+        /* Button styling for dropdown toggle */
+        #manageProgramsToggle {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        #manageProgramsToggle:hover {
+            background-color: #e9ecef !important;
+            transform: translateX(5px);
+        }
+        
+        #manageProgramsToggle:focus {
+            outline: none;
+            box-shadow: none;
         }
         
          /* Mobile sidebar */

@@ -9,13 +9,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.Model
 {
-    public class Assignment
+    public class Assessment
     {
         [Key]
         public string? Id { get; set; }
 
         [Required, MaxLength(50)]
-        public string? AssignmentName { get; set; }
+        public string? AssessmentName { get; set; }
+
+        public string AssessmentTypeId { get; set; }
+        [ForeignKey("AssessmentTypeId")]
+        public AssessmentType AssessmentType { get; set; }
+
 
         [Precision(5, 2)]
         public decimal TotalWeight { get; set; }
@@ -34,8 +39,23 @@ namespace LOTA.Model
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
 
+        public string TrimesterId { get; set; }
+        [ForeignKey("TrimesterId")]
+        public Trimester Trimester { get; set; }
+
         // Relationships
-        public ICollection<AssignmentLearningOutcome> AssignmentLearningOutcomes { get; set; } = new List<AssignmentLearningOutcome>();
+        public ICollection<AssessmentLearningOutcome> AssessmentLearningOutcomes { get; set; } = new List<AssessmentLearningOutcome>();
         public ICollection<StudentScore> StudentScores { get; set; } = new List<StudentScore>();
+    }
+
+
+    public class AssessmentType
+    {
+        [Key]
+        public string Id { get; set; }
+        [Required, MaxLength(50)]
+        public string AssessmentTypeName { get; set; }
+        // Relationships
+        public ICollection<Assessment> Assessments { get; set; }
     }
 }

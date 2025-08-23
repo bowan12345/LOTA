@@ -8,6 +8,7 @@ using System.Text.Json;
 using LOTAWeb.Models;
 using ClosedXML.Excel;
 using System.Text.RegularExpressions;
+using LOTA.Service.Service;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -45,6 +46,22 @@ namespace LOTAWeb.Areas.Admin.Controllers
             // Return all tutor information on the home page 
             return View(tutorList);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTutors()
+        {
+            try
+            {
+                var tutorList = await _tutorService.GetAllTutorsAsync();
+                return Json(new { success = true, data = tutorList });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SearchCourses: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to load tutor list: {ex.Message}" });
+            }
+        }
+
 
         // POST: Admin/Tutor/Create
         [HttpPost]

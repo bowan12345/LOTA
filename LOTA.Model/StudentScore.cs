@@ -19,9 +19,9 @@ namespace LOTA.Model
         [ForeignKey("StudentId")]
         public ApplicationUser Student { get; set; }
 
-        public string AssignmentId { get; set; }
-        [ForeignKey("AssignmentId")]
-        public Assignment Assignment { get; set; }
+        public string AssessmentId { get; set; }
+        [ForeignKey("AssessmentId")]
+        public Assessment Assessment { get; set; }
 
         public string LOId { get; set; }
         [ForeignKey("LOId")]

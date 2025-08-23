@@ -83,28 +83,28 @@ namespace LOTA.Service.Service.IService
         /// <summary>
         /// Add students to a course
         /// </summary>
-        /// <param name="courseId">The course ID</param>
+        /// <param name="courseOfferingId">The offered course ID</param>
         /// <param name="studentIds">List of student IDs to add</param>
         /// <param name="trimesterId">Trimester ID</param>
         /// <returns></returns>
-        Task AddStudentsToCourseAsync(string courseId, List<string> studentIds, string trimesterId);
+        Task AddStudentsToCourseOfferingAsync(string courseOfferingId, List<string> studentIds, string trimesterId);
 
         /// <summary>
-        /// Import students to a course from Excel file
+        /// Import students to a offered course from Excel file
         /// </summary>
-        /// <param name="courseId">The course ID</param>
+        /// <param name="CourseOfferingId">The offered course ID</param>
         /// <param name="trimesterId">Trimester ID</param>
         /// <param name="fileStream">Excel file stream</param>
         /// <returns>Import result with success count and errors</returns>
-        Task<(int successCount, List<string> errors)> ImportStudentsFromExcelAsync(string courseId, string trimesterId, Stream fileStream);
+        Task<(int successCount, List<string> errors)> ImportStudentsFromExcelCourseOfferingAsync(string courseOfferingId, string trimesterId, Stream fileStream);
 
         /// <summary>
-        /// Remove a student from a course
+        /// Remove a student from a courseoffering
         /// </summary>
-        /// <param name="courseId">The course ID</param>
+        /// <param name="courseOfferingId">The offered course ID</param>
         /// <param name="studentId">The student ID to remove</param>
         /// <returns></returns>
-        Task RemoveStudentFromCourseAsync(string courseId, string studentId);
+        Task RemoveStudentFromCourseOfferingAsync(string courseOfferingId, string studentId);
 
         /// <summary>
         /// Generate Excel template for uploading students to course

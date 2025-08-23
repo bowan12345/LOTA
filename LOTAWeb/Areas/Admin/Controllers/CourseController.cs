@@ -7,6 +7,7 @@ using LOTAWeb.Models;
 using LOTA.Service.Service;
 using LOTA.Model.DTO;
 using LOTA.Model.DTO.Admin;
+using LOTA.Service.Interface;
 using DocumentFormat.OpenXml.Spreadsheet;
 using ClosedXML.Excel;
 
@@ -18,12 +19,14 @@ namespace LOTAWeb.Areas.Admin.Controllers
     {
         private readonly ICourseService _courseService;
         private readonly ITrimesterService _trimesterService;
+        private readonly ITrimesterCourseService _trimesterCourseService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(ICourseService courseService, ITrimesterService trimesterService)
+        public CourseController(ICourseService courseService, ITrimesterService trimesterService, ITrimesterCourseService trimesterCourseService)
         {
             _courseService = courseService;
             _trimesterService = trimesterService;
+            _trimesterCourseService = trimesterCourseService;
         }
 
         // GET: Admin/course home page
@@ -47,6 +50,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             //return all course information on the home page 
             return View(courseList);
         }
+
         public async Task<IActionResult> Details(string id) 
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -389,6 +393,32 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
+
+        #region course offering
+        public async Task<IActionResult> CourseOffering()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Get all course offerings
+        /// </summary>
+        /// <returns>JSON result with course offerings list</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCourseOfferings()
+        {
+            try
+            {
+                var offerings = await _trimesterCourseService.GetAllTrimesterCoursesAsync();
+                return Json(new { success = true, data = offerings });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
         /// <summary>
         /// Download Excel template for uploading students to course
         /// </summary>
@@ -409,7 +439,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddStudentsToCourse([FromBody] AddStudentsToCourseDTO request)
+        public async Task<IActionResult> AddStudentsToCourseOffering([FromBody] AddStudentsToCourseOfferingDTO request)
         {
             try
             {
@@ -422,7 +452,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Validation failed", errors });
                 }
 
-                await _courseService.AddStudentsToCourseAsync(request.CourseId, request.StudentIds, request.TrimesterId);
+                await _courseService.AddStudentsToCourseOfferingAsync(request.CourseOfferingId, request.StudentIds, request.TrimesterId);
                 return Json(new { success = true, message = "Students added to course successfully" });
             }
             catch (Exception ex)
@@ -440,7 +470,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         /// <param name="trimesterNumber"> which trimester number</param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> UploadStudentsExcel([FromForm] IFormFile file, [FromForm] string courseId, [FromForm] string trimesterId)
+        public async Task<IActionResult> UploadStudentsExcelToCourseOffering([FromForm] IFormFile file, [FromForm] string courseOfferingId, [FromForm] string trimesterId)
         {
             try
             {
@@ -450,7 +480,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 // Validate file extension
-                var allowedExtensions = new[] { ".xlsx", ".xls"};
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
@@ -464,7 +494,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 using var stream = file.OpenReadStream();
-                var (successCount, errors) = await _courseService.ImportStudentsFromExcelAsync(courseId, trimesterId, stream);
+                var (successCount, errors) = await _courseService.ImportStudentsFromExcelCourseOfferingAsync(courseOfferingId, trimesterId, stream);
 
                 var message = $"Successfully imported {successCount} students.";
                 if (errors.Count > 0)
@@ -472,13 +502,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     message += $" {errors.Count} errors occurred during import.";
                 }
 
-                return Json(new { 
-                    success = true, 
+                return Json(new
+                {
+                    success = true,
                     message = message,
-                    data = new { 
-                        successCount, 
+                    data = new
+                    {
+                        successCount,
                         errorCount = errors.Count,
-                        errors = errors.Take(10).ToList() // Return first 10 errors
+                        // Return first 10 errors
+                        errors = errors.Take(10).ToList() 
                     }
                 });
             }
@@ -492,7 +525,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveStudentFromCourseDTO request)
+        public async Task<IActionResult> RemoveStudentFromCourseOffering([FromBody] RemoveStudentFromCourseDTO request)
         {
             try
             {
@@ -505,7 +538,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Validation failed", errors });
                 }
 
-                await _courseService.RemoveStudentFromCourseAsync(request.CourseId, request.StudentId);
+                await _courseService.RemoveStudentFromCourseOfferingAsync(request.CourseOfferingId, request.StudentId);
                 return Json(new { success = true, message = "Student removed from course successfully" });
             }
             catch (Exception ex)
@@ -514,56 +547,128 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
+
         /// <summary>
-        /// Get courses tree structure with qualifications and trimesters
+        /// Get course offering by ID
         /// </summary>
-        /// <returns>JSON result with tree structure</returns>
+        /// <param name="id">Course offering ID</param>
+        /// <returns>JSON result with course offering details</returns>
         [HttpGet]
-        public async Task<IActionResult> GetCoursesTree()
+        public async Task<IActionResult> GetCourseOffering(string id)
         {
             try
             {
-                var courses = await _courseService.GetAllCoursesAsync();
-                var trimesters = await _trimesterService.GetActiveTrimestersAsync();
-                
-                // Group courses by qualification
-                var treeData = courses
-                    .Where(c => !string.IsNullOrEmpty(c.QualificationId))
-                    .GroupBy(c => new { 
-                        QualificationId = c.QualificationId, 
-                        QualificationName = c.QualificationName,
-                        QualificationType = c.QualificationType,
-                        Level = c.Level
-                    })
-                    .Select(qualGroup => new
-                    {
-                        QualificationId = qualGroup.Key.QualificationId,
-                        QualificationName = qualGroup.Key.QualificationName,
-                        QualificationType = qualGroup.Key.QualificationType,
-                        Level = qualGroup.Key.Level,
-                        Courses = qualGroup.Select(course => new
-                        {
-                            CourseId = course.Id,
-                            CourseName = course.CourseName,
-                            CourseCode = course.CourseCode,
-                            Description = course.Description,
-                            Trimesters = trimesters.Select(t => new
-                            {
-                                TrimesterId = t.Id,
-                                AcademicYear = t.AcademicYear,
-                                TrimesterNumber = t.TrimesterNumber,
-                                DisplayName = $"Trimester {t.TrimesterNumber} ({t.AcademicYear})"
-                            }).ToList()
-                        }).ToList()
-                    })
-                    .ToList();
+                var offering = await _trimesterCourseService.GetTrimesterCourseByIdAsync(id);
+                if (offering == null)
+                {
+                    return Json(new { success = false, message = "Course offering not found" });
+                }
 
-                return Json(new { success = true, data = treeData });
+                return Json(new { success = true, data = offering });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Create new course offering
+        /// </summary>
+        /// <param name="offering">Course offering data</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> CreateCourseOffering([FromBody] TrimesterCourseCreateDTO offering)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                var result = await _trimesterCourseService.CreateTrimesterCourseAsync(offering);
+                return Json(new { success = true, data = result, message = "Course offering created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while creating the course offering" });
+            }
+        }
+
+        /// <summary>
+        /// Update existing course offering
+        /// </summary>
+        /// <param name="offering">Course offering data</param>
+        /// <returns>JSON result</returns>
+        [HttpPut]
+        public async Task<IActionResult> UpdateCourseOffering([FromBody] TrimesterCourseUpdateDTO offering)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                var result = await _trimesterCourseService.UpdateTrimesterCourseAsync(offering);
+                return Json(new { success = true, data = result, message = "Course offering updated successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while updating the course offering" });
+            }
+        }
+
+        /// <summary>
+        /// Delete course offering
+        /// </summary>
+        /// <param name="id">Course offering ID</param>
+        /// <returns>JSON result</returns>
+        [HttpDelete]
+        public async Task<IActionResult> DeleteCourseOffering(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    return Json(new { success = false, message = "Course offering ID is required" });
+                }
+
+                var result = await _trimesterCourseService.DeleteTrimesterCourseAsync(id);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Course offering deleted successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Course offering not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while deleting the course offering" });
+            }
+        }
+        #endregion course offering
+
+
+
     }
 } 

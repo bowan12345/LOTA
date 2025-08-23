@@ -566,11 +566,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetEnrolledStudents(string id, int? academicYear = null, int? trimesterNumber = null)
+        public async Task<IActionResult> GetEnrolledStudents(string courseOfferingId, string trimesterId)
         {
             try
             {
-                var students = await _studentService.GetEnrolledStudentsAsync(id, academicYear, trimesterNumber);
+                var students = await _studentService.GetEnrolledStudentsAsync(courseOfferingId, trimesterId);
                 return Json(new { success = true, data = students });
             }
             catch (Exception ex)

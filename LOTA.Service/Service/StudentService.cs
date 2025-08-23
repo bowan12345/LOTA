@@ -212,9 +212,9 @@ namespace LOTA.Service.Service
             };
         }
 
-        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseId, int? academicYear = null, int? trimesterNumber = null)
+        public async Task<IEnumerable<StudentReturnDTO>> GetEnrolledStudentsAsync(string courseOfferingId, string trimesterId)
         {
-            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseIdAndTrimesterAsync(courseId, academicYear, trimesterNumber);
+            var studentCourses = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAndTrimesterAsync(courseOfferingId, trimesterId);
             return studentCourses.Select(sc => new StudentReturnDTO
             {
                 Id = sc.Student.Id,

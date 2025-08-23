@@ -11,8 +11,9 @@ namespace LOTA.DataAccess.Data
             : base(options)
         {
         }
-        public DbSet<Assignment> Assignment { get; set; }
-        public DbSet<AssignmentLearningOutcome> AssignmentLearningOutcome { get; set; }
+        public DbSet<Assessment> Assignment { get; set; }
+        public DbSet<AssessmentType> AssessmentType { get; set; }
+        public DbSet<AssessmentLearningOutcome> AssignmentLearningOutcome { get; set; }
         public DbSet<Course> Course { get; set; }
         public DbSet<LearningOutcome> LearningOutcome { get; set; }
         public DbSet<Qualification> Qualification { get; set; }
@@ -21,6 +22,7 @@ namespace LOTA.DataAccess.Data
         public DbSet<StudentScore> StudentScore { get; set; }
         public DbSet<TutorCourse> TutorCourse { get; set; }
         public DbSet<Trimester> Trimester { get; set; }
+        public DbSet<TrimesterCourse> TrimesterCourse { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,9 +30,9 @@ namespace LOTA.DataAccess.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<StudentCourse>()
-                .HasOne(sc => sc.Course)
+                .HasOne(sc => sc.TrimesterCourse)
                 .WithMany(c => c.StudentCourses)
-                .HasForeignKey(sc => sc.CourseId)
+                .HasForeignKey(sc => sc.CourseOfferingId)
                 .OnDelete(DeleteBehavior.Restrict);  
 
             modelBuilder.Entity<StudentCourse>()
@@ -40,9 +42,9 @@ namespace LOTA.DataAccess.Data
                 .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<StudentScore>()
-                .HasOne(ss => ss.Assignment)
+                .HasOne(ss => ss.Assessment)
                 .WithMany(a => a.StudentScores)
-                .HasForeignKey(ss => ss.AssignmentId)
+                .HasForeignKey(ss => ss.AssessmentId)
                 .OnDelete(DeleteBehavior.Restrict);  
 
             modelBuilder.Entity<StudentScore>()
@@ -71,10 +73,22 @@ namespace LOTA.DataAccess.Data
                 .HasForeignKey(c => c.QualificationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<TrimesterCourse>()
+               .HasOne(c => c.Tutor)
+               .WithMany(q => q.TrimesterCourse)
+               .HasForeignKey(c => c.TutorId)
+               .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Qualification>()
                 .HasOne(c => c.QualificationType)
                 .WithMany(q => q.Qualifications)
                 .HasForeignKey(c => c.QualificationTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Assessment>()
+                .HasOne(c => c.AssessmentType)
+                .WithMany(q => q.Assessments)
+                .HasForeignKey(c => c.AssessmentTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ApplicationUser>().HasData(
@@ -218,62 +232,6 @@ namespace LOTA.DataAccess.Data
                     CourseId = "COURSE-002"
                 }
             );
-
-            // Learning Outcome
-            modelBuilder.Entity<LearningOutcome>().HasData(
-                new LearningOutcome
-                {
-                    Id = "LO-001",
-                    LOName = "Requirement Analysis",
-                    Description = "Understand and document software requirements effectively.",
-                    MaxScore = 100,
-                    Weight = 0.3M,
-                    CourseId = "COURSE-001",
-                    CreatedDate = DateTime.Now
-                },
-                new LearningOutcome
-                {
-                    Id = "LO-002",
-                    LOName = "System Design",
-                    Description = "Apply design principles to create robust software architectures.",
-                    MaxScore = 100,
-                    Weight = 0.4M,
-                    CourseId = "COURSE-001",
-                    CreatedDate = DateTime.Now
-                }
-            );
-
-            // assignment
-            modelBuilder.Entity<Assignment>().HasData(
-                new Assignment
-                {
-                    Id = "ASSIGN-001",
-                    AssignmentName = "Project Proposal",
-                    TotalWeight = 30,
-                    TotalScore = 100,
-                    CourseId = "COURSE-001",
-                    CreatedBy = "TUTOR-001",
-                    IsActive = true,
-                    CreatedDate = DateTime.Now
-                }
-            );
-
-            // assignment and learning outcome
-            modelBuilder.Entity<AssignmentLearningOutcome>().HasData(
-                new AssignmentLearningOutcome
-                {
-                    Id= "ALO1001",
-                    AssignmentId = "ASSIGN-001",
-                    LOId = "LO-001"
-                },
-                new AssignmentLearningOutcome
-                {
-                    Id= "ALO1002",
-                    AssignmentId = "ASSIGN-001",
-                    LOId = "LO-002"
-                }
-            );
-
             // trimester
             modelBuilder.Entity<Trimester>().HasData(
                 new Trimester
@@ -310,13 +268,114 @@ namespace LOTA.DataAccess.Data
                 }
             );
 
+            // trimester and courses
+            modelBuilder.Entity<TrimesterCourse>().HasData(
+                new TrimesterCourse
+                {
+                    Id = "TC001",
+                    TutorId = "TUTOR-001",
+                    CourseId = "COURSE-001",
+                    TrimesterId = "Trimester-001",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                }
+            );
+
+
+            // Learning Outcome
+            modelBuilder.Entity<LearningOutcome>().HasData(
+                new LearningOutcome
+                {
+                    Id = "LO-001",
+                    LOName = "Requirement Analysis",
+                    Description = "Understand and document software requirements effectively.",
+                    MaxScore = 100,
+                    Weight = 0.3M,
+                    CourseId = "COURSE-001",
+                    CreatedDate = DateTime.Now
+                },
+                new LearningOutcome
+                {
+                    Id = "LO-002",
+                    LOName = "System Design",
+                    Description = "Apply design principles to create robust software architectures.",
+                    MaxScore = 100,
+                    Weight = 0.4M,
+                    CourseId = "COURSE-001",
+                    CreatedDate = DateTime.Now
+                }
+            );
+            // assignmenttype
+            modelBuilder.Entity<AssessmentType>().HasData(
+                new AssessmentType
+                {
+                    Id = "001",
+                    AssessmentTypeName = "Assignment",
+                },
+                new AssessmentType
+                {
+                    Id = "002",
+                    AssessmentTypeName = "Exam",
+                },
+                new AssessmentType
+                {
+                    Id = "003",
+                    AssessmentTypeName = "Test",
+                },
+                new AssessmentType
+                {
+                    Id = "004",
+                    AssessmentTypeName = "Project",
+                },
+                new AssessmentType
+                {
+                    Id = "005",
+                    AssessmentTypeName = "Presentation",
+                }
+            );
+
+            // assignment
+            modelBuilder.Entity<Assessment>().HasData(
+                new Assessment
+                {
+                    Id = "ASSIGN-001",
+                    AssessmentName = "Project Proposal",
+                    AssessmentTypeId = "001",
+                    TotalWeight = 30,
+                    TotalScore = 100,
+                    CourseId = "COURSE-001",
+                    TrimesterId = "Trimester-001",
+                    CreatedBy = "TUTOR-001",
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                }
+            );
+
+            // assignment and learning outcome
+            modelBuilder.Entity<AssessmentLearningOutcome>().HasData(
+                new AssessmentLearningOutcome
+                {
+                    Id= "ALO1001",
+                    AssessmentId = "ASSIGN-001",
+                    LOId = "LO-001"
+                },
+                new AssessmentLearningOutcome
+                {
+                    Id= "ALO1002",
+                    AssessmentId = "ASSIGN-001",
+                    LOId = "LO-002"
+                }
+            );
+
+          
+
             // student course
             modelBuilder.Entity<StudentCourse>().HasData(
                 new StudentCourse
                 {
                     Id = "STCOURSE-001",
                     StudentId = "STUDENT-001",
-                    CourseId = "COURSE-001",
+                    CourseOfferingId = "TC001",
                     TrimesterId="Trimester-001",
                     IsActive = true,
                     RegistrationDate = DateTime.Now,
@@ -330,7 +389,7 @@ namespace LOTA.DataAccess.Data
                 {
                     Id = "SCORE-001",
                     StudentId = "STUDENT-001",
-                    AssignmentId = "ASSIGN-001",
+                    AssessmentId = "ASSIGN-001",
                     LOId = "LO-001",
                     TrimesterId = "Trimester-001",
                     Score = 80,
