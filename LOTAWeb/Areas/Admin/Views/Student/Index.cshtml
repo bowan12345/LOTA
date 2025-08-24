@@ -110,7 +110,7 @@
                         {
                             foreach (var student in Model)
                             {
-                                <tr>
+                                <tr class="student-row">
                                     <td class="text-nowrap">
                                         <input type="checkbox" class="form-check-input student-checkbox" value="@student.Id" onchange="updateBatchActions()">
                                     </td>
@@ -162,6 +162,18 @@
                         }
                     </tbody>
                 </table>
+                
+                <!-- Pagination Controls -->
+                <div id="paginationContainer" class="d-flex justify-content-between align-items-center p-3" style="display: none;">
+                    <div class="text-muted small" id="paginationInfo">
+                        <!-- Pagination info will be generated here -->
+                    </div>
+                    <nav aria-label="Student list pagination">
+                        <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                            <!-- Pagination controls will be generated here -->
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -348,6 +360,12 @@
 @section Scripts {
     <script src="~/js/sweetalert-utils.js"></script>
     <script>
+        // Pagination configuration
+        const PAGE_SIZE = 10; // Number of students per page
+        let currentPage = 1;
+        let totalPages = 1;
+        let allStudents = []; // Store all students for pagination
+
         // Form submission handlers
         document.getElementById('addStudentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -365,7 +383,173 @@
             uploadExcel();
         });
 
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePagination();
+        });
 
+        // Initialize pagination
+        function initializePagination() {
+            console.log('Initializing pagination...');
+            // Get all student rows
+            const studentRows = document.querySelectorAll('.student-row');
+            console.log('Found student rows:', studentRows.length);
+            
+            if (studentRows.length === 0) return;
+            
+            // Store all students data
+            allStudents = Array.from(studentRows).map(row => {
+                return {
+                    element: row,
+                    id: row.querySelector('.student-checkbox').value,
+                    studentNo: row.cells[1].textContent,
+                    lastName: row.cells[2].textContent,
+                    firstName: row.cells[3].textContent,
+                    email: row.cells[4].textContent,
+                    password: row.cells[5].textContent,
+                    status: row.cells[6].textContent,
+                    actions: row.cells[7].innerHTML
+                };
+            });
+            
+            console.log('All students data:', allStudents.length);
+            
+            // Calculate total pages
+            totalPages = Math.ceil(allStudents.length / PAGE_SIZE);
+            console.log('Total pages:', totalPages);
+            
+            // Only show pagination if there are more than 12 students
+            if (allStudents.length > 12) {
+                console.log('Showing pagination for', allStudents.length, 'students');
+                document.getElementById('paginationContainer').style.display = 'flex';
+                document.getElementById('paginationContainer').classList.add('border-top');
+                displayCurrentPage();
+                addPaginationControls();
+            } else {
+                console.log('Hiding pagination for', allStudents.length, 'students');
+                // If 12 or fewer students, hide pagination and show all results
+                document.getElementById('paginationContainer').style.display = 'none';
+                document.getElementById('paginationContainer').classList.remove('border-top');
+                // Show all rows
+                allStudents.forEach(student => {
+                    student.element.style.display = '';
+                });
+            }
+        }
+        
+        // Display current page
+        function displayCurrentPage() {
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageStudents = allStudents.slice(startIndex, endIndex);
+            
+            console.log('Displaying page', currentPage, 'with', pageStudents.length, 'students');
+            
+            // Hide all rows first
+            allStudents.forEach(student => {
+                student.element.style.display = 'none';
+            });
+            
+            // Show only current page rows
+            pageStudents.forEach(student => {
+                student.element.style.display = '';
+            });
+            
+            // Update pagination info
+            updatePaginationInfo(startIndex, endIndex);
+        }
+        
+        // Update pagination info
+        function updatePaginationInfo(startIndex, endIndex) {
+            const infoElement = document.getElementById('paginationInfo');
+            infoElement.textContent = `Showing ${startIndex + 1} to ${Math.min(endIndex, allStudents.length)} of ${allStudents.length} results`;
+        }
+        
+        // Add pagination controls
+        function addPaginationControls() {
+            const controlsContainer = document.getElementById('paginationControls');
+            
+            if (totalPages <= 1) {
+                // If only one page, show simple info without navigation
+                controlsContainer.innerHTML = '';
+                return;
+            }
+            
+            controlsContainer.innerHTML = `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                ${generatePageNumbers()}
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+        }
+        
+        // Generate page numbers
+        function generatePageNumbers() {
+            let pages = [];
+            const maxVisiblePages = 5;
+            
+            if (totalPages <= maxVisiblePages) {
+                // Show all page numbers if total pages is small
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Show partial page numbers for large page counts
+                if (currentPage <= 3) {
+                    // Current page is in first few pages
+                    for (let i = 1; i <= 4; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (currentPage >= totalPages - 2) {
+                    // Current page is in last few pages
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 3; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    // Current page is in middle
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            
+            return pages.map(page => {
+                if (page === '...') {
+                    return '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                } else {
+                    return `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="javascript:void(0)" onclick="changePage(${page})">${page}</a>
+                            </li>`;
+                }
+            }).join('');
+        }
+        
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayCurrentPage();
+            addPaginationControls();
+            
+            // Remove automatic scrolling to prevent page jumping
+            // Users can manually scroll if needed
+        }
 
         // Save student function
         function saveStudent() {
@@ -632,8 +816,6 @@
                 return;
             }
 
-
-
             const formData = new FormData();
             formData.append('excelFile', file);
 
@@ -704,8 +886,6 @@
                 uploadButton.disabled = false;
             });
         }
-
-
 
         // Function to show upload success using SweetAlert
         function showUploadSuccess(successCount) {
@@ -831,115 +1011,115 @@
             });
         }
 
-    // Batch selection functions
-    function toggleSelectAll(checkbox) {
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        checkboxes.forEach(cb => {
-            cb.checked = checkbox.checked;
-        });
-        updateBatchActions();
-    }
+        // Batch selection functions
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateBatchActions();
+        }
 
-    function selectAllStudents() {
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        checkboxes.forEach(cb => {
-            cb.checked = true;
-        });
-        selectAllCheckbox.checked = true;
-        selectAllCheckbox.indeterminate = false;
-        updateBatchActions();
-    }
+        function selectAllStudents() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+            });
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+            updateBatchActions();
+        }
 
-    function deselectAllStudents() {
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        checkboxes.forEach(cb => {
-            cb.checked = false;
-        });
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = false;
-        updateBatchActions();
-    }
+        function deselectAllStudents() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+            updateBatchActions();
+        }
 
-    function updateBatchActions() {
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        const selectedCount = document.getElementById('selectedCount');
+        function updateBatchActions() {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const selectedCount = document.getElementById('selectedCount');
 
-        let allChecked = true;
-        let noneChecked = true;
+            let allChecked = true;
+            let noneChecked = true;
 
-        checkboxes.forEach(cb => {
-            if (cb.checked) {
-                noneChecked = false;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    noneChecked = false;
+                } else {
+                    allChecked = false;
+                }
+            });
+
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+
+            const batchActionsDiv = document.getElementById('batchActions');
+            if (checkboxes.length > 0) {
+                batchActionsDiv.style.display = 'flex';
+                selectedCount.textContent = checkboxes.filter(cb => cb.checked).length;
             } else {
-                allChecked = false;
+                batchActionsDiv.style.display = 'none';
+                selectedCount.textContent = '0';
             }
-        });
-
-        selectAllCheckbox.checked = allChecked;
-        selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
-
-        const batchActionsDiv = document.getElementById('batchActions');
-        if (checkboxes.length > 0) {
-            batchActionsDiv.style.display = 'flex';
-            selectedCount.textContent = checkboxes.filter(cb => cb.checked).length;
-        } else {
-            batchActionsDiv.style.display = 'none';
-            selectedCount.textContent = '0';
-        }
-    }
-
-    function deleteSelectedStudents() {
-        const selectedStudentIds = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
-        if (selectedStudentIds.length === 0) {
-            showError('Please select at least one student to delete.');
-            return;
         }
 
-        showConfirm(
-            `Are you sure you want to delete ${selectedStudentIds.length} selected student(s)? This action cannot be undone.`,
-            () => confirmDeleteSelectedStudents(selectedStudentIds),
-            null,
-            'Delete Selected Students'
-        );
-    }
+        function deleteSelectedStudents() {
+            const selectedStudentIds = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
+            if (selectedStudentIds.length === 0) {
+                showError('Please select at least one student to delete.');
+                return;
+            }
 
-    function confirmDeleteSelectedStudents(selectedStudentIds) {
-        const loadingToast = showLoading('Deleting selected students...');
-        
-        // Get anti-forgery token
-        const token = document.querySelector('input[name="__RequestVerificationToken"]');
-        const tokenValue = token ? token.value : '';
+            showConfirm(
+                `Are you sure you want to delete ${selectedStudentIds.length} selected student(s)? This action cannot be undone.`,
+                () => confirmDeleteSelectedStudents(selectedStudentIds),
+                null,
+                'Delete Selected Students'
+            );
+        }
 
-        // Send AJAX request to delete selected students
-        fetch('/Admin/Student/DeleteSelected', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': tokenValue
-            },
-            body: JSON.stringify({ Ids: selectedStudentIds })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess(`${selectedStudentIds.length} students deleted successfully!`);
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            } else {
-                showError('Error: ' + data.message);
+        function confirmDeleteSelectedStudents(selectedStudentIds) {
+            const loadingToast = showLoading('Deleting selected students...');
+            
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            const tokenValue = token ? token.value : '';
+
+            // Send AJAX request to delete selected students
+            fetch('/Admin/Student/DeleteSelected', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': tokenValue
+                },
+                body: JSON.stringify({ Ids: selectedStudentIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(`${selectedStudentIds.length} students deleted successfully!`);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showError('Error: ' + data.message);
+                    loadingToast.hide();
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting selected students:', error);
+                showError('An error occurred while deleting the selected students. Please try again.');
                 loadingToast.hide();
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting selected students:', error);
-            showError('An error occurred while deleting the selected students. Please try again.');
-            loadingToast.hide();
-        });
-    }
+            });
+        }
     </script>
 
     <style>
@@ -1224,6 +1404,30 @@
         
         .swal-small .small {
             font-size: 0.8rem !important;
+        }
+        
+        /* Pagination improvements to prevent page jumping */
+        .pagination .page-link {
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .pagination .page-link:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        
+        .pagination .page-link:hover {
+            text-decoration: none;
+        }
+        
+        /* Ensure pagination container doesn't cause layout shifts */
+        #paginationContainer {
+            position: relative;
+            z-index: 1;
         }
     </style>
 }

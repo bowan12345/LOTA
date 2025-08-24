@@ -105,17 +105,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             var result = await _userManager.CreateAsync(tutor, tutorCreateDTO.Password);
             if (result.Succeeded)
             {
-                var newTutorId = tutor.Id;
-                //save course info
-                try
-                {
-                    await _tutorService.AddTutorCourseAsync(newTutorId, tutorCreateDTO.AssignedCourses);
-                    return Json(new { success = true, message = "Tutor created successfully" });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Tutor created but failed to assign courses: " + ex.Message });
-                }
+                return Json(new { success = true, message = "Tutor created successfully" });
             }
             else
             {
@@ -183,24 +173,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 var updateResult = await _userManager.UpdateAsync(tutor);
                 if (updateResult.Succeeded)
                 {
-                    // Handle course assignments
-                    try
-                    {
-                        // Remove existing course assignments
-                        await _tutorService.RemoveAllTutorCoursesAsync(tutorUpdateDTO.Id);
-                        
-                        // Add new course assignments if provided
-                        if (tutorUpdateDTO.AssignedCourses != null && tutorUpdateDTO.AssignedCourses.Any())
-                        {
-                            await _tutorService.AddTutorCourseAsync(tutorUpdateDTO.Id, tutorUpdateDTO.AssignedCourses);
-                        }
-                        
-                        return Json(new { success = true, message = "Tutor updated successfully" });
-                    }
-                    catch (Exception ex)
-                    {
-                        return Json(new { success = false, message = "Tutor updated but failed to update course assignments: " + ex.Message });
-                    }
+                    return Json(new { success = true, message = "Tutor updated successfully" });
                 }
                 else
                 {

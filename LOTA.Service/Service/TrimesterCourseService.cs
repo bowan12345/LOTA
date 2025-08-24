@@ -61,7 +61,6 @@ namespace LOTA.Service.Service
             {
                 throw new InvalidOperationException("Trimester course not found.");
             }
-
             // Check if the new combination already exists (excluding current record)
             var existingWithNewCombination = await _unitOfWork.trimesterCourseRepository
                 .GetTrimesterCoursesByTrimesterAndCourseAsync(trimesterCourseDto.TrimesterId, trimesterCourseDto.CourseId);
@@ -70,6 +69,7 @@ namespace LOTA.Service.Service
             {
                 throw new InvalidOperationException("A course offering for this trimester and course combination already exists.");
             }
+
 
             existingTrimesterCourse.TrimesterId = trimesterCourseDto.TrimesterId;
             existingTrimesterCourse.CourseId = trimesterCourseDto.CourseId;

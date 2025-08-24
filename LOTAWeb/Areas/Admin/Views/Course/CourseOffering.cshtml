@@ -16,10 +16,10 @@
             </h2>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCourseOfferingModal">
+            <a href="@Url.Action("AddCourseOffering", "Course", new { area = "Admin" })" class="btn btn-success">
                 <i class="fas fa-plus me-2"></i>
                 Add Course Offering
-            </button>
+            </a>
         </div>
     </div>
 
@@ -35,30 +35,16 @@
                             Course List
                             <span class="badge bg-primary ms-2" id="courseOfferingListCount">0</span>
                         </h5>
-                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCourseOfferingModal">
-                            <i class="fas fa-plus me-1"></i>
-                            Add
-                        </button>
                     </div>
                     <!-- Filter Controls -->
                     <div class="mt-3">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <select class="form-select form-select-sm" id="trimesterFilter">
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="flex-grow-1">
+                                <select class="form-select form-select-sm" id="trimesterFilter" onchange="applyFilters()">
                                     <option value="">All Trimesters</option>
                                 </select>
                             </div>
-                            <div class="col-6">
-                                <select class="form-select form-select-sm" id="courseFilter">
-                                    <option value="">All Courses</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-1 mt-2">
-                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="applyFilters()">
-                                <i class="fas fa-search me-1"></i>Filter
-                            </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFilters()">
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFilters()" title="Clear Filter">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -161,7 +147,7 @@
 <div class="modal fade" id="editCourseOfferingModal" tabindex="-1" aria-labelledby="editCourseOfferingModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="editCourseOfferingModalLabel">
                     <i class="fas fa-edit me-2"></i>
                     Edit Course Offering
@@ -190,20 +176,14 @@
                                 <option value="">Select Tutor (Optional)</option>
                             </select>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label for="editIsActive" class="form-label">Status</label>
-                            <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive">
-                                <label class="form-check-label" for="editIsActive">Active</label>
-                            </div>
-                        </div>
+
                     </div>
                 </form>
                 <div class="row g-3">
                     <div class="col-12">
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="updateCourseOffering()">
+                            <button type="button" class="btn btn-success" onclick="updateCourseOffering()">
                                 <i class="fas fa-save me-2"></i>
                                 Update
                             </button>
@@ -228,17 +208,18 @@
             </div>
             <form id="addStudentsToCourseForm">
                 <div class="modal-body">
-                    <input type="hidden" id="modalCourseOfferingId" name="courseOfferingId">
-                    <input type="hidden" id="modalCourseId" name="courseId">
-                    <input type="hidden" id="modalTrimesterId" name="trimesterId">
-                    
-                                         <!-- Trimester Selection -->
+                                         <input type="hidden" id="modalCourseOfferingId" name="courseOfferingId">
+                     <input type="hidden" id="modalCourseId" name="courseId">
+                     <input type="hidden" id="modalTrimesterId" name="trimesterId">
+                     
+                     <!-- Trimester Info Display -->
                      <div class="row mb-3">
                          <div class="col-md-12">
-                             <label for="trimesterSelection" class="form-label">Trimester <span class="text-danger">*</span></label>
-                             <select class="form-select" id="trimesterSelection" required>
-                                 <option value="">Select Trimester</option>
-                             </select>
+                             <div class="alert alert-info">
+                                 <i class="fas fa-info-circle me-2"></i>
+                                 <strong>Selected Trimester:</strong> 
+                                 <span id="modalTrimesterDisplay">Please select a trimester from the filter above first</span>
+                             </div>
                          </div>
                      </div>
                     
@@ -293,17 +274,18 @@
             </div>
             <form id="uploadExcelForm" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <input type="hidden" id="excelCourseOfferingId" name="courseOfferingId">
-                    <input type="hidden" id="excelCourseId" name="courseId">
-                    <input type="hidden" id="excelTrimesterId" name="trimesterId">
-                    
-                                         <!-- Trimester Selection -->
+                                         <input type="hidden" id="excelCourseOfferingId" name="courseOfferingId">
+                     <input type="hidden" id="excelCourseId" name="courseId">
+                     <input type="hidden" id="excelTrimesterId" name="trimesterId">
+                     
+                     <!-- Trimester Info Display -->
                      <div class="row mb-3">
                          <div class="col-md-12">
-                             <label for="excelTrimesterSelection" class="form-label">Trimester <span class="text-danger">*</span></label>
-                             <select class="form-select" id="excelTrimesterSelection" required>
-                                 <option value="">Select Trimester</option>
-                             </select>
+                             <div class="alert alert-info">
+                                 <i class="fas fa-info-circle me-2"></i>
+                                 <strong>Selected Trimester:</strong> 
+                                 <span id="excelTrimesterDisplay">Please select a trimester from the filter above first</span>
+                             </div>
                          </div>
                      </div>
                     
@@ -411,14 +393,64 @@
         overflow-y: auto;
     }
     
-    .enrolled-students-list {
-        max-height: 500px;
-        overflow-y: auto;
-    }
+         .enrolled-students-list {
+         height: auto;
+         min-height: 800px;
+         overflow-y: visible;
+     }
+     
+     /* Enrolled Students Pagination Styles */
+     .pagination {
+         margin-bottom: 0;
+     }
+     
+     .page-link {
+         color: #0d6efd;
+         border: 1px solid #dee2e6;
+         padding: 0.375rem 0.75rem;
+         font-size: 0.875rem;
+         transition: all 0.15s ease-in-out;
+     }
+     
+     .page-link:hover {
+         color: #0a58ca;
+         background-color: #e9ecef;
+         border-color: #dee2e6;
+     }
+     
+     .page-item.active .page-link {
+         background-color: #0d6efd;
+         border-color: #0d6efd;
+         color: white;
+     }
+     
+     .page-item.disabled .page-link {
+         color: #6c757d;
+         pointer-events: none;
+         background-color: #fff;
+         border-color: #dee2e6;
+     }
+     
+     .pagination-sm .page-link {
+         padding: 0.25rem 0.5rem;
+         font-size: 0.875rem;
+     }
 </style>
 
 @section Scripts {
     <script>
+        // Pagination configuration
+        const PAGE_SIZE = 10; // Number of course offerings per page
+        let currentPage = 1;
+        let totalPages = 1;
+        let allCourseOfferings = []; // Store all course offerings for pagination
+        
+        // Enrolled Students pagination configuration
+        const ENROLLED_STUDENTS_PAGE_SIZE = 10; // Number of enrolled students per page
+        let enrolledStudentsCurrentPage = 1;
+        let enrolledStudentsTotalPages = 1;
+        let allEnrolledStudents = []; // Store all enrolled students for pagination
+        
         // Initialize when document is ready
         document.addEventListener('DOMContentLoaded', function() {
             loadCourseOfferings();
@@ -429,6 +461,11 @@
 
         // Load course offerings data
         function loadCourseOfferings() {
+            loadCourseOfferingsWithFilter('');
+        }
+
+        // Load course offerings with trimester filter
+        function loadCourseOfferingsWithFilter(trimesterFilter) {
             const listContainer = document.getElementById('courseOfferingList');
             listContainer.innerHTML = `
                 <div class="text-center py-4">
@@ -439,10 +476,16 @@
                 </div>
             `;
             
-            console.log('Loading course offerings...');
+            console.log('Loading course offerings with filter...');
+            
+            // Build API URL with filter parameters
+            let apiUrl = '/Admin/Course/GetCourseOfferings';
+            if (trimesterFilter) {
+                apiUrl += `?trimesterId=${trimesterFilter}`;
+            }
             
             // Call API endpoint
-            fetch('/Admin/Course/GetCourseOfferings')
+            fetch(apiUrl)
                 .then(response => {
                     console.log('API Response status:', response.status);
                     return response.json();
@@ -533,7 +576,6 @@
         function populateCourseDropdowns(courses) {
             const addDropdown = document.getElementById('courseId');
             const editDropdown = document.getElementById('editCourseId');
-            const filterDropdown = document.getElementById('courseFilter');
             
             const options = courses.map(course => 
                 `<option value="${course.id}">${course.courseCode} - ${course.courseName}</option>`
@@ -541,7 +583,6 @@
             
             if (addDropdown) addDropdown.innerHTML = '<option value="">Select Course</option>' + options;
             if (editDropdown) editDropdown.innerHTML = '<option value="">Select Course</option>' + options;
-            if (filterDropdown) filterDropdown.innerHTML = '<option value="">All Courses</option>' + options;
         }
 
         // Populate tutor dropdowns
@@ -550,14 +591,14 @@
             const editDropdown = document.getElementById('editTutorId');
             
             const options = tutors.map(tutor => 
-                `<option value="${tutor.id}">${tutor.firstName} ${tutor.lastName}</option>`
+                `<option value="${tutor.id}">${tutor.firstName} ${tutor.lastName} (${tutor.email})</option>`
             ).join('');
             
             if (addDropdown) addDropdown.innerHTML = '<option value="">Select Tutor (Optional)</option>' + options;
             if (editDropdown) editDropdown.innerHTML = '<option value="">Select Tutor (Optional)</option>' + options;
         }
 
-        // Display course offerings in sidebar list
+        // Display course offerings in sidebar list with pagination
         function displayCourseOfferings(offerings) {
             const listContainer = document.getElementById('courseOfferingList');
             
@@ -573,23 +614,45 @@
                             <p class="mb-0">No course offerings found</p>
                             <small>Click "Add" to create the first offering</small>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 return;
             }
             
-            listContainer.innerHTML = offerings.map(offering => `
+            // Store all offerings for pagination
+            allCourseOfferings = offerings;
+            totalPages = Math.ceil(offerings.length / PAGE_SIZE);
+            currentPage = 1;
+            
+            console.log(`Total offerings: ${offerings.length}, Page size: ${PAGE_SIZE}, Total pages: ${totalPages}`);
+            
+            // Display first page
+            displayCourseOfferingsPage();
+        }
+        
+        // Display course offerings for current page
+        function displayCourseOfferingsPage() {
+            const listContainer = document.getElementById('courseOfferingList');
+            
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageOfferings = allCourseOfferings.slice(startIndex, endIndex);
+            
+            console.log(`Displaying page ${currentPage}: ${startIndex + 1} to ${endIndex} of ${allCourseOfferings.length}`);
+            console.log('Page offerings:', pageOfferings);
+            
+            // Display course offerings for current page
+            listContainer.innerHTML = pageOfferings.map(offering => `
                 <div class="list-group-item list-group-item-action p-3" 
                      onclick="selectCourseOffering('${offering.id}')" 
                      id="course-item-${offering.id}">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             <h6 class="mb-1 course-item-title">${offering.course?.courseName || 'N/A'}</h6>
-                            <small class="course-item-code">${offering.course?.courseCode || 'N/A'}</small>
+                            <small class="course-code">${offering.course?.courseCode || 'N/A'}</small>
                             <div class="mt-1">
                                 <span class="badge bg-info bg-opacity-75 course-item-badge">${offering.trimester?.academicYear || 'N/A'} - Tri${offering.trimester?.trimesterNumber || 'N/A'}</span>
-                                <span class="badge ${offering.isActive ? 'bg-success' : 'bg-secondary'} ms-1 course-item-badge">
-                                    ${offering.isActive ? 'Active' : 'Inactive'}
+                                <span class="badge bg-warning bg-opacity-75 ms-1 course-item-badge">
+                                    <i class="fas fa-chalkboard-teacher me-1"></i>${offering.tutor ? `${offering.tutor.firstName} ${offering.tutor.lastName}` : 'No Tutor'}
                                 </span>
                             </div>
                         </div>
@@ -613,6 +676,98 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Add pagination controls if needed
+            if (totalPages > 1) {
+                addCourseOfferingsPagination();
+            }
+        }
+        
+        // Add pagination controls for course offerings
+        function addCourseOfferingsPagination() {
+            const listContainer = document.getElementById('courseOfferingList');
+            
+            const paginationHtml = `
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="text-muted small">
+                        Showing ${(currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, allCourseOfferings.length)} of ${allCourseOfferings.length} results
+                    </div>
+                    <nav aria-label="Course offerings pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" onclick="changeCourseOfferingsPage(${currentPage - 1})" ${currentPage === 1 ? 'tabindex="-1"' : ''}>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            ${generatePageNumbers(currentPage, totalPages, 'changeCourseOfferingsPage')}
+                            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" onclick="changeCourseOfferingsPage(${currentPage + 1})" ${currentPage === totalPages ? 'tabindex="-1"' : ''}>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            `;
+            
+            listContainer.insertAdjacentHTML('beforeend', paginationHtml);
+        }
+        
+        // Change page for course offerings
+        function changeCourseOfferingsPage(page) {
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayCourseOfferingsPage();
+        }
+        
+        // Generate page numbers for pagination
+        function generatePageNumbers(currentPage, totalPages, changeFunction) {
+            let pages = [];
+            const maxVisiblePages = 5;
+            
+            if (totalPages <= maxVisiblePages) {
+                // Show all page numbers if total pages is small
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Show partial page numbers for large page counts
+                if (currentPage <= 3) {
+                    // Current page is in first few pages
+                    for (let i = 1; i <= 4; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (currentPage >= totalPages - 2) {
+                    // Current page is in last few pages
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 3; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    // Current page is in middle
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            
+            return pages.map(page => {
+                if (page === '...') {
+                    return '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                } else {
+                    return `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="${changeFunction}(${page})">${page}</a>
+                            </li>`;
+                }
+            }).join('');
         }
 
         // Select course offering to show details
@@ -689,14 +844,6 @@
                      <div class="col-12">
                          <div class="d-flex justify-content-between align-items-center mb-4">
                              <h4 class="mb-0">${offering.course?.courseName || 'N/A'}</h4>
-                             <div class="d-flex gap-2">
-                                 <button class="btn btn-success btn-sm" onclick="showAddStudentsModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
-                                     <i class="fas fa-user-plus me-1"></i>Add Students
-                                 </button>
-                                 <button class="btn btn-info btn-sm" onclick="showUploadExcelModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
-                                     <i class="fas fa-file-excel me-1"></i>Upload Excel
-                                 </button>
-                             </div>
                          </div>
                      </div>
                  </div>
@@ -707,16 +854,23 @@
                       <div class="col-12">
                           <div class="card border-0 bg-light">
                               <div class="card-body">
-                                  <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h6 class="card-title fw-bold mb-0">
-                                          <i class="fas fa-users text-primary me-2"></i>
-                                          Enrolled Students
-                                          <span class="badge bg-primary ms-2" id="enrolledStudentsCount">0</span>
-                                      </h6>
-                                      
-                                  </div>
+                                                                     <div class="d-flex justify-content-between align-items-center mb-3">
+                                       <h6 class="card-title fw-bold mb-0">
+                                           <i class="fas fa-users text-primary me-2"></i>
+                                           Enrolled Students
+                                           <span class="badge bg-primary ms-2" id="enrolledStudentsCount">0</span>
+                                       </h6>
+                                       <div class="d-flex gap-2">
+                                          <button class="btn btn-success btn-sm" id="addStudentsBtn" onclick="showAddStudentsModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
+                                              <i class="fas fa-user-plus me-1"></i>Add Students
+                                          </button>
+                                          <button class="btn btn-info btn-sm" id="uploadExcelBtn" onclick="showUploadExcelModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
+                                              <i class="fas fa-file-excel me-1"></i>Upload Excel
+                                          </button>
+                                       </div>
+                                   </div>
                                   
-                                                                     <!-- Filter Controls -->
+                                    <!-- Filter Controls -->
                                    <div class="mb-3">
                                        <div class="row g-2">
                                            <div class="col-md-8">
@@ -746,8 +900,8 @@
                   </div>
               `;
              
-             // Load trimesters data for the filter dropdowns immediately
-             loadTrimestersForDetails();
+                           // Load trimesters data for the filter dropdowns immediately
+              loadTrimestersForDetails();
          }
 
         // Update course offering count
@@ -837,7 +991,6 @@
                         document.getElementById('editTrimesterId').value = offering.trimesterId;
                         document.getElementById('editCourseId').value = offering.courseId;
                         document.getElementById('editTutorId').value = offering.tutorId || '';
-                        document.getElementById('editIsActive').checked = offering.isActive;
                     } else {
                         showError(result.message || 'Failed to load course offering data');
                         editModal.hide();
@@ -850,7 +1003,7 @@
         }
 
         // Update course offering
-        function updateCourseOffering() {
+        async function updateCourseOffering() {
             const form = document.getElementById('editCourseOfferingForm');
             const formData = new FormData(form);
             
@@ -864,30 +1017,32 @@
             }
             
             // Show loading state
-            const updateButton = document.querySelector('#editCourseOfferingModal .btn-primary');
+            const updateButton = document.querySelector('#editCourseOfferingModal .btn-success');
             const originalText = updateButton.innerHTML;
             updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
             updateButton.disabled = true;
             
-            // Prepare data for API call
-            const offeringData = {
-                id: formData.get('id'),
-                trimesterId: trimesterId,
-                courseId: courseId,
-                tutorId: formData.get('tutorId') || null,
-                isActive: formData.get('isActive') === 'on'
-            };
-            
-            // Call API
-            fetch('/Admin/Course/UpdateCourseOffering', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(offeringData)
-            })
-            .then(response => response.json())
-            .then(result => {
+            try {
+                // Prepare data for API call
+                const offeringData = {
+                    id: formData.get('id'),
+                    trimesterId: trimesterId,
+                    courseId: courseId,
+                    tutorId: formData.get('tutorId') || null,
+                    isActive: true
+                };
+                
+                // Call API
+                const response = await fetch('/Admin/Course/UpdateCourseOffering', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(offeringData)
+                });
+                
+                const result = await response.json();
+                
                 if (result.success) {
                     showSuccess(result.message || 'Course offering updated successfully!');
                     
@@ -898,20 +1053,26 @@
                     // Reset form
                     form.reset();
                     
-                    // Reload offerings
-                    loadCourseOfferings();
+                    // Get current filter value to preserve it
+                    const currentTrimesterFilter = document.getElementById('trimesterFilter').value;
+                    
+                    // Reload offerings with current filter to maintain the filtered view
+                    if (currentTrimesterFilter) {
+                        loadCourseOfferingsWithFilter(currentTrimesterFilter);
+                    } else {
+                        loadCourseOfferings();
+                    }
                 } else {
                     showError(result.message || 'Failed to update course offering');
                 }
-            })
-            .catch(error => {
+            } catch (error) {
+                console.error('Error updating course offering:', error);
                 showError('Failed to update course offering');
-            })
-            .finally(() => {
+            } finally {
                 // Reset button state
                 updateButton.innerHTML = originalText;
                 updateButton.disabled = false;
-            });
+            }
         }
 
         // Delete course offering
@@ -952,16 +1113,21 @@
         // Apply filters
         function applyFilters() {
             const trimesterFilter = document.getElementById('trimesterFilter').value;
-            const courseFilter = document.getElementById('courseFilter').value;
             
-            // Reload offerings with filters
-            loadCourseOfferings();
+            // Reset pagination when applying filters
+            currentPage = 1;
+            
+            // Reload offerings with trimester filter
+            loadCourseOfferingsWithFilter(trimesterFilter);
         }
 
         // Clear filters
         function clearFilters() {
             document.getElementById('trimesterFilter').value = '';
-            document.getElementById('courseFilter').value = '';
+            
+            // Reset pagination when clearing filters
+            currentPage = 1;
+            
             loadCourseOfferings();
         }
 
@@ -970,45 +1136,63 @@
         // Flag to prevent duplicate loading of trimesters
         let trimestersLoaded = false;
         
-        // Show Add Students Modal
-        function showAddStudentsModal(courseOfferingId, courseId, trimesterId) {
-            // Set modal values
-            document.getElementById('modalCourseOfferingId').value = courseOfferingId;
-            document.getElementById('modalCourseId').value = courseId;
-            document.getElementById('modalTrimesterId').value = trimesterId;
-            
-            // Load trimesters if not already loaded
-            if (!trimestersLoaded) {
-                loadTrimesters();
-            }
-            
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('addStudentToCourseModal'));
-            modal.show();
-            
-            // Setup form event listeners
-            setupFormEventListeners();
-        }
+                                   // Show Add Students Modal
+          function showAddStudentsModal(courseOfferingId, courseId, trimesterId) {
+              // Get the currently selected trimester from the filter dropdown
+              const selectedTrimesterId = document.getElementById('filterTrimester').value;
+              
+              if (!selectedTrimesterId) {
+                  showInfo('Please select a Trimester first before adding students to this course.');
+                  return;
+              }
+             
+             // Get trimester display text
+             const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
+             const trimesterDisplayText = selectedTrimester ? 
+                 `${selectedTrimester.academicYear} - Trimester ${selectedTrimester.trimesterNumber}` : 
+                 'Unknown Trimester';
+             
+             // Set modal values
+             document.getElementById('modalCourseOfferingId').value = courseOfferingId;
+             document.getElementById('modalCourseId').value = courseId;
+             document.getElementById('modalTrimesterId').value = selectedTrimesterId;
+             
+             // Update trimester display in modal
+             document.getElementById('modalTrimesterDisplay').textContent = trimesterDisplayText;
+             
+             // Show modal
+             const modal = new bootstrap.Modal(document.getElementById('addStudentToCourseModal'));
+             modal.show();
+         }
         
-        // Show Upload Excel Modal
-        function showUploadExcelModal(courseOfferingId, courseId, trimesterId) {
-            // Set modal values
-            document.getElementById('excelCourseOfferingId').value = courseOfferingId;
-            document.getElementById('excelCourseId').value = courseId;
-            document.getElementById('excelTrimesterId').value = trimesterId;
-            
-            // Load trimesters if not already loaded
-            if (!trimestersLoaded) {
-                loadTrimesters();
-            }
-            
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('uploadExcelModal'));
-            modal.show();
-            
-            // Setup form event listeners
-            setupFormEventListeners();
-        }
+                                   // Show Upload Excel Modal
+          function showUploadExcelModal(courseOfferingId, courseId, trimesterId) {
+              // Get the currently selected trimester from the filter dropdown
+              const selectedTrimesterId = document.getElementById('filterTrimester').value;
+              
+              if (!selectedTrimesterId) {
+                  showInfo('Please select a Trimester first before uploading the Excel file.');
+                  return;
+              }
+             
+             // Get trimester display text
+             const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
+             const trimesterDisplayText = selectedTrimester ? 
+                 `${selectedTrimester.academicYear} - Trimester ${selectedTrimester.trimesterNumber}` : 
+                 'Unknown Trimester';
+             
+             // Set modal values
+             document.getElementById('excelCourseOfferingId').value = courseOfferingId;
+             document.getElementById('excelCourseId').value = courseId;
+             document.getElementById('excelTrimesterId').value = selectedTrimesterId;
+             
+             // Update trimester display in modal
+             document.getElementById('excelTrimesterDisplay').textContent = trimesterDisplayText;
+             
+             // Show modal
+             const modal = new bootstrap.Modal(document.getElementById('uploadExcelModal'));
+             modal.show();
+         }
         
                  // Load trimesters for Details page filter dropdowns
          async function loadTrimestersForDetails() {
@@ -1045,7 +1229,7 @@
              }
          }
          
-         // Load trimesters for modal dropdowns
+                  // Load trimesters for modal dropdowns (no longer needed as we removed trimester selection dropdowns)
          async function loadTrimesters() {
             try {
                 const response = await fetch('/Admin/Trimester/GetActiveTrimesters');
@@ -1053,36 +1237,6 @@
 
                 if (data.success) {
                     const trimesters = data.data;
-                    
-                    // Populate trimester dropdowns for modals
-                    const trimesterSelectionSelect = document.getElementById('trimesterSelection');
-                    const excelTrimesterSelectionSelect = document.getElementById('excelTrimesterSelection');
-                    
-                    if (trimesterSelectionSelect) {
-                        // Clear existing options
-                        trimesterSelectionSelect.innerHTML = '<option value="">Select Trimester</option>';
-                        
-                                            // Add combined options with trimester ID as value
-                             trimesters.forEach(trimester => {
-             const option = document.createElement('option');
-             option.value = trimester.id; // Use trimester ID as value
-             option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
-             trimesterSelectionSelect.appendChild(option);
-         });
-                    }
-                    
-                    if (excelTrimesterSelectionSelect) {
-                        // Clear existing options
-                        excelTrimesterSelectionSelect.innerHTML = '<option value="">Select Trimester</option>';
-                        
-                        // Add combined options with trimester ID as value
-                        trimesters.forEach(trimester => {
-                            const option = document.createElement('option');
-                            option.value = trimester.id; // Use trimester ID as value
-                            option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
-                            excelTrimesterSelectionSelect.appendChild(option);
-                        });
-                    }
                     
                     // Store trimesters data globally for later use
                     window.availableTrimesters = trimesters;
@@ -1096,17 +1250,17 @@
             } catch (error) {
                 console.error('Error loading trimesters:', error);
             }
-        }
+         }
         
-        // Setup form event listeners (no longer needed for trimester linkage as we use combined dropdowns)
-        function setupFormEventListeners() {
-            // Event listeners setup is no longer needed since we use combined dropdowns
-        }
-        
-        // Setup event listeners for Details page dropdowns (no longer needed as we use combined dropdown)
-        function setupDetailsPageEventListeners() {
-            // Event listeners setup is no longer needed since we use combined dropdown
-        }
+                 // Setup form event listeners (no longer needed as we removed trimester selection dropdowns)
+         function setupFormEventListeners() {
+             // Event listeners setup is no longer needed since we removed trimester selection dropdowns
+         }
+         
+         // Setup event listeners for Details page dropdowns (no longer needed as we removed trimester selection dropdowns)
+         function setupDetailsPageEventListeners() {
+             // Event listeners setup is no longer needed since we removed trimester selection dropdowns
+         }
         
         // Get trimester data by ID from stored trimesters
         function getTrimesterById(trimesterId) {
@@ -1116,6 +1270,15 @@
         // Filter enrolled students based on selected criteria
         function filterEnrolledStudents() {
             const trimesterId = document.getElementById('filterTrimester').value;
+            const addStudentsBtn = document.getElementById('addStudentsBtn');
+            const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+            
+            // Reset pagination when filtering
+            enrolledStudentsCurrentPage = 1;
+            
+            // Remove disabled attribute to allow clicking and showing prompts
+            if (addStudentsBtn) addStudentsBtn.removeAttribute('disabled');
+            if (uploadExcelBtn) uploadExcelBtn.removeAttribute('disabled');
             
             if (trimesterId) {
                 // Get trimester data from stored trimesters
@@ -1165,6 +1328,17 @@
         // Clear enrolled students filters
         function clearEnrolledStudentsFilters() {
             document.getElementById('filterTrimester').value = '';
+            
+            // Reset pagination when clearing filters
+            enrolledStudentsCurrentPage = 1;
+            allEnrolledStudents = [];
+            enrolledStudentsTotalPages = 1;
+            
+            // Remove disabled attribute to allow clicking and showing prompts
+            const addStudentsBtn = document.getElementById('addStudentsBtn');
+            const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+            if (addStudentsBtn) addStudentsBtn.removeAttribute('disabled');
+            if (uploadExcelBtn) uploadExcelBtn.removeAttribute('disabled');
             
             // Show filter message
             showNoSelectionMessage();
@@ -1228,10 +1402,17 @@
                     const students = data.data;
                     
                     if (students && students.length > 0) {
-                        // Display enrolled students in the list
-                        displayEnrolledStudents(students);
+                        // Store all enrolled students for pagination
+                        allEnrolledStudents = students;
+                        enrolledStudentsCurrentPage = 1; // Reset to first page
+                        
+                        // Display enrolled students with pagination
+                        displayEnrolledStudentsPage(students);
                         countElement.textContent = students.length;
                     } else {
+                        allEnrolledStudents = [];
+                        enrolledStudentsCurrentPage = 1;
+                        enrolledStudentsTotalPages = 1;
                         container.innerHTML = `
                             <div class="text-center py-4">
                                 <i class="fas fa-users fa-2x text-muted mb-3"></i>
@@ -1265,33 +1446,49 @@
              }
          }
          
-         // Display enrolled students in the list
+         // Display enrolled students in the list with pagination
          function displayEnrolledStudents(students) {
+             // Store all students for pagination
+             allEnrolledStudents = students;
+             enrolledStudentsCurrentPage = 1;
+             
+             // Display first page
+             displayEnrolledStudentsPage(students);
+         }
+         
+         // Display enrolled students for a specific page
+         function displayEnrolledStudentsPage(students) {
              const container = document.getElementById('enrolledStudentsList');
              const countElement = document.getElementById('enrolledStudentsCount');
 
              if (students && students.length > 0) {
                  countElement.textContent = students.length;
+                 
+                 // Calculate pagination
+                 enrolledStudentsTotalPages = Math.ceil(students.length / ENROLLED_STUDENTS_PAGE_SIZE);
+                 const startIndex = (enrolledStudentsCurrentPage - 1) * ENROLLED_STUDENTS_PAGE_SIZE;
+                 const endIndex = Math.min(startIndex + ENROLLED_STUDENTS_PAGE_SIZE, students.length);
+                 const pageStudents = students.slice(startIndex, endIndex);
+                 
                  container.innerHTML = `
                      <div class="mb-3">
                          <div class="d-flex justify-content-between align-items-center">
-                             <span class="text-muted small">Total enrolled: ${students.length}</span>
+                             <span class="text-muted small">Showing ${startIndex + 1} to ${endIndex} of ${students.length} enrolled students</span>
                          </div>
                      </div>
-                     ${students.map(student => `
+                     ${pageStudents.map(student => `
                          <div class="d-flex align-items-center mb-3 p-3 border rounded bg-light student-card">
                              <div class="flex-grow-1">
                                  <div class="d-flex align-items-center mb-1">
-                                     <div class="fw-semibold text-dark me-2">${student.firstName || ''} ${student.lastName || ''}</div>
-                                     <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'} small">
+                                     <div class="fw-semibold text-dark me-2 fs-5">${student.firstName || ''} ${student.lastName || ''}</div>
+                                     <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'}">
                                          ${student.isActive ? 'Active' : 'Inactive'}
                                      </span>
                                  </div>
-                                 <div class="text-muted small">
+                                 <div class="text-muted fs-6">
                                      <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
                                  </div>
-                                 <div class="text-muted small">
-                                     <i class="text-muted small">
+                                 <div class="text-muted fs-6">
                                      <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
                                  </div>
                              </div>
@@ -1303,6 +1500,11 @@
                          </div>
                      `).join('')}
                  `;
+                 
+                 // Add pagination controls if needed
+                 if (enrolledStudentsTotalPages > 1) {
+                     addEnrolledStudentsPagination();
+                 }
              } else {
                  countElement.textContent = '0';
                  container.innerHTML = `
@@ -1417,11 +1619,11 @@
                              <label class="form-check-label w-100" for="student_${student.id}">
                                  <div class="d-flex justify-content-between align-items-start">
                                      <div class="flex-grow-1">
-                                         <div class="fw-semibold text-dark">${student.firstName || ''} ${student.lastName || ''}</div>
-                                         <div class="text-muted small">
+                                         <div class="fw-semibold text-dark fs-5">${student.firstName || ''} ${student.lastName || ''}</div>
+                                         <div class="text-muted fs-6">
                                              <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
                                          </div>
-                                         <div class="text-muted small">
+                                         <div class="text-muted fs-6">
                                              <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
                                          </div>
                                      </div>
@@ -1459,24 +1661,24 @@
                  // Add selected students to the course
                 async function addStudentsToCourse() {
             const courseOfferingId = document.getElementById('modalCourseOfferingId').value;
-             const trimesterId = document.getElementById('trimesterSelection').value;
+             const trimesterId = document.getElementById('modalTrimesterId').value;
              const selectedStudents = Array.from(document.querySelectorAll('#availableStudentsList input[type="checkbox"]:checked'))
                  .map(checkbox => checkbox.value);
 
 
 
-             if (!trimesterId) {
-                 showError('Please select a Trimester.');
-                 return;
-             }
+                           if (!trimesterId) {
+                  showInfo('Please select a Trimester from the filter above first.');
+                  return;
+              }
 
-             // Get trimester data from stored trimesters
-             const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
-             
-             if (!selectedTrimester) {
-                 showError('Invalid trimester selection. Please select a valid trimester.');
-                 return;
-             }
+              // Get trimester data from stored trimesters
+              const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
+              
+              if (!selectedTrimester) {
+                  showInfo('Please select a valid trimester from the dropdown above.');
+                  return;
+              }
 
              const { academicYear, trimesterNumber } = selectedTrimester;
 
@@ -1546,6 +1748,9 @@
                          </div>
                      `;
                      
+                     // Reset pagination state for new data
+                     enrolledStudentsCurrentPage = 1;
+                     
                      // Reload enrolled students if filter is selected
                      const filterTrimesterId = document.getElementById('filterTrimester').value;
                      
@@ -1607,6 +1812,17 @@
                          if (data.success) {
                              showSuccess('Student removed from course successfully!');
                              
+                             // Update local data and pagination state
+                             allEnrolledStudents = allEnrolledStudents.filter(s => s.id !== studentId);
+                             
+                             // Recalculate total pages
+                             enrolledStudentsTotalPages = Math.ceil(allEnrolledStudents.length / ENROLLED_STUDENTS_PAGE_SIZE);
+                             
+                             // Adjust current page if necessary
+                             if (enrolledStudentsCurrentPage > enrolledStudentsTotalPages && enrolledStudentsTotalPages > 0) {
+                                 enrolledStudentsCurrentPage = enrolledStudentsTotalPages;
+                             }
+                             
                              // Reload enrolled students if filters are selected
                              const filterTrimesterId = document.getElementById('filterTrimester').value;
                              
@@ -1638,21 +1854,21 @@
                    // Upload students Excel file
           async function uploadStudentsExcel() {
               const courseOfferingId = document.getElementById('excelCourseOfferingId').value;
-              const selectedTrimesterId = document.getElementById('excelTrimesterSelection').value;
+              const selectedTrimesterId = document.getElementById('excelTrimesterId').value;
               const fileInput = document.getElementById('excelFile');
 
-              if (!selectedTrimesterId) {
-                  showError('Please select a Trimester.');
-                  return;
-              }
+                             if (!selectedTrimesterId) {
+                   showInfo('Please select a Trimester from the filter above first.');
+                   return;
+               }
 
-              // Get trimester data from stored trimesters
-              const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
-              
-              if (!selectedTrimester) {
-                  showError('Invalid trimester selection. Please select a valid trimester.');
-                  return;
-              }
+               // Get trimester data from stored trimesters
+               const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
+               
+               if (!selectedTrimester) {
+                   showInfo('Please select a valid trimester from the dropdown above.');
+                   return;
+               }
 
               const { academicYear, trimesterNumber } = selectedTrimester;
 
@@ -1810,6 +2026,102 @@
                  console.error('Error downloading template:', error);
                  showError('Failed to download template. Please try again.');
              }
+         }
+         
+         // Add pagination controls for enrolled students
+         function addEnrolledStudentsPagination() {
+             const container = document.getElementById('enrolledStudentsList');
+             const paginationHtml = `
+                 <div class="d-flex justify-content-between align-items-center mt-3">
+                     <div class="text-muted small">
+                         Page ${enrolledStudentsCurrentPage} of ${enrolledStudentsTotalPages}
+                     </div>
+                     <nav aria-label="Enrolled Students pagination">
+                         <ul class="pagination pagination-sm mb-0">
+                             <li class="page-item ${enrolledStudentsCurrentPage === 1 ? 'disabled' : ''}">
+                                 <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(${enrolledStudentsCurrentPage - 1})" ${enrolledStudentsCurrentPage === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                                     Previous
+                                 </a>
+                             </li>
+                             ${generateEnrolledStudentsPageNumbers()}
+                             <li class="page-item ${enrolledStudentsCurrentPage === enrolledStudentsTotalPages ? 'disabled' : ''}">
+                                 <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(${enrolledStudentsCurrentPage + 1})" ${enrolledStudentsCurrentPage === enrolledStudentsTotalPages ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                                     Next
+                                 </a>
+                             </li>
+                         </ul>
+                     </nav>
+                 </div>
+             `;
+             
+             container.insertAdjacentHTML('beforeend', paginationHtml);
+         }
+         
+         // Generate page numbers for enrolled students pagination
+         function generateEnrolledStudentsPageNumbers() {
+             let pageNumbers = '';
+             const maxVisiblePages = 5;
+             
+             if (enrolledStudentsTotalPages <= maxVisiblePages) {
+                 // Show all pages if total is small
+                 for (let i = 1; i <= enrolledStudentsTotalPages; i++) {
+                     pageNumbers += `
+                         <li class="page-item ${i === enrolledStudentsCurrentPage ? 'active' : ''}">
+                             <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(${i})">${i}</a>
+                         </li>
+                     `;
+                 }
+             } else {
+                 // Show pages with ellipsis for large totals
+                 let startPage = Math.max(1, enrolledStudentsCurrentPage - Math.floor(maxVisiblePages / 2));
+                 let endPage = Math.min(enrolledStudentsTotalPages, startPage + maxVisiblePages - 1);
+                 
+                 if (endPage - startPage + 1 < maxVisiblePages) {
+                     startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                 }
+                 
+                 if (startPage > 1) {
+                     pageNumbers += `
+                         <li class="page-item">
+                             <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(1)">1</a>
+                         </li>
+                         <li class="page-item disabled">
+                             <span class="page-link">...</span>
+                         </li>
+                     `;
+                 }
+                 
+                 for (let i = startPage; i <= endPage; i++) {
+                     pageNumbers += `
+                         <li class="page-item ${i === enrolledStudentsCurrentPage ? 'active' : ''}">
+                             <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(${i})">${i}</a>
+                         </li>
+                     `;
+                 }
+                 
+                 if (endPage < enrolledStudentsTotalPages) {
+                     pageNumbers += `
+                         <li class="page-item disabled">
+                             <span class="page-link">...</span>
+                         </li>
+                         <li class="page-item">
+                             <a class="page-link" href="#" onclick="changeEnrolledStudentsPage(${enrolledStudentsTotalPages})">${enrolledStudentsTotalPages}</a>
+                         </li>
+                     `;
+                 }
+             }
+             
+             return pageNumbers;
+         }
+         
+         // Change page for enrolled students
+         function changeEnrolledStudentsPage(page) {
+             if (page < 1 || page > enrolledStudentsTotalPages) {
+                 return;
+             }
+             
+             enrolledStudentsCurrentPage = page;
+             displayEnrolledStudentsPage(allEnrolledStudents);
          }
     </script>
 }

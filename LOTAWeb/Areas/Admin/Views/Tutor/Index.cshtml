@@ -101,16 +101,16 @@
                             <th class="border-0 text-nowrap d-none d-lg-table-cell">Email</th>
                             <th class="border-0 text-nowrap d-none d-md-table-cell">Password</th>
                             <th class="border-0 text-nowrap d-none d-md-table-cell">Status</th>
-                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Assigned Courses</th>
+
                             <th class="border-0 text-nowrap">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tutorTableBody">
                         @if (Model != null && Model.Any())
                         {
                             foreach (var tutor in Model)
                             {
-                                <tr>
+                                <tr class="tutor-row">
                                     <td class="text-nowrap">
                                         <input type="checkbox" class="form-check-input tutor-checkbox" value="@tutor.Id" onchange="updateBatchActions()">
                                     </td>
@@ -130,29 +130,7 @@
                                             <span class="badge bg-secondary">Inactive</span>
                                         }
                                     </td>
-                                      <td class="d-none d-xl-table-cell">
-                                         <div class="course-badges">
-                                             @if (tutor.TutorCourse != null && tutor.TutorCourse.Any())
-                                             {
-                                                 foreach (var tutorCourse in tutor.TutorCourse.Take(3))
-                                                 {
-                                                     <span class="badge bg-primary me-1 mb-1">
-                                                         @(tutorCourse.Course?.CourseCode ?? "N/A")
-                                                     </span>
-                                                 }
-                                                 @if (tutor.TutorCourse.Count > 3)
-                                                 {
-                                                     <span class="badge bg-secondary me-1 mb-1">
-                                                         +@(tutor.TutorCourse.Count - 3) more
-                                                     </span>
-                                                 }
-                                             }
-                                             else
-                                             {
-                                                 <span class="text-muted small">No courses assigned</span>
-                                             }
-                                         </div>
-                                     </td>
+
                                     <td class="text-nowrap">
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-success btn-sm" title="Edit" onclick="editTutor('@tutor.Id')">
@@ -169,7 +147,7 @@
                         else
                          {
                              <tr>
-                                 <td colspan="8" class="text-center py-4">
+                                 <td colspan="7" class="text-center py-4">
                                      <div class="text-muted">
                                          @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                                          {
@@ -189,6 +167,18 @@
                          }
                     </tbody>
                 </table>
+                
+                                                                   <!-- Pagination Controls -->
+                  <div id="paginationContainer" class="d-flex justify-content-between align-items-center p-3" style="display: none;">
+                      <div class="text-muted small" id="paginationInfo">
+                          <!-- Pagination info will be generated here -->
+                      </div>
+                      <nav aria-label="Tutor list pagination">
+                          <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                              <!-- Pagination controls will be generated here -->
+                          </ul>
+                      </nav>
+                  </div>
             </div>
         </div>
     </div>
@@ -228,16 +218,7 @@
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
                             <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                         </div>
-                        <div class="col-12">
-                            <label for="assignedCourses" class="form-label">Assigned Courses</label>
-                            <select class="form-select" id="courseSelect" multiple size="6">
-                                <option value="" disabled>Loading courses...</option>
-                            </select>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Hold Ctrl (or Cmd on Mac) to select multiple courses
-                            </div>
-                        </div>
+
                     </div>
                 </form>
                 <div class="row g-3">
@@ -291,16 +272,7 @@
                             <label for="editConfirmPassword" class="form-label">Confirm Password</label>
                             <input type="password" class="form-control" id="editConfirmPassword" name="confirmPassword" placeholder="Leave blank to keep current password">
                         </div>
-                        <div class="col-12">
-                            <label for="editCourseSelect" class="form-label">Assigned Courses</label>
-                            <select class="form-select" id="editCourseSelect" multiple size="6">
-                                <option value="" disabled>Loading courses...</option>
-                            </select>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Hold Ctrl (or Cmd on Mac) to select multiple courses
-                            </div>
-                        </div>
+
                     </div>
                 </form>
                 <div class="row g-3">
@@ -376,22 +348,17 @@
 </div>
 
 <script>
-    // Global variable to store selected courses
-    let selectedCourses = [];
-    let editSelectedCourses = [];
+
 
     // Initialize when document is ready
     document.addEventListener('DOMContentLoaded', function() {
-        // Load courses for both modals
-        loadCourses();
+
         
         // Modal event listeners
         const addTutorModal = document.getElementById('addTutorModal');
         if (addTutorModal) {
             addTutorModal.addEventListener('hidden.bs.modal', function() {
-                // Reset selected courses
-                selectedCourses = [];
-                document.getElementById('courseSelect').selectedIndex = -1;
+                // Reset form when modal is hidden
             });
         }
         
@@ -399,9 +366,7 @@
         const editTutorModal = document.getElementById('editTutorModal');
         if (editTutorModal) {
             editTutorModal.addEventListener('hidden.bs.modal', function() {
-                // Reset selected courses
-                editSelectedCourses = [];
-                document.getElementById('editCourseSelect').selectedIndex = -1;
+                // Reset form when modal is hidden
             });
         }
         
@@ -434,64 +399,13 @@
         });
     });
 
-    // Load courses from backend
-    function loadCourses() {
-        fetch('/Admin/Course/SearchCourses?searchTerm=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    populateCourseSelects(data.data);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading courses:', error);
-            });
-    }
 
-    // Populate course selects
-    function populateCourseSelects(courses) {
-        const courseSelect = document.getElementById('courseSelect');
-        const editCourseSelect = document.getElementById('editCourseSelect');
-        
-        // Clear existing options
-        courseSelect.innerHTML = '';
-        editCourseSelect.innerHTML = '';
-        
-        // Add default option
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = '-- Select courses --';
-        defaultOption.disabled = true;
-        defaultOption.selected = true;
-        
-        courseSelect.appendChild(defaultOption.cloneNode(true));
-        editCourseSelect.appendChild(defaultOption);
-        
-        // Add course options
-        courses.forEach(course => {
-            const option = document.createElement('option');
-            option.value = course.id || course.Id;
-            option.textContent = `${course.courseName || course.CourseName} (${course.courseCode || course.CourseCode})`;
-            
-            courseSelect.appendChild(option.cloneNode(true));
-            editCourseSelect.appendChild(option);
-        });
-        
-        console.log(`Loaded ${courses.length} courses into dropdowns`);
-    }
+
+
 
     
 
-    // Get selected courses from select element
-    function getSelectedCourses(selectElement) {
-        const selected = [];
-        for (let i = 0; i < selectElement.options.length; i++) {
-            if (selectElement.options[i].selected) {
-                selected.push(selectElement.options[i].value);
-            }
-        }
-        return selected;
-    }
+
 
     function saveTutor() {
         // Get form data
@@ -500,10 +414,6 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        // Get selected courses
-        const courseSelect = document.getElementById('courseSelect');
-        const selectedCourseIds = getSelectedCourses(courseSelect);
         
         // Validate required fields
         if ( !email || !password) {
@@ -528,8 +438,7 @@
             firstName: firstName,
             lastName: lastName,
             email: email,
-            password: password,
-            assignedCourses: selectedCourseIds
+            password: password
         };
         
         // Show loading state
@@ -563,7 +472,6 @@
                 
                 // Reset form
                 document.getElementById('addTutorForm').reset();
-                document.getElementById('courseSelect').selectedIndex = -1;
                 
                 // Refresh page to show new tutor after a short delay
                 setTimeout(() => {
@@ -608,23 +516,7 @@
                     document.getElementById('editPassword').value = '';
                     document.getElementById('editConfirmPassword').value = '';
                     
-                    // Clear previous selections
-                    const editCourseSelect = document.getElementById('editCourseSelect');
-                    for (let i = 0; i < editCourseSelect.options.length; i++) {
-                        editCourseSelect.options[i].selected = false;
-                    }
-                    
-                    // Select assigned courses
-                    if (tutor.assignedCourses && tutor.assignedCourses.length > 0) {
-                        tutor.assignedCourses.forEach(courseId => {
-                            for (let i = 0; i < editCourseSelect.options.length; i++) {
-                                if (editCourseSelect.options[i].value === courseId) {
-                                    editCourseSelect.options[i].selected = true;
-                                    break;
-                                }
-                            }
-                        });
-                    }
+
                     
                     console.log('Tutor data loaded:', tutor);
                 } else {
@@ -648,9 +540,7 @@
         const password = document.getElementById('editPassword').value;
         const confirmPassword = document.getElementById('editConfirmPassword').value;
         
-        // Get selected courses
-        const editCourseSelect = document.getElementById('editCourseSelect');
-        const selectedCourseIds = getSelectedCourses(editCourseSelect);
+
         
         // Validate required fields
         if (!email) {
@@ -677,8 +567,7 @@
             lastName: lastName,
             email: email,
             password: password || null,
-            confirmPassword: confirmPassword || null,
-            assignedCourses: selectedCourseIds
+            confirmPassword: confirmPassword || null
         };
         
         // Show loading state
@@ -1189,14 +1078,7 @@
         min-width: 800px; /* Ensure table has minimum width */
     }
     
-    .course-badges {
-        max-width: 200px;
-    }
-    
-    .course-badges .badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-    }
+
     
     /* Table scrollbar styles */
     .table-responsive::-webkit-scrollbar {
@@ -1223,9 +1105,7 @@
              min-width: 700px;
          }
          
-         .course-badges {
-             max-width: 150px;
-         }
+
      }
      
      @@media (max-width: 992px) {
@@ -1449,3 +1329,208 @@
            font-size: 0.8rem;
        }
 </style> 
+
+@section Scripts {
+    <script>
+        // Pagination configuration
+        const PAGE_SIZE = 10; // Number of tutors per page
+        let currentPage = 1;
+        let totalPages = 1;
+        let allTutors = []; // Store all tutors for pagination
+        
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePagination();
+        });
+        
+                 // Initialize pagination
+         function initializePagination() {
+             // Get all tutor rows
+             const tutorRows = document.querySelectorAll('.tutor-row');
+             if (tutorRows.length === 0) return;
+             
+             // Store all tutors data
+             allTutors = Array.from(tutorRows).map(row => {
+                 return {
+                     element: row,
+                     id: row.querySelector('.tutor-checkbox').value,
+                     firstName: row.cells[1].textContent,
+                     lastName: row.cells[2].textContent,
+                     email: row.cells[3].textContent,
+                     status: row.cells[4].textContent,
+                     actions: row.cells[5].innerHTML
+                 };
+             });
+             
+             // Calculate total pages
+             totalPages = Math.ceil(allTutors.length / PAGE_SIZE);
+             
+             // Only show pagination if there are more than 12 tutors
+             if (allTutors.length > 12) {
+                 document.getElementById('paginationContainer').style.display = 'flex';
+                 document.getElementById('paginationContainer').classList.add('border-top');
+                 displayCurrentPage();
+                 addPaginationControls();
+             } else {
+                 // If 12 or fewer tutors, hide pagination and show all results
+                 document.getElementById('paginationContainer').style.display = 'none';
+                 document.getElementById('paginationContainer').classList.remove('border-top');
+                 // Show all rows
+                 allTutors.forEach(tutor => {
+                     tutor.element.style.display = '';
+                 });
+             }
+         }
+        
+        // Display current page
+        function displayCurrentPage() {
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageTutors = allTutors.slice(startIndex, endIndex);
+            
+            // Hide all rows first
+            allTutors.forEach(tutor => {
+                tutor.element.style.display = 'none';
+            });
+            
+            // Show only current page rows
+            pageTutors.forEach(tutor => {
+                tutor.element.style.display = '';
+            });
+            
+            // Update pagination info
+            updatePaginationInfo(startIndex, endIndex);
+        }
+        
+        // Update pagination info
+        function updatePaginationInfo(startIndex, endIndex) {
+            const infoElement = document.getElementById('paginationInfo');
+            infoElement.textContent = `Showing ${startIndex + 1} to ${Math.min(endIndex, allTutors.length)} of ${allTutors.length} results`;
+        }
+        
+                 // Add pagination controls
+         function addPaginationControls() {
+             const controlsContainer = document.getElementById('paginationControls');
+             
+             if (totalPages <= 1) {
+                 // If only one page, show simple info without navigation
+                 controlsContainer.innerHTML = '';
+                 return;
+             }
+             
+                         controlsContainer.innerHTML = `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                ${generatePageNumbers()}
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+         }
+        
+        // Generate page numbers
+        function generatePageNumbers() {
+            let pages = [];
+            const maxVisiblePages = 5;
+            
+            if (totalPages <= maxVisiblePages) {
+                // Show all page numbers if total pages is small
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Show partial page numbers for large page counts
+                if (currentPage <= 3) {
+                    // Current page is in first few pages
+                    for (let i = 1; i <= 4; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (currentPage >= totalPages - 2) {
+                    // Current page is in last few pages
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 3; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    // Current page is in middle
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            
+            return pages.map(page => {
+                if (page === '...') {
+                    return '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                } else {
+                    return `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="javascript:void(0)" onclick="changePage(${page})">${page}</a>
+                            </li>`;
+                }
+            }).join('');
+        }
+        
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayCurrentPage();
+            addPaginationControls();
+            
+            // Remove automatic scrolling to prevent page jumping
+            // Users can manually scroll if needed
+        }
+        
+        // Update batch actions to work with pagination
+        function updateBatchActions() {
+            const checkboxes = document.querySelectorAll('.tutor-checkbox:checked');
+            const batchActions = document.getElementById('batchActions');
+            
+            if (checkboxes.length > 0) {
+                batchActions.style.display = 'block';
+            } else {
+                batchActions.style.display = 'none';
+            }
+        }
+        
+        // Select all tutors (current page only)
+        function selectAllTutors() {
+            const visibleCheckboxes = document.querySelectorAll('.tutor-row:not([style*="display: none"]) .tutor-checkbox');
+            visibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateBatchActions();
+        }
+        
+        // Deselect all tutors
+        function deselectAllTutors() {
+            const allCheckboxes = document.querySelectorAll('.tutor-checkbox');
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateBatchActions();
+        }
+        
+        // Toggle select all checkbox
+        function toggleSelectAll(checkbox) {
+            const visibleCheckboxes = document.querySelectorAll('.tutor-row:not([style*="display: none"]) .tutor-checkbox');
+            visibleCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateBatchActions();
+        }
+    </script>
+} 

@@ -108,12 +108,12 @@
                                     <th class="border-0 text-nowrap">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="courseTableBody">
                                 @if (Model != null && Model.Any())
                                 {
                                     foreach (var course in Model)
                                     {
-                                        <tr>
+                                        <tr class="course-row">
                                             <td class="text-nowrap">
                                                 <input type="checkbox" class="form-check-input course-checkbox" value="@course.Id" onchange="updateBatchActions()">
                                             </td>
@@ -206,6 +206,18 @@
                                 }
                             </tbody>
                         </table>
+                        
+                                         <!-- Pagination Controls -->
+                 <div id="paginationContainer" class="d-flex justify-content-between align-items-center p-3" style="display: none;">
+                     <div class="text-muted small" id="paginationInfo">
+                         <!-- Pagination info will be generated here -->
+                     </div>
+                     <nav aria-label="Course list pagination">
+                         <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                             <!-- Pagination controls will be generated here -->
+                         </ul>
+                     </nav>
+                 </div>
                     </div>
                 </div>
             </div>
@@ -458,7 +470,40 @@
 
         
 
-    });
+         });
+ 
+     // Load qualifications for course modals
+     function loadQualificationsForCourse() {
+         fetch('/Admin/Qualification/GetQualifications')
+             .then(response => response.json())
+             .then(result => {
+                 if (result.success) {
+                     populateQualificationDropdowns(result.data);
+                 } else {
+                     console.error('Failed to load qualifications:', result.message);
+                 }
+             })
+             .catch(error => {
+                 console.error('Error loading qualifications:', error);
+             });
+     }
+     
+     // Populate qualification dropdowns
+     function populateQualificationDropdowns(qualifications) {
+         const addDropdown = document.getElementById('qualificationId');
+         const editDropdown = document.getElementById('editQualificationId');
+         
+         const options = qualifications.map(qualification => 
+             `<option value="${qualification.id}">${qualification.qualificationName} (${qualification.qualificationType || 'N/A'})</option>`
+         ).join('');
+         
+         if (addDropdown) {
+             addDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>' + options;
+         }
+         if (editDropdown) {
+             editDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>' + options;
+         }
+     }
  
      // Learning Outcomes Functions
      function addLearningOutcome() {
@@ -1603,5 +1648,212 @@
          font-size: 0.8rem !important;
      }
 </style>
+
+@section Scripts {
+    <script>
+        // Pagination configuration
+        const PAGE_SIZE = 10; // Number of courses per page
+        let currentPage = 1;
+        let totalPages = 1;
+        let allCourses = []; // Store all courses for pagination
+        
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePagination();
+        });
+        
+        // Initialize pagination
+        function initializePagination() {
+            // Get all course rows
+            const courseRows = document.querySelectorAll('.course-row');
+            if (courseRows.length === 0) return;
+            
+            // Store all courses data
+            allCourses = Array.from(courseRows).map(row => {
+                return {
+                    element: row,
+                    id: row.querySelector('.course-checkbox').value,
+                    courseName: row.cells[1].textContent,
+                    courseCode: row.cells[2].textContent,
+                    level: row.cells[3].textContent,
+                    qualification: row.cells[4].textContent,
+                    description: row.cells[5].textContent,
+                    learningOutcomes: row.cells[6].textContent,
+                    actions: row.cells[7].innerHTML
+                };
+            });
+            
+            // Calculate total pages
+            totalPages = Math.ceil(allCourses.length / PAGE_SIZE);
+            
+            // Only show pagination if there are more than 12 courses
+            if (allCourses.length > 12) {
+                document.getElementById('paginationContainer').style.display = 'flex';
+                document.getElementById('paginationContainer').classList.add('border-top');
+                displayCurrentPage();
+                addPaginationControls();
+            } else {
+                // If 12 or fewer courses, hide pagination and show all results
+                document.getElementById('paginationContainer').style.display = 'none';
+                document.getElementById('paginationContainer').classList.remove('border-top');
+                // Show all rows
+                allCourses.forEach(course => {
+                    course.element.style.display = '';
+                });
+            }
+        }
+        
+        // Display current page
+        function displayCurrentPage() {
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageCourses = allCourses.slice(startIndex, endIndex);
+            
+            // Hide all rows first
+            allCourses.forEach(course => {
+                course.element.style.display = 'none';
+            });
+            
+            // Show only current page rows
+            pageCourses.forEach(course => {
+                course.element.style.display = '';
+            });
+            
+            // Update pagination info
+            updatePaginationInfo(startIndex, endIndex);
+        }
+        
+        // Update pagination info
+        function updatePaginationInfo(startIndex, endIndex) {
+            const infoElement = document.getElementById('paginationInfo');
+            infoElement.textContent = `Showing ${startIndex + 1} to ${Math.min(endIndex, allCourses.length)} of ${allCourses.length} results`;
+        }
+        
+        // Add pagination controls
+        function addPaginationControls() {
+            const controlsContainer = document.getElementById('paginationControls');
+            
+            if (totalPages <= 1) {
+                // If only one page, show simple info without navigation
+                controlsContainer.innerHTML = '';
+                return;
+            }
+            
+            controlsContainer.innerHTML = `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                ${generatePageNumbers()}
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'tabindex="-1"' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+        }
+        
+        // Generate page numbers
+        function generatePageNumbers() {
+            let pages = [];
+            const maxVisiblePages = 5;
+            
+            if (totalPages <= maxVisiblePages) {
+                // Show all page numbers if total pages is small
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Show partial page numbers for large page counts
+                if (currentPage <= 3) {
+                    // Current page is in first few pages
+                    for (let i = 1; i <= 4; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (currentPage >= totalPages - 2) {
+                    // Current page is in last few pages
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 3; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    // Current page is in middle
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            
+            return pages.map(page => {
+                if (page === '...') {
+                    return '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                } else {
+                    return `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="javascript:void(0)" onclick="changePage(${page})">${page}</a>
+                            </li>`;
+                }
+            }).join('');
+        }
+        
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayCurrentPage();
+            addPaginationControls();
+            
+            // Remove automatic scrolling to prevent page jumping
+            // Users can manually scroll if needed
+        }
+        
+        // Update batch actions to work with pagination
+        function updateBatchActions() {
+            const checkboxes = document.querySelectorAll('.course-checkbox:checked');
+            const batchActions = document.getElementById('batchActions');
+            
+            if (checkboxes.length > 0) {
+                batchActions.style.display = 'block';
+            } else {
+                batchActions.style.display = 'none';
+            }
+        }
+        
+        // Select all courses (current page only)
+        function selectAllCourses() {
+            const visibleCheckboxes = document.querySelectorAll('.course-row:not([style*="display: none"]) .course-checkbox');
+            visibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateBatchActions();
+        }
+        
+        // Deselect all courses
+        function deselectAllCourses() {
+            const allCheckboxes = document.querySelectorAll('.course-checkbox');
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateBatchActions();
+        }
+        
+        // Toggle select all checkbox
+        function toggleSelectAll(checkbox) {
+            const visibleCheckboxes = document.querySelectorAll('.course-row:not([style*="display: none"]) .course-checkbox');
+            visibleCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateBatchActions();
+        }
+    </script>
+}
 
 

@@ -21,6 +21,6 @@ namespace LOTA.Model.DTO.Admin
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
         public string Password { get; set; }
 
-        public List<string> AssignedCourses { get; set; } = new List<string>();
+        //public List<string> AssignedCourses { get; set; } = new List<string>();
     }
 }

@@ -401,15 +401,23 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// Get all course offerings
+        /// Get all course offerings with optional trimester filtering
         /// </summary>
+        /// <param name="trimesterId">Optional trimester ID to filter by</param>
         /// <returns>JSON result with course offerings list</returns>
         [HttpGet]
-        public async Task<IActionResult> GetCourseOfferings()
+        public async Task<IActionResult> GetCourseOfferings([FromQuery] string trimesterId = null)
         {
             try
             {
                 var offerings = await _trimesterCourseService.GetAllTrimesterCoursesAsync();
+                
+                // Apply trimester filter if provided
+                if (!string.IsNullOrEmpty(trimesterId))
+                {
+                    offerings = offerings.Where(o => o.TrimesterId == trimesterId).ToList();
+                }
+                
                 return Json(new { success = true, data = offerings });
             }
             catch (Exception ex)
@@ -666,6 +674,79 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = "An error occurred while deleting the course offering" });
             }
         }
+        /// <summary>
+        /// Show Add Course Offering page
+        /// </summary>
+        /// <returns>View</returns>
+        [HttpGet]
+        public IActionResult AddCourseOffering()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Create multiple course offerings
+        /// </summary>
+        /// <param name="courseOfferings">List of course offerings</param>
+        /// <returns>JSON result</returns>
+        [HttpPost]
+        public async Task<IActionResult> CreateMultipleCourseOfferings([FromBody] List<TrimesterCourseCreateDTO> courseOfferings)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed", errors });
+                }
+
+                if (courseOfferings == null || !courseOfferings.Any())
+                {
+                    return Json(new { success = false, message = "No course offerings provided" });
+                }
+
+                var results = new List<object>();
+                var successCount = 0;
+                var errorCount = 0;
+
+                foreach (var offering in courseOfferings)
+                {
+                    try
+                    {
+                        var result = await _trimesterCourseService.CreateTrimesterCourseAsync(offering);
+                        results.Add(new { success = true, data = result });
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        results.Add(new { success = false, error = ex.Message });
+                        errorCount++;
+                    }
+                }
+
+                var message = $"Successfully created {successCount} course offering(s)";
+                if (errorCount > 0)
+                {
+                    message += $", {errorCount} failed";
+                }
+
+                return Json(new { 
+                    success = successCount > 0, 
+                    message = message,
+                    results = results,
+                    successCount = successCount,
+                    errorCount = errorCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         #endregion course offering
 
 
