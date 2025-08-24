@@ -2,13 +2,8 @@ using LOTA.Model;
 using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using System.Text.Json;
-using LOTAWeb.Models;
-using LOTA.Service.Service;
 using LOTA.Model.DTO;
 using LOTA.Model.DTO.Admin;
-using LOTA.Service.Interface;
-using DocumentFormat.OpenXml.Spreadsheet;
 using ClosedXML.Excel;
 
 namespace LOTAWeb.Areas.Admin.Controllers

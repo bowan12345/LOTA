@@ -19,14 +19,17 @@ namespace LOTA.Model.DTO.Admin
 
         public decimal TotalWeight { get; set; }
         public decimal TotalScore { get; set; }
-        public bool IsActive { get; set; } = false;
+        public bool IsActive { get; set; } = true;
 
         public string? CreatedBy { get; set; }
 
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-        public Course? Course { get; set; }
+        public TrimesterCourse? TrimesterCourse { get; set; }
+        
+        // Trimester information for display
+        public Trimester? Trimester { get; set; }
 
         public ICollection<AssessmentLearningOutcome> AssessmentLearningOutcomes { get; set; } = new List<AssessmentLearningOutcome>();
     }

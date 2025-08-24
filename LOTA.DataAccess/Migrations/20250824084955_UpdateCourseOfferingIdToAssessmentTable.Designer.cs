@@ -4,6 +4,7 @@ using LOTA.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LOTA.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250824084955_UpdateCourseOfferingIdToAssessmentTable")]
+    partial class UpdateCourseOfferingIdToAssessmentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,7 +115,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "TUTOR-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4257e3b6-7d94-4ff0-a4ac-6095429bda63",
+                            ConcurrencyStamp = "b87089ef-8e51-43a0-b5a9-16b5e46480f9",
                             Email = "tutor1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "John",
@@ -122,7 +125,7 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "TUTOR1@LOTA.COM",
                             NormalizedUserName = "TUTOR1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "288cbc95-694f-48c1-a84f-1ac7c4f9bc99",
+                            SecurityStamp = "d216d9ca-492d-485f-97f9-048e80029b32",
                             TutorNo = "tutor1@lota.com",
                             TwoFactorEnabled = false,
                             UserName = "tutor1@lota.com"
@@ -131,7 +134,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STUDENT-001",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c4adf72c-0265-4828-90f8-dacf0fe1fa6c",
+                            ConcurrencyStamp = "d57e8e6b-b801-4df4-afd6-ed94f10289d3",
                             Email = "student1@lota.com",
                             EmailConfirmed = true,
                             FirstName = "Alice",
@@ -141,7 +144,7 @@ namespace LOTA.DataAccess.Migrations
                             NormalizedEmail = "STUDENT1@LOTA.COM",
                             NormalizedUserName = "STUDENT1@LOTA.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "cf19a088-8efc-443b-97a4-88cf091a1d54",
+                            SecurityStamp = "c58e0d88-8c34-49d1-82f9-5ac86811f2fa",
                             StudentNo = "STUDENT-001",
                             TwoFactorEnabled = false,
                             UserName = "student1@lota.com"
@@ -203,7 +206,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("TrimesterId");
 
-                    b.ToTable("Assessment");
+                    b.ToTable("Assignment");
 
                     b.HasData(
                         new
@@ -213,7 +216,7 @@ namespace LOTA.DataAccess.Migrations
                             AssessmentTypeId = "001",
                             CourseOfferingId = "TC001",
                             CreatedBy = "TUTOR-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(138),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(783),
                             IsActive = true,
                             TotalScore = 100m,
                             TotalWeight = 30m,
@@ -238,7 +241,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("LOId");
 
-                    b.ToTable("AssessmentLearningOutcome");
+                    b.ToTable("AssignmentLearningOutcome");
 
                     b.HasData(
                         new
@@ -341,7 +344,7 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-001",
                             CourseCode = "SE101",
                             CourseName = "Software Engineering",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 130, DateTimeKind.Local).AddTicks(9954),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(645),
                             Description = "Introduction to software development processes and methodologies.",
                             IsActive = true,
                             QualificationId = "Qualification-001"
@@ -351,7 +354,7 @@ namespace LOTA.DataAccess.Migrations
                             Id = "COURSE-002",
                             CourseCode = "ST102",
                             CourseName = "Software Testing",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 130, DateTimeKind.Local).AddTicks(9959),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(649),
                             Description = "Introduction to software Testing processes and methodologies.",
                             IsActive = true,
                             QualificationId = "Qualification-002"
@@ -380,8 +383,16 @@ namespace LOTA.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal>("MaxScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id");
 
@@ -394,17 +405,21 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "LO-001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(76),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(738),
                             Description = "Understand and document software requirements effectively.",
-                            LOName = "Requirement Analysis"
+                            LOName = "Requirement Analysis",
+                            MaxScore = 100m,
+                            Weight = 0.3m
                         },
                         new
                         {
                             Id = "LO-002",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(79),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(741),
                             Description = "Apply design principles to create robust software architectures.",
-                            LOName = "System Design"
+                            LOName = "System Design",
+                            MaxScore = 100m,
+                            Weight = 0.4m
                         });
                 });
 
@@ -444,7 +459,7 @@ namespace LOTA.DataAccess.Migrations
                         new
                         {
                             Id = "Qualification-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 130, DateTimeKind.Local).AddTicks(9862),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(556),
                             IsActive = true,
                             Level = 7,
                             QualificationName = "Bachelor of Information Technolog",
@@ -453,7 +468,7 @@ namespace LOTA.DataAccess.Migrations
                         new
                         {
                             Id = "Qualification-002",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 130, DateTimeKind.Local).AddTicks(9923),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(620),
                             IsActive = true,
                             Level = 5,
                             QualificationName = "Diploma in IT Technical Support",
@@ -567,9 +582,9 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "STCOURSE-001",
                             CourseOfferingId = "TC001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(188),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(817),
                             IsActive = true,
-                            RegistrationDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(186),
+                            RegistrationDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(815),
                             StudentId = "STUDENT-001",
                             TrimesterId = "Trimester-001"
                         });
@@ -634,7 +649,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "SCORE-001",
                             AssessmentId = "ASSIGN-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(215),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(843),
                             IsRetake = false,
                             LOId = "LO-001",
                             Score = 80m,
@@ -673,7 +688,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "Trimester-001",
                             AcademicYear = 2024,
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(13),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(691),
                             IsActive = true,
                             TrimesterNumber = 1
                         },
@@ -681,7 +696,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "Trimester-002",
                             AcademicYear = 2024,
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(18),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(694),
                             IsActive = true,
                             TrimesterNumber = 2
                         },
@@ -689,7 +704,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "Trimester-003",
                             AcademicYear = 2025,
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(20),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(696),
                             IsActive = true,
                             TrimesterNumber = 1
                         },
@@ -697,7 +712,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "Trimester-004",
                             AcademicYear = 2025,
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(23),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(698),
                             IsActive = true,
                             TrimesterNumber = 2
                         });
@@ -746,7 +761,7 @@ namespace LOTA.DataAccess.Migrations
                         {
                             Id = "TC001",
                             CourseId = "COURSE-001",
-                            CreatedDate = new DateTime(2025, 8, 24, 22, 32, 22, 131, DateTimeKind.Local).AddTicks(50),
+                            CreatedDate = new DateTime(2025, 8, 24, 20, 49, 55, 68, DateTimeKind.Local).AddTicks(717),
                             IsActive = true,
                             TrimesterId = "Trimester-001",
                             TutorId = "TUTOR-001"

@@ -11,9 +11,9 @@ namespace LOTA.DataAccess.Data
             : base(options)
         {
         }
-        public DbSet<Assessment> Assignment { get; set; }
+        public DbSet<Assessment> Assessment { get; set; }
         public DbSet<AssessmentType> AssessmentType { get; set; }
-        public DbSet<AssessmentLearningOutcome> AssignmentLearningOutcome { get; set; }
+        public DbSet<AssessmentLearningOutcome> AssessmentLearningOutcome { get; set; }
         public DbSet<Course> Course { get; set; }
         public DbSet<LearningOutcome> LearningOutcome { get; set; }
         public DbSet<Qualification> Qualification { get; set; }
@@ -289,8 +289,6 @@ namespace LOTA.DataAccess.Data
                     Id = "LO-001",
                     LOName = "Requirement Analysis",
                     Description = "Understand and document software requirements effectively.",
-                    MaxScore = 100,
-                    Weight = 0.3M,
                     CourseId = "COURSE-001",
                     CreatedDate = DateTime.Now
                 },
@@ -299,8 +297,6 @@ namespace LOTA.DataAccess.Data
                     Id = "LO-002",
                     LOName = "System Design",
                     Description = "Apply design principles to create robust software architectures.",
-                    MaxScore = 100,
-                    Weight = 0.4M,
                     CourseId = "COURSE-001",
                     CreatedDate = DateTime.Now
                 }
@@ -343,7 +339,7 @@ namespace LOTA.DataAccess.Data
                     AssessmentTypeId = "001",
                     TotalWeight = 30,
                     TotalScore = 100,
-                    CourseId = "COURSE-001",
+                    CourseOfferingId = "TC001",
                     TrimesterId = "Trimester-001",
                     CreatedBy = "TUTOR-001",
                     IsActive = true,

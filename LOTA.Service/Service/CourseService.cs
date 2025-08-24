@@ -58,8 +58,6 @@ namespace LOTA.Service.Service
                         Id = Guid.NewGuid().ToString(),
                         LOName = lo.LOName,
                         Description = lo.Description,
-                        MaxScore = 100, // Default value
-                        Weight = 1, // Default value
                         CourseId = courseId, // Set foreign key relationship
                         CreatedDate = DateTime.Now,
                         UpdatedDate = DateTime.Now
@@ -221,8 +219,6 @@ namespace LOTA.Service.Service
                                 Id = Guid.NewGuid().ToString(),
                                 LOName = loDTO.LOName,
                                 Description = loDTO.Description,
-                                MaxScore = 100, // Default value
-                                Weight = 1, // Default value
                                 CourseId = courseDTO.Id,
                                 CreatedDate = DateTime.Now,
                                 UpdatedDate = DateTime.Now
@@ -391,8 +387,6 @@ namespace LOTA.Service.Service
                     Id = lo.Id,
                     LOName = lo.LOName,
                     Description = lo.Description,
-                    MaxScore = lo.MaxScore,
-                    Weight = lo.Weight,
                     CreatedDate = lo.CreatedDate,
                     UpdatedDate = lo.UpdatedDate
                 }).ToList() ?? new List<LearningOutcomeDTO>()

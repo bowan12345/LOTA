@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using LOTA.DataAccess.Interface;
 
 namespace LOTA.DataAccess.Repository.IRepository
 {
@@ -19,6 +18,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         ITrimesterRepository trimesterRepository { get; }
         ITrimesterCourseRepository trimesterCourseRepository { get; }
         IAssessmentRepository assessmentRepository { get; }
+        IAssessmentTypeRepository assessmentTypeRepository { get; }
         
         Task<int> SaveAsync();
     }

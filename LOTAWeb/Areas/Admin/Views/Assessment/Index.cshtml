@@ -1,7 +1,7 @@
 ﻿@using LOTA.Model.DTO.Admin
-@model IEnumerable<CourseReturnDTO>
+@model IEnumerable<AssessmentReturnDTO>
 @{
-    ViewData["Title"] = "Assessment Management";
+    ViewData["Title"] = "Manage Assessments";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,34 +22,42 @@
         </div>
     </div>
 
-    <!-- Search and Filter Section -->
-    <div class="card border-0 shadow-sm mb-4">
+
+
+    <!-- Course List with Assessments -->
+    <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 py-3">
             <div class="row align-items-center">
-                <div class="col-md-6">
+                <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
                     <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-search text-primary me-2"></i>
-                        Course Filter
+                        <i class="fas fa-clipboard-check text-primary me-2"></i>
+                        Assessment List
+                        @if (Model != null && Model.Any())
+                        {
+                            <span class="badge bg-primary ms-2">@Model.Count()</span>
+                        }
+                                                 @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                         {
+                             <span class="badge bg-info ms-2">
+                                 <i class="fas fa-filter me-1"></i>
+                                 Filtered
+                             </span>
+                         }
                     </h5>
                 </div>
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-md-end gap-2">
-                        <form method="get" action="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="d-flex" style="max-width: 400px;">
+                <div class="col-lg-6 col-md-12">
+                    <div class="d-flex justify-content-lg-end justify-content-start gap-2">
+                        <form method="get" action="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="d-flex w-100" style="max-width: 300px;">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-graduation-cap text-muted"></i>
+                                    <i class="fas fa-search text-muted"></i>
                                 </span>
-                                <input type="text" class="form-control border-start-0" name="courseName" id="courseNameInput" 
-                                       placeholder="Course name..." value="@ViewBag.CourseName">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-code text-muted"></i>
-                                </span>
-                                <input type="text" class="form-control border-start-0" name="courseCode" id="courseCodeInput" 
-                                       placeholder="Course code..." value="@ViewBag.CourseCode">
+                                <input type="text" class="form-control border-start-0" name="searchTerm" id="searchTermInput" 
+                                       placeholder="Search by assessment name or course..." value="@ViewBag.SearchTerm">
                                 <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
                                     <i class="fas fa-search"></i>
                                 </button>
-                                @if (!string.IsNullOrEmpty(ViewBag.CourseName) || !string.IsNullOrEmpty(ViewBag.CourseCode))
+                                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                                 {
                                     <a href="@Url.Action("Index", "Assessment", new { area = "Admin" })" 
                                        class="btn btn-outline-danger border-start-0" title="Clear Search">
@@ -62,69 +70,83 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Course List with Assessments -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-graduation-cap text-primary me-2"></i>
-                        Course Assessments
-                        @if (Model != null && Model.Any())
-                        {
-                            <span class="badge bg-primary ms-2">@Model.Count()</span>
-                        }
-                        @if (!string.IsNullOrEmpty(ViewBag.CourseName) || !string.IsNullOrEmpty(ViewBag.CourseCode))
-                        {
-                            <span class="badge bg-info ms-2">
-                                <i class="fas fa-filter me-1"></i>
-                                Filtered
-                            </span>
-                        }
-                    </h5>
-                </div>
-            </div>
-        </div>
         
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 responsive-table">
                     <thead class="table-light">
                         <tr>
-                            <th class="border-0 text-nowrap">Course Name</th>
-                            <th class="border-0 text-nowrap">Course Code</th>
-                            <th class="border-0 text-nowrap d-none d-md-table-cell">Assignments</th>
-                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Exams</th>
-                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Total Weight</th>
+                            <th class="border-0 text-nowrap">Assessment Name</th>
+                            <th class="border-0 text-nowrap">Course</th>
+                            <th class="border-0 text-nowrap d-none d-md-table-cell">Type</th>
+                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Trimester</th>
+                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Weight</th>
                             <th class="border-0 text-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model != null && Model.Any())
                         {
-                          
+                            foreach (var assessment in Model)
+                            {
+                                <tr>
+                                    <td class="border-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-semibold">@assessment.AssessmentName</h6>
+                                                <small class="text-muted">Assessment</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="border-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-semibold">@assessment.TrimesterCourse?.Course?.CourseName</h6>
+                                                <small class="text-muted">@assessment.TrimesterCourse?.Course?.CourseCode</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="border-0 d-none d-md-table-cell">
+                                        <span class="badge bg-info">@assessment.AssessmentType?.AssessmentTypeName</span>
+                                    </td>
+                                    <td class="border-0 d-none d-lg-table-cell">
+                                        <span class="badge bg-warning">@assessment.Trimester?.AcademicYear - Tri @assessment.Trimester?.TrimesterNumber</span>
+                                    </td>
+                                    <td class="border-0 d-none d-xl-table-cell">
+                                        <span class="badge bg-success">@assessment.TotalWeight%</span>
+                                    </td>
+                                    <td class="border-0">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-success btn-sm" onclick="editAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Edit Assessment">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Delete Assessment">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <div class="text-muted">
-                                        @if (!string.IsNullOrEmpty(ViewBag.CourseName) || !string.IsNullOrEmpty(ViewBag.CourseCode))
-                                        {
-                                            <i class="fas fa-search fa-2x mb-3"></i>
-                                            <p class="mb-0">No courses found for the specified criteria</p>
-                                            <small>Try different search terms or <a href="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="text-decoration-none">clear filters</a></small>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-graduation-cap fa-2x mb-3"></i>
-                                            <p class="mb-0">No courses found</p>
-                                            <small>No courses are available for assessment management</small>
-                                        }
-                                    </div>
-                                </td>
+                                                                    <td colspan="6" class="text-center py-4">
+                                        <div class="text-muted">
+                                            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                            {
+                                                <i class="fas fa-search fa-2x mb-3"></i>
+                                                <p class="mb-0">No assessments found for the specified search term</p>
+                                                <small>Try different search terms or <a href="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="text-decoration-none">clear filters</a></small>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-clipboard-check fa-2x mb-3"></i>
+                                                <p class="mb-0">No assessments found</p>
+                                                <small>No assessments are available for management</small>
+                                            }
+                                        </div>
+                                    </td>
                             </tr>
                         }
                     </tbody>
@@ -152,13 +174,7 @@
                             <label for="courseId" class="form-label">Course</label>
                             <select class="form-select" id="courseId" name="courseId" required>
                                 <option value="">Select Course</option>
-                                @if (Model != null)
-                                {
-                                    foreach (var course in Model)
-                                    {
-                                        <option value="@course.Id">@course.CourseName (@course.CourseCode)</option>
-                                    }
-                                }
+                                <option value="">Loading course offerings...</option>
                             </select>
                         </div>
                         
@@ -171,11 +187,7 @@
                             <label for="assessmentType" class="form-label">Assessment Type</label>
                             <select class="form-select" id="assessmentType" name="assessmentType" required>
                                 <option value="">Select Type</option>
-                                <option value="Assignment">Assignment</option>
-                                <option value="Exam">Exam</option>
-                                <option value="Quiz">Quiz</option>
-                                <option value="Project">Project</option>
-                                <option value="Presentation">Presentation</option>
+                                <option value="">Loading assessment types...</option>
                             </select>
                         </div>
                         
@@ -247,12 +259,12 @@
 <div class="modal fade" id="editAssessmentModal" tabindex="-1" aria-labelledby="editAssessmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
+            <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="editAssessmentModalLabel">
                     <i class="fas fa-edit me-2"></i>
                     Edit Assessment
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="editAssessmentForm">
@@ -268,11 +280,8 @@
                         <div class="col-12 col-md-6">
                             <label for="editAssessmentType" class="form-label">Assessment Type</label>
                             <select class="form-select" id="editAssessmentType" name="assessmentType" required>
-                                <option value="Assignment">Assignment</option>
-                                <option value="Exam">Exam</option>
-                                <option value="Quiz">Quiz</option>
-                                <option value="Project">Project</option>
-                                <option value="Presentation">Presentation</option>
+                                <option value="">Select Type</option>
+                                <option value="">Loading assessment types...</option>
                             </select>
                         </div>
                         
@@ -297,7 +306,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="updateAssessment()">
+                <button type="button" class="btn btn-success" onclick="updateAssessment()">
                     <i class="fas fa-save me-2"></i>
                     Update Assessment
                 </button>
@@ -307,33 +316,32 @@
 </div>
 
 <script>
-    // Global variables
-    let currentCourseId = null;
-    let currentCourseName = null;
+         // Global variables
+     let currentCourseId = null;
+     let currentCourseName = null;
+     let currentAssessmentId = null;
+     let currentAssessmentName = null;
+     let latestTrimesterCourseOfferings = [];
     
-    // Initialize when document is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality - Add enter key support and auto-submit
-        const courseNameInput = document.getElementById('courseNameInput');
-        const courseCodeInput = document.getElementById('courseCodeInput');
-        
-        if (courseNameInput) {
-            courseNameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.closest('form').submit();
-                }
-            });
-        }
-        
-        if (courseCodeInput) {
-            courseCodeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.closest('form').submit();
-                }
-            });
-        }
+         // Initialize when document is ready
+     document.addEventListener('DOMContentLoaded', function() {
+         // Load course offerings for the latest trimester
+         loadLatestTrimesterCourseOfferings();
+         
+         // Load assessment types
+         loadAssessmentTypes();
+         
+         // Search functionality - Add enter key support and auto-submit
+         const searchTermInput = document.getElementById('searchTermInput');
+         
+         if (searchTermInput) {
+             searchTermInput.addEventListener('keypress', function(e) {
+                 if (e.key === 'Enter') {
+                     e.preventDefault();
+                     this.closest('form').submit();
+                 }
+             });
+         }
         
         // Course selection change handler
         const courseSelect = document.getElementById('courseId');
@@ -350,6 +358,8 @@
                 document.getElementById('addAssessmentForm').reset();
                 document.getElementById('learningOutcomesContainer').innerHTML = '';
                 document.getElementById('courseId').disabled = false;
+                // Reload assessment types after modal is closed
+                loadAssessmentTypes();
             });
         }
         
@@ -359,12 +369,101 @@
                 document.getElementById('editAssessmentForm').reset();
                 document.getElementById('editLearningOutcomesContainer').innerHTML = '';
             });
-        }
-    });
-    
-    // Load learning outcomes for selected course
-    function loadLearningOutcomes(courseId) {
-        if (!courseId) {
+                 }
+     });
+     
+     // Load course offerings for the latest trimester
+     function loadLatestTrimesterCourseOfferings() {
+         const courseSelect = document.getElementById('courseId');
+         if (!courseSelect) return;
+         
+         // Show loading state
+         courseSelect.innerHTML = '<option value="">Loading course offerings...</option>';
+         
+         // Fetch latest trimester course offerings
+         fetch('/Admin/Assessment/GetLatestTrimesterCourseOfferings')
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success && data.data && data.data.length > 0) {
+                     latestTrimesterCourseOfferings = data.data;
+                     
+                     // Populate dropdown with trimester information
+                     courseSelect.innerHTML = '<option value="">Select Course</option>' + 
+                         data.data.map(co => {
+                             const trimesterInfo = co.trimester ? 
+                                 `${co.trimester.academicYear} - Tri${co.trimester.trimesterNumber}` : 
+                                 'Trimester info unavailable';
+                             return `<option value="${co.id}" data-course-id="${co.courseId}" data-trimester-id="${co.trimester?.id || ''}">${co.courseName} (${co.courseCode}) - ${trimesterInfo}</option>`;
+                         }).join('');
+                 } else {
+                     courseSelect.innerHTML = '<option value="">No course offerings available</option>';
+                 }
+             })
+             .catch(error => {
+                 console.error('Error loading course offerings:', error);
+                 courseSelect.innerHTML = '<option value="">Error loading course offerings</option>';
+             });
+     }
+     
+     // Load assessment types
+     function loadAssessmentTypes() {
+         const assessmentTypeSelect = document.getElementById('assessmentType');
+         if (!assessmentTypeSelect) return;
+         
+         // Show loading state
+         assessmentTypeSelect.innerHTML = '<option value="">Loading assessment types...</option>';
+         
+         // Fetch assessment types from the server
+         fetch('/Admin/Assessment/GetAssessmentTypes')
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success && data.data && data.data.length > 0) {
+                     // Populate dropdown
+                     assessmentTypeSelect.innerHTML = '<option value="">Select Type</option>' + 
+                         data.data.map(at => 
+                             `<option value="${at.id}">${at.assessmentTypeName}</option>`
+                         ).join('');
+                 } else {
+                     assessmentTypeSelect.innerHTML = '<option value="">No assessment types available</option>';
+                 }
+             })
+             .catch(error => {
+                 console.error('Error loading assessment types:', error);
+                 assessmentTypeSelect.innerHTML = '<option value="">Error loading assessment types</option>';
+             });
+     }
+     
+     // Load assessment types for edit modal
+     function loadAssessmentTypesForEdit() {
+         const assessmentTypeSelect = document.getElementById('editAssessmentType');
+         if (!assessmentTypeSelect) return;
+         
+         // Show loading state
+         assessmentTypeSelect.innerHTML = '<option value="">Loading assessment types...</option>';
+         
+         // Fetch assessment types from the server
+         fetch('/Admin/Assessment/GetAssessmentTypes')
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success && data.data && data.data.length > 0) {
+                     // Populate dropdown
+                     assessmentTypeSelect.innerHTML = '<option value="">Select Type</option>' + 
+                         data.data.map(at => 
+                             `<option value="${at.id}">${at.assessmentTypeName}</option>`
+                         ).join('');
+                 } else {
+                     assessmentTypeSelect.innerHTML = '<option value="">No assessment types available</option>';
+                 }
+             })
+             .catch(error => {
+                 console.error('Error loading assessment types:', error);
+                 assessmentTypeSelect.innerHTML = '<option value="">Error loading assessment types</option>';
+             });
+     }
+     
+     // Load learning outcomes for selected course
+    function loadLearningOutcomes(courseOfferingId) {
+        if (!courseOfferingId) {
             document.getElementById('learningOutcomesContainer').innerHTML = '';
             return;
         }
@@ -378,7 +477,7 @@
         `;
         
         // Fetch learning outcomes from the server
-        fetch(`/Admin/Assessment/GetLearningOutcomes?courseId=${courseId}`)
+        fetch(`/Admin/Assessment/GetLearningOutcomes?courseOfferingId=${courseOfferingId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.length > 0) {
@@ -409,22 +508,30 @@
             });
     }
     
-    // Add assessment for a specific course
-    function addAssessmentForCourse(courseId, courseName) {
-        currentCourseId = courseId;
-        currentCourseName = courseName;
-        
-        // Set the course in the modal
-        document.getElementById('courseId').value = courseId;
-        document.getElementById('courseId').disabled = true;
-        
-        // Load learning outcomes for this course
-        loadLearningOutcomes(courseId);
-        
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('addAssessmentModal'));
-        modal.show();
-    }
+         // Add assessment for a specific course
+     function addAssessmentForCourse(courseOfferingId, courseName) {
+         // Find the course offering for this course in the latest trimester
+         const courseOffering = latestTrimesterCourseOfferings.find(co => co.id === courseOfferingId);
+         
+         if (courseOffering) {
+             currentCourseId = courseOffering.courseId;
+             currentCourseName = courseName;
+             
+             // Set the course in the modal
+             const courseSelect = document.getElementById('courseId');
+             courseSelect.value = courseOfferingId;
+             courseSelect.disabled = true;
+             
+             // Load learning outcomes for this course offering
+             loadLearningOutcomes(courseOfferingId);
+             
+             // Show the modal
+             const modal = new bootstrap.Modal(document.getElementById('addAssessmentModal'));
+             modal.show();
+         } else {
+             showError('This course is not available in the current trimester. Please select a course from the dropdown.');
+         }
+     }
     
     // Add assessment for current course (from view modal)
     function addAssessmentForCurrentCourse() {
@@ -433,28 +540,105 @@
             const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewCourseAssessmentsModal'));
             viewModal.hide();
             
-            // Open the add assessment modal
-            addAssessmentForCourse(currentCourseId, currentCourseName);
+            // Find the course offering for this course
+            const courseOffering = latestTrimesterCourseOfferings.find(co => co.courseId === currentCourseId);
+            if (courseOffering) {
+                // Open the add assessment modal with course offering ID
+                addAssessmentForCourse(courseOffering.id, currentCourseName);
+            } else {
+                showError('Course offering not found for this course!');
+            }
         }
     }
     
-    // View course assessments
-    function viewCourseAssessments(courseId, courseName) {
-        currentCourseId = courseId;
-        currentCourseName = courseName;
-        
-        // Set the course name in the modal
-        document.getElementById('courseNameDisplay').textContent = `${courseName} - Assessment Overview`;
-        
-        // Load assessments for this course
-        loadCourseAssessments(courseId);
-        
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('viewCourseAssessmentsModal'));
-        modal.show();
-    }
-    
-    // Load course assessments
+         // View assessment details
+     function viewAssessment(assessmentId, assessmentName) {
+         // Set the assessment ID
+         currentAssessmentId = assessmentId;
+         currentAssessmentName = assessmentName;
+         
+         // Set the assessment name display
+         document.getElementById('assessmentNameDisplay').textContent = `${assessmentName} - Assessment Details`;
+         
+         // Load assessment details
+         loadAssessmentDetails(assessmentId);
+         
+         // Show the modal
+         const modal = new bootstrap.Modal(document.getElementById('viewAssessmentModal'));
+         modal.show();
+          }
+     
+     // Load assessment details
+     function loadAssessmentDetails(assessmentId) {
+         const container = document.getElementById('assessmentDetailsContainer');
+         container.innerHTML = `
+             <div class="text-center py-4">
+                 <div class="text-muted">
+                     <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                     <p class="mb-0">Loading assessment details...</p>
+                 </div>
+             </div>
+         `;
+         
+         // Fetch assessment details from the server
+         fetch(`/Admin/Assessment/GetAssessmentById?id=${assessmentId}`)
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success && data.data) {
+                     const assessment = data.data;
+                     container.innerHTML = `
+                         <div class="row">
+                             <div class="col-md-6">
+                                 <h6 class="fw-bold">Assessment Information</h6>
+                                 <p><strong>Name:</strong> ${assessment.assessmentName}</p>
+                                 <p><strong>Type:</strong> ${assessment.assessmentType?.assessmentTypeName || 'N/A'}</p>
+                                 <p><strong>Weight:</strong> ${assessment.totalWeight}%</p>
+                                 <p><strong>Total Score:</strong> ${assessment.totalScore}</p>
+                             </div>
+                             <div class="col-md-6">
+                                 <h6 class="fw-bold">Course Information</h6>
+                                 <p><strong>Course:</strong> ${assessment.courseName}</p>
+                                 <p><strong>Code:</strong> ${assessment.courseCode}</p>
+                                 <p><strong>Trimester:</strong> ${assessment.academicYear} - Tri${assessment.trimesterNumber}</p>
+                             </div>
+                         </div>
+                         <div class="row mt-3">
+                             <div class="col-12">
+                                 <h6 class="fw-bold">Learning Outcomes</h6>
+                                 <div class="d-flex flex-wrap gap-2">
+                                     ${assessment.learningOutcomes ? assessment.learningOutcomes.map(lo => 
+                                         `<span class="badge bg-info">${lo}</span>`
+                                     ).join('') : '<span class="text-muted">No learning outcomes assigned</span>'}
+                                 </div>
+                             </div>
+                         </div>
+                     `;
+                 } else {
+                     container.innerHTML = `
+                         <div class="text-center py-4">
+                             <div class="text-danger">
+                                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                 <p class="mb-0">Error loading assessment details</p>
+                                 <small>Please try again later</small>
+                             </div>
+                         </div>
+                     `;
+                 }
+             })
+             .catch(error => {
+                 container.innerHTML = `
+                     <div class="text-center py-4">
+                         <div class="text-danger">
+                             <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                             <p class="mb-0">Error loading assessment details</p>
+                             <small>Please try again later</small>
+                         </div>
+                     </div>
+                 `;
+             });
+     }
+     
+     // Load course assessments
     function loadCourseAssessments(courseId) {
         const container = document.getElementById('assessmentsTableContainer');
         container.innerHTML = `
@@ -565,15 +749,40 @@
         // Get selected learning outcomes
         const selectedLOs = Array.from(document.querySelectorAll('input[name="learningOutcomes"]:checked')).map(cb => cb.value);
         
-        // Prepare data for API call
-        const assessmentData = {
-            courseId: courseId,
-            assessmentName: assessmentName,
-            assessmentType: assessmentType,
-            totalWeight: parseFloat(totalWeight),
-            totalScore: parseFloat(totalScore),
-            learningOutcomes: selectedLOs
-        };
+                 // Get the selected course offering to get trimester ID and course ID
+         const courseSelect = document.getElementById('courseId');
+         const selectedOption = courseSelect.querySelector(`option[value="${courseId}"]`);
+         
+         if (!selectedOption) {
+             showError('Course not selected!');
+             return;
+         }
+         
+         // Get trimester ID and course ID from the selected option's data attributes
+         const trimesterId = selectedOption.getAttribute('data-trimester-id');
+         const actualCourseId = selectedOption.getAttribute('data-course-id');
+         
+         if (!trimesterId) {
+             showError('Trimester information not found for this course!');
+             return;
+         }
+         
+         if (!actualCourseId) {
+             showError('Course information not found!');
+             return;
+         }
+         
+         // Prepare data for API call
+         const assessmentData = {
+             courseId: actualCourseId,
+             courseOfferingId: courseId, // This is the TrimesterCourse ID
+             trimesterId: trimesterId,
+             assessmentName: assessmentName,
+             assessmentTypeId: assessmentType, // This is the AssessmentType ID
+             totalWeight: parseFloat(totalWeight),
+             totalScore: parseFloat(totalScore),
+             learningOutcomes: selectedLOs
+         };
         
         // Send API request to create assessment
         fetch('/Admin/Assessment/CreateAssessment', {
@@ -593,14 +802,17 @@
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addAssessmentModal'));
                 modal.hide();
                 
-                // Reset form
-                form.reset();
-                document.getElementById('learningOutcomesContainer').innerHTML = '';
-                
-                // Refresh the page after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                                 // Reset form
+                 form.reset();
+                 document.getElementById('learningOutcomesContainer').innerHTML = '';
+                 
+                 // Reload assessment types after form reset
+                 loadAssessmentTypes();
+                 
+                 // Refresh the page after a short delay
+                 setTimeout(() => {
+                     location.reload();
+                 }, 1500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -625,9 +837,11 @@
         // Set the assessment name
         document.getElementById('editAssessmentName').value = assessmentName;
         
+        // Load assessment types for editing
+        loadAssessmentTypesForEdit();
+        
         // Load assessment data (replace with actual API call)
         // For now, we'll set some default values
-        document.getElementById('editAssessmentType').value = 'Assignment';
         document.getElementById('editTotalWeight').value = '25.00';
         document.getElementById('editTotalScore').value = '100.00';
         
@@ -687,7 +901,7 @@
         }
         
         // Show loading state
-        const updateButton = document.querySelector('#editAssessmentModal .btn-warning');
+        const updateButton = document.querySelector('#editAssessmentModal .btn-success');
         const originalText = updateButton.innerHTML;
         updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
         updateButton.disabled = true;
@@ -700,7 +914,7 @@
             id: formData.get('assessmentId'),
             courseId: formData.get('courseId'),
             assessmentName: assessmentName,
-            assessmentType: assessmentType,
+            assessmentTypeId: assessmentType, // This is the AssessmentType ID
             totalWeight: parseFloat(totalWeight),
             totalScore: parseFloat(totalScore),
             learningOutcomes: selectedLOs
@@ -728,8 +942,10 @@
                 form.reset();
                 document.getElementById('editLearningOutcomesContainer').innerHTML = '';
                 
-                // Refresh the assessments table
-                loadCourseAssessments(currentCourseId);
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -773,8 +989,10 @@
                 // Show success message
                 showSuccess('Assessment deleted successfully!');
                 
-                // Refresh the assessments table
-                loadCourseAssessments(currentCourseId);
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);

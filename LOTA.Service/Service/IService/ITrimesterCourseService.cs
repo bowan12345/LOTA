@@ -1,6 +1,11 @@
-using LOTA.Model.DTO.Admin;
+﻿using LOTA.Model.DTO.Admin;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace LOTA.Service.Interface
+namespace LOTA.Service.Service.IService
 {
     public interface ITrimesterCourseService
     {
@@ -13,5 +18,6 @@ namespace LOTA.Service.Interface
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByCourseAsync(string courseId);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAsync(string tutorId);
         Task<bool> IsTrimesterCourseExistsAsync(string trimesterId, string courseId);
+        Task<IEnumerable<CourseOfferingReturnDTO>> GetLatestTrimesterCourseOfferingsAsync();
     }
 }

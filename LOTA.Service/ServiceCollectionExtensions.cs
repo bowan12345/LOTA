@@ -2,7 +2,6 @@
 using LOTA.DataAccess.Repository;
 using LOTA.Service.Service.IService;
 using LOTA.Service.Service;
-using LOTA.Service.Interface;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LOTA.Service

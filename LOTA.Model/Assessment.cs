@@ -35,9 +35,9 @@ namespace LOTA.Model
         public DateTime? UpdatedDate { get; set; }
 
         // FK
-        public string? CourseId { get; set; }
-        [ForeignKey("CourseId")]
-        public Course? Course { get; set; }
+        public string? CourseOfferingId { get; set; }
+        [ForeignKey("CourseOfferingId")]
+        public TrimesterCourse? TrimesterCourse { get; set; }
 
         public string TrimesterId { get; set; }
         [ForeignKey("TrimesterId")]

@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using LOTA.DataAccess.Data;
 using LOTA.Model;
-using System.Linq;
 using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
-
+using LOTA.DataAccess.Repository.IRepository;
 namespace LOTAWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -13,41 +10,101 @@ namespace LOTAWeb.Areas.Admin.Controllers
     {
         private readonly IAssessmentService _assessmentService;
         private readonly ICourseService _courseService;
+        private readonly ITrimesterCourseService _trimesterCourseService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AssessmentController(IAssessmentService assessmentService, ICourseService courseService)
+        public AssessmentController(IAssessmentService assessmentService, ICourseService courseService, ITrimesterCourseService trimesterCourseService, IUnitOfWork unitOfWork)
         {
             _assessmentService = assessmentService;
             _courseService = courseService;
+            _trimesterCourseService = trimesterCourseService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IActionResult> Index([FromQuery] string searchTerm = "")
         {
-            IEnumerable<CourseReturnDTO> courseList;
+            // Get all assessments with course and trimester information
+            IEnumerable<AssessmentReturnDTO> assessmentList;
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                //query all courseList information by filter
-                courseList = await _courseService.GetCoursesByNameOrCodeAsync(searchTerm);
+                assessmentList = await _assessmentService.GetAssessmentsBySearchTermAsync(searchTerm);
             }
             else
             {
-                //query all courseList information from courseservice
-                courseList = await _courseService.GetAllCoursesAsync();
+                assessmentList = await _assessmentService.GetAllAssessmentsAsync();
             }
 
             // Pass search term to view for maintaining search state
             ViewBag.SearchTerm = searchTerm;
 
-            //return all course information on the home page 
-            return View(courseList);
+            // Return assessments data to the view
+            return View(assessmentList);
         }
 
         // get learning outcomes for a course
         [HttpGet]
-        public async Task<IActionResult> GetLearningOutcomes(string courseId)
+        public async Task<IActionResult> GetLearningOutcomes(string courseOfferingId)
         {
+        
+            try
+            {
+                var LOList = await _assessmentService.GetLearningOutcomesByCourseOfferingIdAsync(courseOfferingId);
+                return Json(new { success = true, data = LOList });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+           
+        }
 
+        // Get all assessment types
+        [HttpGet]
+        public async Task<IActionResult> GetAssessmentTypes()
+        {
+            try
+            {
+                var assessmentTypes = await _unitOfWork.assessmentTypeRepository.GetAllAsync();
+                return Json(new { success = true, data = assessmentTypes });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
-            return Json(new { success = true, data = courseId });
+        // Get latest trimester course offerings for assessment forms
+        [HttpGet]
+        public async Task<IActionResult> GetLatestTrimesterCourseOfferings()
+        {
+            try
+            {
+                var courseOfferings = await _trimesterCourseService.GetLatestTrimesterCourseOfferingsAsync();
+                return Json(new { success = true, data = courseOfferings });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Get assessment by ID
+        [HttpGet]
+        public async Task<IActionResult> GetAssessmentById(string id)
+        {
+            try
+            {
+                var assessment = await _assessmentService.GetAssessmentByIdAsync(id);
+                if (assessment != null)
+                {
+                    return Json(new { success = true, data = assessment });
+                }
+                return Json(new { success = false, message = "Assessment not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         //get assessments for a course
@@ -68,52 +125,85 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAssessment([FromBody] AssessmentCreateDTO request)
         {
-            
+            try
+            {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { success = false, message = "Invalid data" });
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
                 }
 
-                // Create new assignment
-                var assignment = new Assessment
+                // Save to database
+                var result = await _assessmentService.CreateAssessmentAsync(request);
+                if (result != null)
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    AssessmentName = request.AssessmentName,
-                    TotalWeight = request.TotalWeight,
-                    TotalScore = request.TotalScore,
-                    CourseId = request.CourseId,
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow,
-                    CreatedBy = User.Identity?.Name ?? "System"
-                };
-
-                return Json(new { success = true, message = "Assessment created successfully" });
-           
+                    return Json(new { success = true, message = "Assessment created successfully" });
+                }
+                return Json(new { success = false, message = "Failed to create assessment" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
-        //update an assessment
+                //update an assessment
         [HttpPut]
         public async Task<IActionResult> UpdateAssessment([FromBody] AssessmentUpdateDTO request)
         {
-           
+            try
+            {
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { success = false, message = "Invalid data" });
                 }
 
-                
+                // Update assessment
+                var assessment = new Assessment
+                {
+                    Id = request.Id,
+                    AssessmentName = request.AssessmentName,
+                    AssessmentTypeId = request.AssessmentTypeId, // Use the AssessmentType ID
+                    TotalWeight = request.TotalWeight,
+                    TotalScore = request.TotalScore,
+                    CourseOfferingId = request.CourseOfferingId,
+                    TrimesterId = request.TrimesterId,
+                    IsActive = true,
+                    UpdatedDate = DateTime.UtcNow,
+                };
 
+                // Save to database
+                await _assessmentService.UpdateAssessmentAsync(assessment);
                 return Json(new { success = true, message = "Assessment updated successfully" });
-           
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         // delete an assessment
         [HttpDelete]
         public async Task<IActionResult> DeleteAssessment(string id)
         {
-            
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest(new { success = false, message = "Assessment ID is required" });
+                }
+
+                // Delete from database
+                 await _assessmentService.DeleteAssessmentAsync(id);
                 return Json(new { success = true, message = "Assessment deleted successfully" });
-           
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 

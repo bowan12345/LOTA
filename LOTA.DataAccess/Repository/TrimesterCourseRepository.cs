@@ -1,7 +1,7 @@
-using LOTA.DataAccess.Interface;
 using LOTA.DataAccess.Data;
 using LOTA.Model;
 using Microsoft.EntityFrameworkCore;
+using LOTA.DataAccess.Repository.IRepository;
 
 namespace LOTA.DataAccess.Repository
 {
@@ -31,6 +31,7 @@ namespace LOTA.DataAccess.Repository
             return await _context.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
+                .Include(tc => tc.Course.LearningOutcomes)
                 .Include(tc => tc.Tutor)
                 .FirstOrDefaultAsync(tc => tc.Id == id);
         }
@@ -107,6 +108,31 @@ namespace LOTA.DataAccess.Repository
         {
             return await _context.TrimesterCourse
                 .AnyAsync(tc => tc.TrimesterId == trimesterId && tc.CourseId == courseId);
+        }
+
+        public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()
+        {
+            var query = _context.TrimesterCourse
+                .Include(tc => tc.Trimester)
+                .Include(tc => tc.Course)
+                .Include(tc => tc.Course.Qualification)
+                .Include(tc => tc.Tutor)
+                .Where(tc => tc.IsActive == true);
+
+            // Get the latest trimester
+            var latestTrimester = await _context.Trimester
+                .OrderByDescending(t => t.AcademicYear)
+                .ThenByDescending(t => t.TrimesterNumber)
+                .FirstOrDefaultAsync();
+
+            if (latestTrimester != null)
+            {
+                query = query.Where(tc => tc.TrimesterId == latestTrimester.Id);
+            }
+
+            return await query
+                .OrderBy(tc => tc.Course.CourseCode)
+                .ToListAsync();
         }
     }
 }

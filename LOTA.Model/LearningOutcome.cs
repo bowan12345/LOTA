@@ -20,11 +20,6 @@ namespace LOTA.Model
         [MaxLength(255)]
         public string Description { get; set; }
 
-        [Precision(5, 2)]
-        public decimal MaxScore { get; set; }
-        [Precision(5, 2)]
-        public decimal Weight { get; set; }
-
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 

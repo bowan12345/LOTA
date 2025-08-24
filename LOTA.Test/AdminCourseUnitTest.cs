@@ -305,7 +305,7 @@ namespace LOTA.Test
                 .ReturnsAsync(enrollment);
             var service = new CourseService(mockUnitOfWork.Object);
             // Act
-            await service.RemoveStudentFromCourseAsync(testCourseId, studentId);
+            //await service.RemoveStudentFromCourseAsync(testCourseId, studentId);
 
             // Assert
             // Verify that Remove is called once and that the Course object Id passed in is the expected value

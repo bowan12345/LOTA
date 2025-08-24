@@ -1,6 +1,6 @@
 using LOTA.Model;
 
-namespace LOTA.DataAccess.Interface
+namespace LOTA.DataAccess.Repository.IRepository
 {
     public interface ITrimesterCourseRepository
     {
@@ -14,5 +14,6 @@ namespace LOTA.DataAccess.Interface
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTutorAsync(string tutorId);
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTrimesterAndCourseAsync(string trimesterId, string courseId);
         Task<bool> IsTrimesterCourseExistsAsync(string trimesterId, string courseId);
+        Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync();
     }
 }

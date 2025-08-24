@@ -208,10 +208,10 @@
             </div>
             <form id="addStudentsToCourseForm">
                 <div class="modal-body">
-                                         <input type="hidden" id="modalCourseOfferingId" name="courseOfferingId">
-                     <input type="hidden" id="modalCourseId" name="courseId">
-                     <input type="hidden" id="modalTrimesterId" name="trimesterId">
-                     
+                    <input type="hidden" id="modalCourseOfferingId" name="courseOfferingId">
+                    <input type="hidden" id="modalCourseId" name="courseId">
+                    <input type="hidden" id="modalTrimesterId" name="trimesterId">
+                    
                      <!-- Trimester Info Display -->
                      <div class="row mb-3">
                          <div class="col-md-12">
@@ -274,10 +274,10 @@
             </div>
             <form id="uploadExcelForm" enctype="multipart/form-data">
                 <div class="modal-body">
-                                         <input type="hidden" id="excelCourseOfferingId" name="courseOfferingId">
-                     <input type="hidden" id="excelCourseId" name="courseId">
-                     <input type="hidden" id="excelTrimesterId" name="trimesterId">
-                     
+                    <input type="hidden" id="excelCourseOfferingId" name="courseOfferingId">
+                    <input type="hidden" id="excelCourseId" name="courseId">
+                    <input type="hidden" id="excelTrimesterId" name="trimesterId">
+                    
                      <!-- Trimester Info Display -->
                      <div class="row mb-3">
                          <div class="col-md-12">
@@ -393,7 +393,7 @@
         overflow-y: auto;
     }
     
-         .enrolled-students-list {
+    .enrolled-students-list {
          height: auto;
          min-height: 800px;
          overflow-y: visible;
@@ -434,7 +434,7 @@
      .pagination-sm .page-link {
          padding: 0.25rem 0.5rem;
          font-size: 0.875rem;
-     }
+    }
 </style>
 
 @section Scripts {
@@ -906,12 +906,12 @@
                       <div class="col-12">
                           <div class="card border-0 bg-light">
                               <div class="card-body">
-                                                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                       <h6 class="card-title fw-bold mb-0">
-                                           <i class="fas fa-users text-primary me-2"></i>
-                                           Enrolled Students
-                                           <span class="badge bg-primary ms-2" id="enrolledStudentsCount">0</span>
-                                       </h6>
+                                  <div class="d-flex justify-content-between align-items-center mb-3">
+                                      <h6 class="card-title fw-bold mb-0">
+                                          <i class="fas fa-users text-primary me-2"></i>
+                                          Enrolled Students
+                                          <span class="badge bg-primary ms-2" id="enrolledStudentsCount">0</span>
+                                      </h6>
                                        <div class="d-flex gap-2">
                                           <button class="btn btn-success btn-sm" id="addStudentsBtn" onclick="showAddStudentsModal('${offering.id}', '${offering.courseId}', '${offering.trimesterId}')">
                                               <i class="fas fa-user-plus me-1"></i>Add Students
@@ -920,9 +920,9 @@
                                               <i class="fas fa-file-excel me-1"></i>Upload Excel
                                           </button>
                                        </div>
-                                   </div>
+                                  </div>
                                   
-                                    <!-- Filter Controls -->
+                                                                     <!-- Filter Controls -->
                                    <div class="mb-3">
                                        <div class="row g-2">
                                            <div class="col-md-8">
@@ -952,8 +952,8 @@
                   </div>
               `;
              
-                                             // Load trimesters data for the filter dropdowns immediately
-               loadTrimestersForDetails();
+             // Load trimesters data for the filter dropdowns immediately
+             loadTrimestersForDetails();
                
                // Auto-select the latest trimester in the Details page filter dropdown
                setTimeout(() => {
@@ -1101,22 +1101,22 @@
             updateButton.disabled = true;
             
             try {
-                // Prepare data for API call
-                const offeringData = {
-                    id: formData.get('id'),
-                    trimesterId: trimesterId,
-                    courseId: courseId,
-                    tutorId: formData.get('tutorId') || null,
+            // Prepare data for API call
+            const offeringData = {
+                id: formData.get('id'),
+                trimesterId: trimesterId,
+                courseId: courseId,
+                tutorId: formData.get('tutorId') || null,
                     isActive: true
-                };
-                
-                // Call API
+            };
+            
+            // Call API
                 const response = await fetch('/Admin/Course/UpdateCourseOffering', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(offeringData)
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(offeringData)
                 });
                 
                 const result = await response.json();
@@ -1138,7 +1138,7 @@
                     if (currentTrimesterFilter) {
                         loadCourseOfferingsWithFilter(currentTrimesterFilter);
                     } else {
-                        loadCourseOfferings();
+                    loadCourseOfferings();
                     }
                 } else {
                     showError(result.message || 'Failed to update course offering');
@@ -1214,8 +1214,8 @@
         // Flag to prevent duplicate loading of trimesters
         let trimestersLoaded = false;
         
-                                   // Show Add Students Modal
-          function showAddStudentsModal(courseOfferingId, courseId, trimesterId) {
+        // Show Add Students Modal
+        function showAddStudentsModal(courseOfferingId, courseId, trimesterId) {
               // Get the currently selected trimester from the filter dropdown
               const selectedTrimesterId = document.getElementById('filterTrimester').value;
               
@@ -1230,21 +1230,21 @@
                  `${selectedTrimester.academicYear} - Trimester ${selectedTrimester.trimesterNumber}` : 
                  'Unknown Trimester';
              
-             // Set modal values
-             document.getElementById('modalCourseOfferingId').value = courseOfferingId;
-             document.getElementById('modalCourseId').value = courseId;
+            // Set modal values
+            document.getElementById('modalCourseOfferingId').value = courseOfferingId;
+            document.getElementById('modalCourseId').value = courseId;
              document.getElementById('modalTrimesterId').value = selectedTrimesterId;
              
              // Update trimester display in modal
              document.getElementById('modalTrimesterDisplay').textContent = trimesterDisplayText;
-             
-             // Show modal
-             const modal = new bootstrap.Modal(document.getElementById('addStudentToCourseModal'));
-             modal.show();
-         }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('addStudentToCourseModal'));
+            modal.show();
+        }
         
-                                   // Show Upload Excel Modal
-          function showUploadExcelModal(courseOfferingId, courseId, trimesterId) {
+        // Show Upload Excel Modal
+        function showUploadExcelModal(courseOfferingId, courseId, trimesterId) {
               // Get the currently selected trimester from the filter dropdown
               const selectedTrimesterId = document.getElementById('filterTrimester').value;
               
@@ -1259,18 +1259,18 @@
                  `${selectedTrimester.academicYear} - Trimester ${selectedTrimester.trimesterNumber}` : 
                  'Unknown Trimester';
              
-             // Set modal values
-             document.getElementById('excelCourseOfferingId').value = courseOfferingId;
-             document.getElementById('excelCourseId').value = courseId;
+            // Set modal values
+            document.getElementById('excelCourseOfferingId').value = courseOfferingId;
+            document.getElementById('excelCourseId').value = courseId;
              document.getElementById('excelTrimesterId').value = selectedTrimesterId;
              
              // Update trimester display in modal
              document.getElementById('excelTrimesterDisplay').textContent = trimesterDisplayText;
-             
-             // Show modal
-             const modal = new bootstrap.Modal(document.getElementById('uploadExcelModal'));
-             modal.show();
-         }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('uploadExcelModal'));
+            modal.show();
+        }
         
                  // Load trimesters for Details page filter dropdowns
          async function loadTrimestersForDetails() {
@@ -1295,14 +1295,14 @@
                           }
                           return b.trimesterNumber - a.trimesterNumber; // Descending order for trimester number
                       });
-                      
-                      // Add combined options with trimester ID as value
+                         
+                                                 // Add combined options with trimester ID as value
                       sortedTrimesters.forEach(trimester => {
-                          const option = document.createElement('option');
-                          option.value = trimester.id; // Use trimester ID as value
-                          option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
-                          filterTrimesterSelect.appendChild(option);
-                      });
+             const option = document.createElement('option');
+             option.value = trimester.id; // Use trimester ID as value
+             option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
+             filterTrimesterSelect.appendChild(option);
+         });
                          
                          // Store trimesters data globally for later use
                          window.availableTrimesters = trimesters;
@@ -1339,17 +1339,17 @@
             } catch (error) {
                 console.error('Error loading trimesters:', error);
             }
-         }
+        }
         
                  // Setup form event listeners (no longer needed as we removed trimester selection dropdowns)
-         function setupFormEventListeners() {
+        function setupFormEventListeners() {
              // Event listeners setup is no longer needed since we removed trimester selection dropdowns
-         }
-         
+        }
+        
          // Setup event listeners for Details page dropdowns (no longer needed as we removed trimester selection dropdowns)
-         function setupDetailsPageEventListeners() {
+        function setupDetailsPageEventListeners() {
              // Event listeners setup is no longer needed since we removed trimester selection dropdowns
-         }
+        }
         
         // Get trimester data by ID from stored trimesters
         function getTrimesterById(trimesterId) {
@@ -1756,18 +1756,18 @@
 
 
 
-                           if (!trimesterId) {
+             if (!trimesterId) {
                   showInfo('Please select a Trimester from the filter above first.');
-                  return;
-              }
+                 return;
+             }
 
-              // Get trimester data from stored trimesters
-              const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
-              
-              if (!selectedTrimester) {
+             // Get trimester data from stored trimesters
+             const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(trimesterId));
+             
+             if (!selectedTrimester) {
                   showInfo('Please select a valid trimester from the dropdown above.');
-                  return;
-              }
+                 return;
+             }
 
              const { academicYear, trimesterNumber } = selectedTrimester;
 
@@ -1946,18 +1946,18 @@
               const selectedTrimesterId = document.getElementById('excelTrimesterId').value;
               const fileInput = document.getElementById('excelFile');
 
-                             if (!selectedTrimesterId) {
+              if (!selectedTrimesterId) {
                    showInfo('Please select a Trimester from the filter above first.');
-                   return;
-               }
+                  return;
+              }
 
-               // Get trimester data from stored trimesters
-               const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
-               
-               if (!selectedTrimester) {
+              // Get trimester data from stored trimesters
+              const selectedTrimester = window.availableTrimesters?.find(t => String(t.id) === String(selectedTrimesterId));
+              
+              if (!selectedTrimester) {
                    showInfo('Please select a valid trimester from the dropdown above.');
-                   return;
-               }
+                  return;
+              }
 
               const { academicYear, trimesterNumber } = selectedTrimester;
 

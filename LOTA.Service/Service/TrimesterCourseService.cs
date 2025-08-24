@@ -1,9 +1,7 @@
-using LOTA.DataAccess.Interface;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
-using LOTA.Service.Interface;
-using Microsoft.EntityFrameworkCore;
+using LOTA.Service.Service.IService;
 
 namespace LOTA.Service.Service
 {
@@ -116,6 +114,12 @@ namespace LOTA.Service.Service
             return await _unitOfWork.trimesterCourseRepository.IsTrimesterCourseExistsAsync(trimesterId, courseId);
         }
 
+        public async Task<IEnumerable<CourseOfferingReturnDTO>> GetLatestTrimesterCourseOfferingsAsync()
+        {
+            var trimesterCourses = await _unitOfWork.trimesterCourseRepository.GetLatestTrimesterCourseOfferingsAsync();
+            return trimesterCourses.Select(MapToCourseOfferingDTO);
+        }
+
         private TrimesterCourseReturnDTO MapToReturnDTO(TrimesterCourse trimesterCourse)
         {
             return new TrimesterCourseReturnDTO
@@ -152,6 +156,24 @@ namespace LOTA.Service.Service
                     LastName = trimesterCourse.Tutor.LastName,
                     Email = trimesterCourse.Tutor.Email
                 } : null
+            };
+        }
+
+        private CourseOfferingReturnDTO MapToCourseOfferingDTO(TrimesterCourse trimesterCourse)
+        {
+            return new CourseOfferingReturnDTO
+            {
+                Id = trimesterCourse.Id,
+                CourseId = trimesterCourse.CourseId,
+                CourseName = trimesterCourse.Course?.CourseName ?? "",
+                CourseCode = trimesterCourse.Course?.CourseCode ?? "",
+                Description = trimesterCourse.Course?.Description ?? "",
+                Trimester = trimesterCourse.Trimester,
+                TutorId = trimesterCourse.TutorId ?? "",
+                TutorName = trimesterCourse.Tutor != null ? $"{trimesterCourse.Tutor.FirstName} {trimesterCourse.Tutor.LastName}" : "",
+                IsActive = trimesterCourse.IsActive ?? false,
+                CreatedDate = trimesterCourse.CreatedDate,
+                UpdatedDate = trimesterCourse.UpdatedDate
             };
         }
     }
