@@ -453,10 +453,11 @@
         
         // Initialize when document is ready
         document.addEventListener('DOMContentLoaded', function() {
-            loadCourseOfferings();
+            // Load trimester options first, then load course offerings with the selected trimester
             loadTrimesterOptions();
             loadCourseOptions();
             loadTutorOptions();
+            // Note: loadCourseOfferings() is now called automatically by populateTrimesterDropdowns
         });
 
         // Load course offerings data
@@ -511,6 +512,12 @@
 
         // Load trimester options
         function loadTrimesterOptions() {
+            // Show loading state in the filter dropdown
+            const filterDropdown = document.getElementById('trimesterFilter');
+            if (filterDropdown) {
+                filterDropdown.innerHTML = '<option value="">Loading trimesters...</option>';
+            }
+            
             fetch('/Admin/Trimester/GetActiveTrimesters')
                 .then(response => response.json())
                 .then(result => {
@@ -518,10 +525,18 @@
                         populateTrimesterDropdowns(result.data);
                     } else {
                         showError('Failed to load trimester options');
+                        // Reset dropdown on error
+                        if (filterDropdown) {
+                            filterDropdown.innerHTML = '<option value="">Error loading trimesters</option>';
+                        }
                     }
                 })
                 .catch(error => {
                     showError('Failed to load trimester options');
+                    // Reset dropdown on error
+                    if (filterDropdown) {
+                        filterDropdown.innerHTML = '<option value="">Error loading trimesters</option>';
+                    }
                 });
         }
 
@@ -563,13 +578,50 @@
             const editDropdown = document.getElementById('editTrimesterId');
             const filterDropdown = document.getElementById('trimesterFilter');
             
-            const options = trimesters.map(trimester => 
+            // Sort trimesters by AcademicYear (descending) then by TrimesterNumber (descending)
+            const sortedTrimesters = [...trimesters].sort((a, b) => {
+                if (a.academicYear !== b.academicYear) {
+                    return b.academicYear - a.academicYear; // Descending order for academic year
+                }
+                return b.trimesterNumber - a.trimesterNumber; // Descending order for trimester number
+            });
+            
+            const options = sortedTrimesters.map(trimester => 
                 `<option value="${trimester.id}">${trimester.academicYear} - Tri${trimester.trimesterNumber}</option>`
             ).join('');
             
             if (addDropdown) addDropdown.innerHTML = '<option value="">Select Trimester</option>' + options;
             if (editDropdown) editDropdown.innerHTML = '<option value="">Select Trimester</option>' + options;
             if (filterDropdown) filterDropdown.innerHTML = '<option value="">All Trimesters</option>' + options;
+            
+            // Auto-select the latest trimester in the filter dropdown
+            if (filterDropdown && trimesters.length > 0) {
+                if (trimesters.length === 1) {
+                    // If only one trimester, select it
+                    const trimester = trimesters[0];
+                    console.log(`Only one trimester available, selecting: ${trimester.academicYear} - Tri${trimester.trimesterNumber}`);
+                    filterDropdown.value = trimester.id;
+                } else {
+                    // Find the latest trimester (highest academic year and trimester number)
+                    const latestTrimester = trimesters.reduce((latest, current) => {
+                        if (current.academicYear > latest.academicYear) return current;
+                        if (current.academicYear === latest.academicYear && current.trimesterNumber > latest.trimesterNumber) return current;
+                        return latest;
+                    });
+                    
+                    console.log(`Auto-selecting latest trimester: ${latestTrimester.academicYear} - Tri${latestTrimester.trimesterNumber}`);
+                    
+                    // Set the filter dropdown to the latest trimester
+                    filterDropdown.value = latestTrimester.id;
+                }
+                
+                // Apply the filter to load course offerings for the selected trimester
+                applyFilters();
+            } else if (filterDropdown) {
+                console.log('No trimesters available');
+                // If no trimesters, load all course offerings
+                loadCourseOfferings();
+            }
         }
 
         // Populate course dropdowns
@@ -900,8 +952,34 @@
                   </div>
               `;
              
-                           // Load trimesters data for the filter dropdowns immediately
-              loadTrimestersForDetails();
+                                             // Load trimesters data for the filter dropdowns immediately
+               loadTrimestersForDetails();
+               
+               // Auto-select the latest trimester in the Details page filter dropdown
+               setTimeout(() => {
+                   const detailsFilterDropdown = document.getElementById('filterTrimester');
+                   if (detailsFilterDropdown && window.availableTrimesters && window.availableTrimesters.length > 0) {
+                       if (window.availableTrimesters.length === 1) {
+                           // If only one trimester, select it
+                           const trimester = window.availableTrimesters[0];
+                           console.log(`Details: Only one trimester available, selecting: ${trimester.academicYear} - Tri${trimester.trimesterNumber}`);
+                           detailsFilterDropdown.value = trimester.id;
+                       } else {
+                           // Find the latest trimester (highest academic year and trimester number)
+                           const latestTrimester = window.availableTrimesters.reduce((latest, current) => {
+                               if (current.academicYear > latest.academicYear) return current;
+                               if (current.academicYear === latest.academicYear && current.trimesterNumber > latest.trimesterNumber) return current;
+                               return latest;
+                           });
+                           
+                           console.log(`Details: Auto-selecting latest trimester: ${latestTrimester.academicYear} - Tri${latestTrimester.trimesterNumber}`);
+                           detailsFilterDropdown.value = latestTrimester.id;
+                       }
+                       
+                       // Automatically apply the filter to load enrolled students
+                       filterEnrolledStudents();
+                   }
+               }, 100); // Small delay to ensure the dropdown is populated
          }
 
         // Update course offering count
@@ -1210,16 +1288,27 @@
                          // Clear existing options
                          filterTrimesterSelect.innerHTML = '<option value="">Select Trimester</option>';
                          
-                                                 // Add combined options with trimester ID as value
-                                 trimesters.forEach(trimester => {
-             const option = document.createElement('option');
-             option.value = trimester.id; // Use trimester ID as value
-             option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
-             filterTrimesterSelect.appendChild(option);
-         });
+                                                                       // Sort trimesters by AcademicYear (descending) then by TrimesterNumber (descending)
+                      const sortedTrimesters = [...trimesters].sort((a, b) => {
+                          if (a.academicYear !== b.academicYear) {
+                              return b.academicYear - a.academicYear; // Descending order for academic year
+                          }
+                          return b.trimesterNumber - a.trimesterNumber; // Descending order for trimester number
+                      });
+                      
+                      // Add combined options with trimester ID as value
+                      sortedTrimesters.forEach(trimester => {
+                          const option = document.createElement('option');
+                          option.value = trimester.id; // Use trimester ID as value
+                          option.textContent = `${trimester.academicYear} - Trimester ${trimester.trimesterNumber}`;
+                          filterTrimesterSelect.appendChild(option);
+                      });
                          
                          // Store trimesters data globally for later use
                          window.availableTrimesters = trimesters;
+                         
+                         console.log(`Details: Loaded ${trimesters.length} trimesters, sorted in descending order`);
+                         console.log('Details: Trimester options populated successfully');
                      }
                  } else {
                      console.error('Error loading trimesters for details:', data.message);

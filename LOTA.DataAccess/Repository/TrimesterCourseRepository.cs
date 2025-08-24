@@ -20,8 +20,8 @@ namespace LOTA.DataAccess.Repository
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
-                .OrderBy(tc => tc.Trimester.AcademicYear)
-                .ThenBy(tc => tc.Trimester.TrimesterNumber)
+                .OrderByDescending(tc => tc.Trimester.AcademicYear)
+                .ThenByDescending(tc => tc.Trimester.TrimesterNumber)
                 .ThenBy(tc => tc.Course.CourseCode)
                 .ToListAsync();
         }
@@ -75,8 +75,8 @@ namespace LOTA.DataAccess.Repository
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
                 .Where(tc => tc.CourseId == courseId)
-                .OrderBy(tc => tc.Trimester.AcademicYear)
-                .ThenBy(tc => tc.Trimester.TrimesterNumber)
+                .OrderByDescending(tc => tc.Trimester.AcademicYear)
+                .ThenByDescending(tc => tc.Trimester.TrimesterNumber)
                 .ToListAsync();
         }
 
@@ -87,8 +87,8 @@ namespace LOTA.DataAccess.Repository
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
                 .Where(tc => tc.TutorId == tutorId)
-                .OrderBy(tc => tc.Trimester.AcademicYear)
-                .ThenBy(tc => tc.Trimester.TrimesterNumber)
+                .OrderByDescending(tc => tc.Trimester.AcademicYear)
+                .ThenByDescending(tc => tc.Trimester.TrimesterNumber)
                 .ThenBy(tc => tc.Course.CourseCode)
                 .ToListAsync();
         }
