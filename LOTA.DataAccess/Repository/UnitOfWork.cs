@@ -24,6 +24,7 @@ namespace LOTA.DataAccess.Repository
         public ITrimesterCourseRepository trimesterCourseRepository { get; private set; }
         public IAssessmentRepository assessmentRepository { get; private set; }
         public IAssessmentTypeRepository assessmentTypeRepository { get; private set; }
+        public IStudentScoreRepository studentScoreRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -39,6 +40,7 @@ namespace LOTA.DataAccess.Repository
             trimesterCourseRepository = new TrimesterCourseRepository(_db);
             assessmentRepository = new AssessmentRepository(_db);
             assessmentTypeRepository = new AssessmentTypeRepository(_db);
+            studentScoreRepository = new StudentScoreRepository(_db);
         }
 
         public async Task<int> SaveAsync()

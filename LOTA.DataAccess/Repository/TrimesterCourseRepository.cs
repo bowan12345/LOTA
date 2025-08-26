@@ -63,8 +63,9 @@ namespace LOTA.DataAccess.Repository
             return await _context.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
+                .Include(tc => tc.Course.Qualification)
                 .Include(tc => tc.Tutor)
-                .Where(tc => tc.TrimesterId == trimesterId)
+                .Where(tc => tc.TrimesterId == trimesterId && tc.IsActive == true)
                 .OrderBy(tc => tc.Course.CourseCode)
                 .ToListAsync();
         }

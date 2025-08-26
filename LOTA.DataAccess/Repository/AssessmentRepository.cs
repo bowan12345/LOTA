@@ -20,7 +20,12 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<IEnumerable<Assessment>> GetAssessmentsByCourseOfferingId(string? courseOfferingId)
         {
-           return await _db.Assessment.Where(c => c.CourseOfferingId == courseOfferingId).ToListAsync();
+           return await _db.Assessment
+               .Include(a => a.AssessmentType)
+               .Include(a => a.AssessmentLearningOutcomes)
+                   .ThenInclude(alo => alo.LearningOutcome)
+               .Where(c => c.CourseOfferingId == courseOfferingId)
+               .ToListAsync();
         }
 
         public async Task<IEnumerable<AssessmentLearningOutcome>> GetLOListByAssessmentId(string? assessmentId, string? includeProperties = null)
