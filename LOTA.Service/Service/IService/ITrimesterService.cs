@@ -20,10 +20,10 @@ namespace LOTA.Service.Service.IService
         Task<TrimesterReturnDTO> GetByAcademicYearAndTrimesterAsync(int academicYear, int trimesterNumber);
 
         /// <summary>
-        /// Get current trimester based on current date
+        /// Get latest trimester 
         /// </summary>
-        /// <returns>Current trimester</returns>
-        Task<TrimesterReturnDTO> GetCurrentTrimesterAsync();
+        /// <returns>latest trimester</returns>
+        Task<TrimesterReturnDTO> GetLatestTrimesterAsync();
 
         /// <summary>
         /// Get trimester by ID

@@ -14,7 +14,7 @@ namespace LOTA.DataAccess.Repository
             return await _db.Trimester
                 .Where(t => t.IsActive)
                 .OrderByDescending(t => t.AcademicYear)
-                .ThenBy(t => t.TrimesterNumber)
+                .ThenByDescending(t => t.TrimesterNumber)
                 .ToListAsync();
         }
 
@@ -27,6 +27,15 @@ namespace LOTA.DataAccess.Repository
         public async Task<IEnumerable<Trimester>> GetByAcademicYearAsync(int academicYear)
         {
             return await _db.Trimester.Where(t => t.AcademicYear == academicYear).ToListAsync();
+        }
+
+        public async Task<Trimester> GetLatestTrimestersAsync()
+        {
+            return await _db.Trimester
+               .Where(t => t.IsActive)
+               .OrderByDescending(t => t.AcademicYear)
+               .ThenByDescending(t => t.TrimesterNumber)
+               .FirstOrDefaultAsync();
         }
     }
 }

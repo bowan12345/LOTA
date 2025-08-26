@@ -65,24 +65,10 @@ namespace LOTA.Service.Service
             return returnDTO;
         }
 
-        public async Task<TrimesterReturnDTO> GetCurrentTrimesterAsync()
+        public async Task<TrimesterReturnDTO> GetLatestTrimesterAsync()
         {
             
-            var currentDate = DateTime.Now;
-            var currentYear = currentDate.Year;
-            var currentMonth = currentDate.Month;
-
-            // Simple logic to determine current trimester based on month
-            int currentTrimester;
-            if (currentMonth >= 2 && currentMonth <= 6) // Feb to June
-                currentTrimester = 1;
-            else if (currentMonth >= 7 && currentMonth <= 10) // July to Oct
-                currentTrimester = 2;
-            else // Oct to Jan
-                currentTrimester = 3;
-
-            var trimesters = await _unitOfWork.trimesterRepository.GetActiveTrimestersAsync();
-            Trimester? trimester = trimesters.FirstOrDefault(t => t.AcademicYear == currentYear && t.TrimesterNumber == currentTrimester);
+            var trimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
             if (trimester == null)
             {
                 //return empty object

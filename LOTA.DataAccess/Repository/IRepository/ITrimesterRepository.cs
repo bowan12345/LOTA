@@ -6,6 +6,7 @@ namespace LOTA.DataAccess.Repository.IRepository
     {
         Task<IEnumerable<Trimester>> GetActiveTrimestersAsync();
 
+        Task<Trimester> GetLatestTrimestersAsync();
         Task<IEnumerable<Trimester>> GetByAcademicYearAsync(int academicYear);
         Task<Trimester> GetByAcademicYearAndTrimesterAsync(int academicYear, int trimesterNumber);
     }

@@ -34,15 +34,15 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-6">
-                            <label for="trimesterSelection" class="form-label">Trimester <span class="text-danger">*</span></label>
-                            <select class="form-select" id="trimesterSelection" onchange="onTrimesterChange()">
-                                <option value="">Select Trimester</option>
-                            </select>
+                            <label for="trimesterSelection" class="form-label">Current Trimester <span class="text-danger">*</span></label>
+                            <div id="trimesterSelection" class="trimester-display h-100 d-flex align-items-center">
+                                <div class="text-muted">Loading current trimester...</div>
+                            </div>
                         </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <button type="button" class="btn btn-success" onclick="loadCoursesForTrimester()" id="loadCoursesBtn" disabled>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-success h-100" onclick="loadCoursesForTrimester()" id="loadCoursesBtn" disabled>
                                 <i class="fas fa-search me-2"></i>
                                 Load Courses
                             </button>
@@ -174,6 +174,79 @@
          background-color: #f8f9fa;
          border-radius: 8px;
          padding: 20px 0;
+     }
+     
+           /* Trimester Display Styling - Consistent with CourseOffering.cshtml */
+      .trimester-display {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border: 2px solid #dee2e6;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          min-height: 60px;
+          max-height: 70px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 1rem;
+      }
+      
+             /* Special styling for AddCourseOffering page to match button height */
+       .trimester-display.h-100 {
+           min-height: 38px; /* Match Bootstrap default button height */
+           max-height: 38px;
+           padding: 0.375rem 0.75rem; /* Match Bootstrap default button padding */
+           line-height: 1.2; /* Ensure text alignment matches button */
+       }
+      
+      /* Ensure perfect alignment between display and button */
+      .row.align-items-end .col-md-6:first-child {
+          display: flex;
+          flex-direction: column;
+      }
+      
+      .row.align-items-end .col-md-6:first-child .form-label {
+          margin-bottom: 0.5rem;
+      }
+      
+      .row.align-items-end .col-md-6:first-child .trimester-display {
+          margin-bottom: 0;
+      }
+      
+             /* Perfect height matching for AddCourseOffering page */
+       .trimester-display.h-100 {
+           height: 38px !important;
+           display: flex !important;
+           align-items: center !important;
+           justify-content: center !important;
+       }
+       
+       /* Ensure button height matches exactly */
+       .btn.h-100 {
+           height: 38px !important;
+           display: flex !important;
+           align-items: center !important;
+           justify-content: center !important;
+       }
+     
+     .trimester-display:hover {
+         border-color: #0d6efd;
+         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+         transform: translateY(-1px);
+     }
+     
+     .trimester-display .h5 {
+         font-size: 1.1rem;
+         font-weight: 700;
+         margin-bottom: 0.15rem;
+     }
+     
+     .trimester-display .text-primary {
+         color: #0d6efd !important;
+     }
+     
+     .trimester-display .small {
+         font-size: 0.875rem;
+         opacity: 0.8;
      }
     
     .course-info {
@@ -396,18 +469,18 @@
 
         // Load trimester options
         function loadTrimesterOptions() {
-            fetch('/Admin/Trimester/GetActiveTrimesters')
+            fetch('/Admin/Trimester/GetLatestTrimester')
                 .then(response => response.json())
                 .then(result => {
-                    if (result.success) {
-                        availableTrimesters = result.data;
-                        populateTrimesterDropdown(result.data);
+                    if (result.success && result.data) {
+                        availableTrimesters = [result.data];
+                        populateTrimesterDisplay(result.data);
                     } else {
-                        showError('Failed to load trimester options');
+                        showError('Failed to load current trimester');
                     }
                 })
                 .catch(error => {
-                    showError('Failed to load trimester options');
+                    showError('Failed to load current trimester');
                 });
         }
 
@@ -427,35 +500,46 @@
                 });
         }
 
-        // Populate trimester dropdown
-        function populateTrimesterDropdown(trimesters) {
-            const dropdown = document.getElementById('trimesterSelection');
-            const options = trimesters.map(trimester => 
-                `<option value="${trimester.id}">${trimester.academicYear} T${trimester.trimesterNumber}</option>`
-            ).join('');
+        // Populate trimester display
+        function populateTrimesterDisplay(currentTrimester) {
+            const display = document.getElementById('trimesterSelection');
             
-            dropdown.innerHTML = '<option value="">Select Trimester</option>' + options;
+            if (display && currentTrimester) {
+                display.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <div class="text-center">
+                            <div class="h5 mb-0 text-primary fw-bold">${currentTrimester.academicYear} - Trimester ${currentTrimester.trimesterNumber}</div>
+                            <div class="text-muted small">Current Academic Period</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Store current trimester ID for later use
+                display.setAttribute('data-trimester-id', currentTrimester.id);
+                
+                // Enable the Load Courses button
+                const loadBtn = document.getElementById('loadCoursesBtn');
+                if (loadBtn) {
+                    loadBtn.disabled = false;
+                }
+                
+                // Set selected trimester
+                selectedTrimester = currentTrimester;
+            } else if (display) {
+                display.innerHTML = '<div class="text-warning text-center">No Current Trimester Available</div>';
+            }
         }
 
-        // Handle trimester selection change
+        // Handle trimester selection change - No longer needed since we only show current trimester
         function onTrimesterChange() {
-            const trimesterId = document.getElementById('trimesterSelection').value;
-            const loadBtn = document.getElementById('loadCoursesBtn');
-            
-            if (trimesterId) {
-                selectedTrimester = availableTrimesters.find(t => t.id == trimesterId);
-                loadBtn.disabled = false;
-            } else {
-                selectedTrimester = null;
-                loadBtn.disabled = true;
-                document.getElementById('courseListSection').style.display = 'none';
-            }
+            // This function is no longer needed since we only show the current trimester
+            // The trimester is automatically selected when the page loads
         }
 
         // Load courses for selected trimester
         function loadCoursesForTrimester() {
             if (!selectedTrimester) {
-                showError('Please select a trimester first');
+                showError('Please wait for trimester information to load');
                 return;
             }
 

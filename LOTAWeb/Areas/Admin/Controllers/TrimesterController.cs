@@ -80,15 +80,15 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// get current trimester
+        /// get latest trimester
         /// </summary>
         /// <returns> current trimester</returns>
         [HttpGet]
-        public async Task<IActionResult> GetCurrentTrimester()
+        public async Task<IActionResult> GetLatestTrimester()
         {
             try
             {
-                var currentTrimester = await _trimesterService.GetCurrentTrimesterAsync();
+                var currentTrimester = await _trimesterService.GetLatestTrimesterAsync();
                 return Json(new { success = true, data = currentTrimester });
             }
             catch (Exception ex)
