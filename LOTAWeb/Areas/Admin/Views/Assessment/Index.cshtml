@@ -53,7 +53,7 @@
                                     <i class="fas fa-search text-muted"></i>
                                 </span>
                                 <input type="text" class="form-control border-start-0" name="searchTerm" id="searchTermInput" 
-                                       placeholder="Search by assessment name or course..." value="@ViewBag.SearchTerm">
+                                       placeholder="course name or code..." value="@ViewBag.SearchTerm">
                                 <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -72,86 +72,111 @@
         </div>
         
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 responsive-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="border-0 text-nowrap">Assessment Name</th>
-                            <th class="border-0 text-nowrap">Course</th>
-                            <th class="border-0 text-nowrap d-none d-md-table-cell">Type</th>
-                            <th class="border-0 text-nowrap d-none d-lg-table-cell">Trimester</th>
-                            <th class="border-0 text-nowrap d-none d-xl-table-cell">Weight</th>
-                            <th class="border-0 text-nowrap">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
+            @if (Model != null && Model.Any())
+            {
+                // Group assessments by course
+                var courseGroups = Model.GroupBy(a => new { 
+                    CourseId = a.TrimesterCourse?.Course?.Id, 
+                    CourseName = a.TrimesterCourse?.Course?.CourseName, 
+                    CourseCode = a.TrimesterCourse?.Course?.CourseCode,
+                    Trimester = a.Trimester
+                }).OrderBy(g => g.Key.CourseName);
+
+                foreach (var courseGroup in courseGroups)
+                {
+                    var courseId = $"course_{courseGroup.Key.CourseId?.Replace("-", "_")}";
+                    <div class="course-assessment-section">
+                        <div class="row">
+                            <!-- Left side: Course header (clickable) -->
+                            <div class="col-md-4">
+                                <div class="course-header-left" onclick="toggleCourseAssessments('@courseId')" style="cursor: pointer;">
+                                    <div class="course-icon">
+                                        <i class="fas fa-chevron-down me-2" id="icon_@courseId"></i>
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div class="course-main-info">
+                                        <h5 class="course-name">@courseGroup.Key.CourseName</h5>
+                                        <div class="course-code">@courseGroup.Key.CourseCode</div>
+                                    </div>
+                                    <div class="course-details">
+                                        <div class="trimester-info">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <span class="badge bg-info">@courseGroup.Key.Trimester?.AcademicYear - T @courseGroup.Key.Trimester?.TrimesterNumber</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right side: Assessments table -->
+                            <div class="col-md-8">
+                                <div class="assessments-container" id="@courseId">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 assessment-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="border-0 text-nowrap px-3">Assessment Name</th>
+                                                    <th class="border-0 text-nowrap px-3">Type</th>
+                                                    <th class="border-0 text-nowrap px-3">Weight</th>
+                                                    <th class="border-0 text-nowrap px-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var assessment in courseGroup.OrderBy(a => a.AssessmentName))
+                                                {
+                                                    <tr class="assessment-row">
+                                                        <td class="border-0 px-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="flex-grow-1">
+                                                                    <h6 class="mb-1 fw-semibold text-dark">@assessment.AssessmentName</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="border-0 px-3">
+                                                            <span class="badge bg-info">@assessment.AssessmentType?.AssessmentTypeName</span>
+                                                        </td>
+                                                        <td class="border-0 px-3">
+                                                            <span class="badge bg-success">@assessment.Weight%</span>
+                                                        </td>
+                                                        <td class="border-0 px-3">
+                                                            <div class="btn-group" role="group">
+                                                                <button class="btn btn-success btn-sm" onclick="editAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Edit Assessment">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-danger btn-sm" onclick="deleteAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Delete Assessment">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <div class="text-muted">
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                         {
-                            foreach (var assessment in Model)
-                            {
-                                <tr>
-                                    <td class="border-0">
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1 fw-semibold">@assessment.AssessmentName</h6>
-                                                <small class="text-muted">Assessment</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="border-0">
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1 fw-semibold">@assessment.TrimesterCourse?.Course?.CourseName</h6>
-                                                <small class="text-muted">@assessment.TrimesterCourse?.Course?.CourseCode</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="border-0 d-none d-md-table-cell">
-                                        <span class="badge bg-info">@assessment.AssessmentType?.AssessmentTypeName</span>
-                                    </td>
-                                    <td class="border-0 d-none d-lg-table-cell">
-                                        <span class="badge bg-warning">@assessment.Trimester?.AcademicYear - Tri @assessment.Trimester?.TrimesterNumber</span>
-                                    </td>
-                                    <td class="border-0 d-none d-xl-table-cell">
-                                        <span class="badge bg-success">@assessment.TotalWeight%</span>
-                                    </td>
-                                    <td class="border-0">
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-success btn-sm" onclick="editAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Edit Assessment">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onclick="deleteAssessment('@assessment.Id', '@assessment.AssessmentName')" title="Delete Assessment">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
+                            <i class="fas fa-search fa-2x mb-3"></i>
+                            <p class="mb-0">No assessments found for the specified search term</p>
+                            <small>Try different search terms or <a href="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="text-decoration-none">clear filters</a></small>
                         }
                         else
                         {
-                            <tr>
-                                                                    <td colspan="6" class="text-center py-4">
-                                        <div class="text-muted">
-                                            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
-                                            {
-                                                <i class="fas fa-search fa-2x mb-3"></i>
-                                                <p class="mb-0">No assessments found for the specified search term</p>
-                                                <small>Try different search terms or <a href="@Url.Action("Index", "Assessment", new { area = "Admin" })" class="text-decoration-none">clear filters</a></small>
-                                            }
-                                            else
-                                            {
-                                                <i class="fas fa-clipboard-check fa-2x mb-3"></i>
-                                                <p class="mb-0">No assessments found</p>
-                                                <small>No assessments are available for management</small>
-                                            }
-                                        </div>
-                                    </td>
-                            </tr>
+                            <i class="fas fa-clipboard-check fa-2x mb-3"></i>
+                            <p class="mb-0">No assessments found</p>
+                            <small>No assessments are available for management</small>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -192,13 +217,13 @@
                         </div>
                         
                         <div class="col-12 col-md-6">
-                            <label for="totalWeight" class="form-label">Total Weight (%)</label>
-                            <input type="number" class="form-control" id="totalWeight" name="totalWeight" min="0" max="100" step="0.01" placeholder="e.g., 25.50" required>
+                            <label for="Weight" class="form-label">Weight (%)</label>
+                            <input type="number" class="form-control" id="Weight" name="Weight" min="0" max="100" step="0.01" placeholder="e.g., 25.50" required>
                         </div>
                         
                         <div class="col-12 col-md-6">
-                            <label for="totalScore" class="form-label">Total Score</label>
-                            <input type="number" class="form-control" id="totalScore" name="totalScore" min="0" step="0.01" placeholder="e.g., 100.00" required>
+                            <label for="Score" class="form-label">Score</label>
+                            <input type="number" class="form-control" id="Score" name="Score" min="0" step="0.01" placeholder="e.g., 100.00" required>
                         </div>
                         
                         <div class="col-12">
@@ -269,7 +294,8 @@
             <div class="modal-body">
                 <form id="editAssessmentForm">
                     <input type="hidden" id="editAssessmentId" name="assessmentId">
-                    <input type="hidden" id="editCourseId" name="courseId">
+                    <input type="hidden" id="editCourseId" name="courseOfferingId">
+                    <input type="hidden" id="editTrimesterId" name="trimesterId">
                     
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
@@ -286,13 +312,13 @@
                         </div>
                         
                         <div class="col-12 col-md-6">
-                            <label for="editTotalWeight" class="form-label">Total Weight (%)</label>
-                            <input type="number" class="form-control" id="editTotalWeight" name="totalWeight" min="0" max="100" step="0.01" required>
+                            <label for="editWeight" class="form-label">Weight (%)</label>
+                            <input type="number" class="form-control" id="editWeight" name="Weight" min="0" max="100" step="0.01" required>
                         </div>
                         
                         <div class="col-12 col-md-6">
-                            <label for="editTotalScore" class="form-label">Total Score</label>
-                            <input type="number" class="form-control" id="editTotalScore" name="totalScore" min="0" step="0.01" required>
+                            <label for="editScore" class="form-label">Score</label>
+                            <input type="number" class="form-control" id="editScore" name="Score" min="0" step="0.01" required>
                         </div>
                         
                         <div class="col-12">
@@ -433,33 +459,33 @@
              });
      }
      
-     // Load assessment types for edit modal
-     function loadAssessmentTypesForEdit() {
-         const assessmentTypeSelect = document.getElementById('editAssessmentType');
-         if (!assessmentTypeSelect) return;
-         
-         // Show loading state
-         assessmentTypeSelect.innerHTML = '<option value="">Loading assessment types...</option>';
-         
-         // Fetch assessment types from the server
-         fetch('/Admin/Assessment/GetAssessmentTypes')
-             .then(response => response.json())
-             .then(data => {
-                 if (data.success && data.data && data.data.length > 0) {
-                     // Populate dropdown
-                     assessmentTypeSelect.innerHTML = '<option value="">Select Type</option>' + 
-                         data.data.map(at => 
-                             `<option value="${at.id}">${at.assessmentTypeName}</option>`
-                         ).join('');
-                 } else {
-                     assessmentTypeSelect.innerHTML = '<option value="">No assessment types available</option>';
-                 }
-             })
-             .catch(error => {
-                 console.error('Error loading assessment types:', error);
-                 assessmentTypeSelect.innerHTML = '<option value="">Error loading assessment types</option>';
-             });
-     }
+         // Load assessment types for edit modal
+    function loadAssessmentTypesForEdit() {
+        const assessmentTypeSelect = document.getElementById('editAssessmentType');
+        if (!assessmentTypeSelect) return Promise.resolve();
+        
+        // Show loading state
+        assessmentTypeSelect.innerHTML = '<option value="">Loading assessment types...</option>';
+        
+        // Fetch assessment types from the server
+        return fetch('/Admin/Assessment/GetAssessmentTypes')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    // Populate dropdown
+                    assessmentTypeSelect.innerHTML = '<option value="">Select Type</option>' + 
+                        data.data.map(at => 
+                            `<option value="${at.id}">${at.assessmentTypeName}</option>`
+                        ).join('');
+                } else {
+                    assessmentTypeSelect.innerHTML = '<option value="">No assessment types available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading assessment types:', error);
+                assessmentTypeSelect.innerHTML = '<option value="">Error loading assessment types</option>';
+            });
+    }
      
      // Load learning outcomes for selected course
     function loadLearningOutcomes(courseOfferingId) {
@@ -481,14 +507,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.length > 0) {
-                    container.innerHTML = data.data.map(lo => `
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="learningOutcomes" value="${lo.id}" id="lo_${lo.id}">
-                            <label class="form-check-label" for="lo_${lo.id}">
-                                ${lo.loName} - ${lo.description}
-                            </label>
-                        </div>
-                    `).join('');
+                    container.innerHTML = data.data.map(lo => {
+                        const loName = lo.loName || lo.LOName || '';
+                        const description = lo.description || lo.Description || '';
+                        return `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="learningOutcomes" value="${lo.id}" id="lo_${lo.id}">
+                                <label class="form-check-label" for="lo_${lo.id}">
+                                    <strong>${loName}</strong> - ${description}
+                                </label>
+                            </div>
+                        `;
+                    }).join('');
                 } else {
                     container.innerHTML = `
                         <div class="alert alert-warning">
@@ -592,8 +622,8 @@
                                  <h6 class="fw-bold">Assessment Information</h6>
                                  <p><strong>Name:</strong> ${assessment.assessmentName}</p>
                                  <p><strong>Type:</strong> ${assessment.assessmentType?.assessmentTypeName || 'N/A'}</p>
-                                 <p><strong>Weight:</strong> ${assessment.totalWeight}%</p>
-                                 <p><strong>Total Score:</strong> ${assessment.totalScore}</p>
+                                 <p><strong>Weight:</strong> ${assessment.Weight}%</p>
+                                 <p><strong>Score:</strong> ${assessment.Score}</p>
                              </div>
                              <div class="col-md-6">
                                  <h6 class="fw-bold">Course Information</h6>
@@ -663,7 +693,7 @@
                                         <th>Assessment Name</th>
                                         <th>Type</th>
                                         <th>Weight (%)</th>
-                                        <th>Total Score</th>
+                                        <th>Score</th>
                                         <th>Learning Outcomes</th>
                                         <th>Actions</th>
                                     </tr>
@@ -673,8 +703,8 @@
                                         <tr>
                                             <td>${assessment.assignmentName}</td>
                                             <td><span class="badge bg-info">Assignment</span></td>
-                                            <td>${assessment.totalWeight}</td>
-                                            <td>${assessment.totalScore}</td>
+                                            <td>${assessment.Weight}</td>
+                                            <td>${assessment.Score}</td>
                                             <td>${assessment.learningOutcomes.join(', ')}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
@@ -726,17 +756,17 @@
         const courseId = formData.get('courseId');
         const assessmentName = formData.get('assessmentName');
         const assessmentType = formData.get('assessmentType');
-        const totalWeight = formData.get('totalWeight');
-        const totalScore = formData.get('totalScore');
+        const Weight = formData.get('Weight');
+        const Score = formData.get('Score');
         
-        if (!courseId || !assessmentName || !assessmentType || !totalWeight || !totalScore) {
+        if (!courseId || !assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
             return;
         }
         
         // Validate weight
-        if (parseFloat(totalWeight) <= 0 || parseFloat(totalWeight) > 100) {
-            showError('Total weight must be between 0 and 100!');
+        if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
+            showError('weight must be between 0 and 100!');
             return;
         }
         
@@ -779,8 +809,8 @@
              trimesterId: trimesterId,
              assessmentName: assessmentName,
              assessmentTypeId: assessmentType, // This is the AssessmentType ID
-             totalWeight: parseFloat(totalWeight),
-             totalScore: parseFloat(totalScore),
+             Weight: parseFloat(Weight),
+             Score: parseFloat(Score),
              learningOutcomes: selectedLOs
          };
         
@@ -830,52 +860,217 @@
     
     // Edit assessment
     function editAssessment(assessmentId, assessmentName) {
-        // Set the assessment ID
-        document.getElementById('editAssessmentId').value = assessmentId;
-        document.getElementById('editCourseId').value = currentCourseId;
-        
-        // Set the assessment name
-        document.getElementById('editAssessmentName').value = assessmentName;
-        
-        // Load assessment types for editing
-        loadAssessmentTypesForEdit();
-        
-        // Load assessment data (replace with actual API call)
-        // For now, we'll set some default values
-        document.getElementById('editTotalWeight').value = '25.00';
-        document.getElementById('editTotalScore').value = '100.00';
-        
-        // Load learning outcomes for editing
-        loadEditLearningOutcomes(currentCourseId);
-        
-        // Show the modal
+        // Show loading state
         const modal = new bootstrap.Modal(document.getElementById('editAssessmentModal'));
         modal.show();
+        
+        // Set the assessment ID
+        document.getElementById('editAssessmentId').value = assessmentId;
+        
+        // Load assessment data from API
+        fetch(`/Admin/Assessment/GetAssessmentById?id=${assessmentId}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.data) {
+                    const assessment = result.data;
+                    
+                    // Populate form fields with actual data
+                    document.getElementById('editAssessmentName').value = assessment.assessmentName || '';
+                    document.getElementById('editWeight').value = assessment.weight || '';
+                    document.getElementById('editScore').value = assessment.score || '';
+                    
+                    // Try to find courseOfferingId in different possible locations
+                    let courseOfferingId = assessment.courseOfferingId;
+                    
+                    // If not found directly, try to get it from the first assessmentLearningOutcome
+                    if (!courseOfferingId && assessment.assessmentLearningOutcomes && assessment.assessmentLearningOutcomes.length > 0) {
+                        const firstLO = assessment.assessmentLearningOutcomes[0];
+                        courseOfferingId = firstLO.assessment?.courseOfferingId;
+                    }
+                    
+                    // Fallback to empty string if still not found
+                    courseOfferingId = courseOfferingId || '';
+                    
+                    // Set course offering ID (this is the key field for backend)
+                    document.getElementById('editCourseId').value = courseOfferingId;
+                    
+                    // Set trimester ID
+                    document.getElementById('editTrimesterId').value = assessment.trimesterId || '';
+                    
+                    // Load assessment types and set the selected one
+                    loadAssessmentTypesForEdit().then(() => {
+                        if (assessment.assessmentType && assessment.assessmentType.id) {
+                            document.getElementById('editAssessmentType').value = assessment.assessmentType.id;
+                        }
+                    });
+                    
+                    // Load all learning outcomes for the course and mark selected ones
+                    loadEditLearningOutcomesWithAllOptions(assessment.trimesterCourse?.course?.learningOutcomes, assessment.assessmentLearningOutcomes);
+                    
+                } else {
+                    showError('Failed to load assessment data');
+                    modal.hide();
+                }
+            })
+            .catch(error => {
+                showError('Failed to load assessment data');
+                modal.hide();
+            });
     }
     
-    // Load learning outcomes for editing
-    function loadEditLearningOutcomes(courseId) {
+    // Load learning outcomes for editing with all course options
+    function loadEditLearningOutcomesWithAllOptions(allCourseLOs = [], selectedLOs = []) {
+        const container = document.getElementById('editLearningOutcomesContainer');
+        
+        if (!allCourseLOs || allCourseLOs.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No learning outcomes found for this course
+                </div>
+            `;
+            return;
+        }
+        
+        // Create a set of selected LO IDs for quick lookup
+        const selectedLOIds = new Set();
+        if (selectedLOs && selectedLOs.length > 0) {
+            selectedLOs.forEach(lo => {
+                if (lo.learningOutcome && lo.learningOutcome.id) {
+                    selectedLOIds.add(lo.learningOutcome.id);
+                } else if (lo.loId) {
+                    selectedLOIds.add(lo.loId);
+                }
+            });
+        }
+        
+        // Render all course learning outcomes with selection state
+        container.innerHTML = allCourseLOs.map(lo => {
+            if (lo && lo.id) {
+                const loName = lo.loName || lo.LOName || '';
+                const description = lo.description || lo.Description || '';
+                const isChecked = selectedLOIds.has(lo.id) ? 'checked' : '';
+                
+                return `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="${lo.id}" id="editLo_${lo.id}" ${isChecked}>
+                        <label class="form-check-label" for="editLo_${lo.id}">
+                            <strong>${loName}</strong> - ${description}
+                        </label>
+                    </div>
+                `;
+            }
+            return '';
+        }).join('');
+    }
+    
+    // Load learning outcomes for editing (direct from assessment data - legacy)
+    function loadEditLearningOutcomesDirect(assessmentLearningOutcomes = []) {
+        const container = document.getElementById('editLearningOutcomesContainer');
+        
+        if (!assessmentLearningOutcomes || assessmentLearningOutcomes.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No learning outcomes found for this assessment
+                </div>
+            `;
+            return;
+        }
+        
+        // Create a set of selected LO IDs for quick lookup
+        const selectedLOIds = new Set();
+        assessmentLearningOutcomes.forEach(lo => {
+            if (lo.learningOutcome && lo.learningOutcome.id) {
+                selectedLOIds.add(lo.learningOutcome.id);
+            }
+        });
+        
+        // Render the learning outcomes directly from assessment data
+        container.innerHTML = assessmentLearningOutcomes.map(lo => {
+            if (lo.learningOutcome) {
+                const loName = lo.learningOutcome.loName || lo.learningOutcome.LOName || '';
+                const description = lo.learningOutcome.description || lo.learningOutcome.Description || '';
+                return `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="${lo.learningOutcome.id}" id="editLo_${lo.learningOutcome.id}" checked>
+                        <label class="form-check-label" for="editLo_${lo.learningOutcome.id}">
+                            <strong>${loName}</strong> - ${description}
+                        </label>
+                    </div>
+                `;
+            }
+            return '';
+        }).join('');
+    }
+    
+    // Load learning outcomes for editing (legacy function for add modal)
+    function loadEditLearningOutcomes(courseOfferingId, selectedLearningOutcomes = []) {
+        if (!courseOfferingId) {
+            document.getElementById('editLearningOutcomesContainer').innerHTML = '';
+            return;
+        }
+        
         const container = document.getElementById('editLearningOutcomesContainer');
         container.innerHTML = `
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="lo1" id="editLo1" checked>
-                <label class="form-check-label" for="editLo1">
-                    LO1 - Demonstrate understanding of course concepts
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="lo2" id="editLo2" checked>
-                <label class="form-check-label" for="editLo2">
-                    LO2 - Apply knowledge to solve problems
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="lo3" id="editLo3">
-                <label class="form-check-label" for="editLo3">
-                    LO3 - Evaluate and analyze information
-                </label>
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                Loading learning outcomes for the selected course...
             </div>
         `;
+        
+        // Fetch learning outcomes from the server
+        fetch(`/Admin/Assessment/GetLearningOutcomes?courseOfferingId=${courseOfferingId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    // Create a set of selected LO IDs for quick lookup
+                    const selectedLOIds = new Set();
+                    console.log('Processing selected LOs:', selectedLearningOutcomes);
+                    if (selectedLearningOutcomes && selectedLearningOutcomes.length > 0) {
+                        selectedLearningOutcomes.forEach(lo => {
+                            console.log('Processing LO item:', lo);
+                            // Based on the actual API response structure
+                            if (lo.learningOutcome && lo.learningOutcome.id) {
+                                selectedLOIds.add(lo.learningOutcome.id);
+                                console.log('Added LO ID:', lo.learningOutcome.id);
+                            }
+                        });
+                    }
+                    console.log('Final selected LO IDs:', Array.from(selectedLOIds));
+                    
+                    container.innerHTML = data.data.map(lo => {
+                        const isChecked = selectedLOIds.has(lo.id) ? 'checked' : '';
+                        // Get LO name and description with proper field name handling
+                        const loName = lo.loName || lo.LOName || lo.loName || '';
+                        const description = lo.description || lo.Description || lo.description || '';
+                        console.log(`LO ${lo.id}: ${loName} - checked: ${isChecked}`);
+                        return `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="${lo.id}" id="editLo_${lo.id}" ${isChecked}>
+                                <label class="form-check-label" for="editLo_${lo.id}">
+                                    <strong>${loName}</strong> - ${description}
+                                </label>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No learning outcomes found for this course
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Error loading learning outcomes
+                    </div>
+                `;
+            });
     }
     
     // Update assessment
@@ -886,17 +1081,17 @@
         // Validate required fields
         const assessmentName = formData.get('assessmentName');
         const assessmentType = formData.get('assessmentType');
-        const totalWeight = formData.get('totalWeight');
-        const totalScore = formData.get('totalScore');
+        const Weight = formData.get('Weight');
+        const Score = formData.get('Score');
         
-        if (!assessmentName || !assessmentType || !totalWeight || !totalScore) {
+        if (!assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
             return;
         }
         
         // Validate weight
-        if (parseFloat(totalWeight) <= 0 || parseFloat(totalWeight) > 100) {
-            showError('Total weight must be between 0 and 100!');
+        if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
+            showError('weight must be between 0 and 100!');
             return;
         }
         
@@ -912,12 +1107,13 @@
         // Prepare data for API call
         const assessmentData = {
             id: formData.get('assessmentId'),
-            courseId: formData.get('courseId'),
+            courseOfferingId: formData.get('courseOfferingId'), // Get courseOfferingId from form
             assessmentName: assessmentName,
             assessmentTypeId: assessmentType, // This is the AssessmentType ID
-            totalWeight: parseFloat(totalWeight),
-            totalScore: parseFloat(totalScore),
-            learningOutcomes: selectedLOs
+            trimesterId: formData.get('trimesterId') || '', // Get trimesterId from form
+            Weight: parseFloat(Weight),
+            Score: parseFloat(Score),
+            LearningOutcomes: selectedLOs
         };
         
         // Send API request to update assessment
@@ -1021,6 +1217,32 @@
     
     .table tbody tr:hover {
         background-color: #f8f9fa;
+    }
+    
+    /* Learning Outcomes styling */
+    .form-check-label {
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+    
+    .form-check-label strong {
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .form-check {
+        margin-bottom: 0.5rem;
+        padding-left: 1.75rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .form-check-input:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
     }
     
     .btn-group .btn {
@@ -1270,4 +1492,246 @@
     .badge.bg-secondary {
         background-color: #6c757d !important;
     }
+    
+    /* Course Assessment Section Styling */
+    .course-assessment-section {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    .course-header-left {
+        background: linear-gradient(135deg, #ffffff 0%, #ffffff 70%, #f0f8f0 100%);
+        color: #2e7d32;
+        padding: 25px 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        height: 140px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+        transition: all 0.3s ease;
+        user-select: none;
+        border: 2px solid #e8f5e8;
+    }
+    
+    .course-header-left:hover {
+        background: linear-gradient(135deg, #ffffff 0%, #ffffff 60%, #e8f5e8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.15);
+        border-color: #c8e6c9;
+    }
+    
+    .course-header-left .course-icon {
+        font-size: 1.5rem;
+        color: #4caf50;
+        margin-bottom: 8px;
+    }
+    
+    .course-header-left .course-main-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .course-header-left .course-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #2e7d32;
+        line-height: 1.2;
+    }
+    
+    .course-header-left .course-code {
+        font-size: 0.9rem;
+        color: #4caf50;
+        font-weight: 500;
+        font-family: monospace;
+    }
+    
+    .course-header-left .course-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+    }
+    
+    .course-header-left .trimester-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .course-header-left .trimester-info i {
+        font-size: 0.8rem;
+        color: #4caf50;
+    }
+    
+    .course-header-left .trimester-info .badge {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+    }
+    
+    .assessments-container {
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        min-height: 140px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .course-assessment-section .row {
+        align-items: stretch;
+    }
+    
+    .course-assessment-section .col-md-4 {
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .course-assessment-section .col-md-8 {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 0;
+    }
+    
+    /* Assessment Table Styling */
+    .assessment-table {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .assessment-table thead th {
+        background-color: #f8f9fa !important;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        padding: 12px 16px;
+    }
+    
+    .assessment-row {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .assessment-row:hover {
+        background-color: #f8f9fa;
+        transform: translateX(2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .assessment-row:last-child {
+        border-bottom: none;
+    }
+    
+    .assessment-row td {
+        padding: 16px;
+        vertical-align: middle;
+    }
+    
+    .assessment-row .text-dark {
+        color: #212529 !important;
+    }
+    
+    .assessment-row .badge {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        border-radius: 15px;
+        font-weight: 500;
+    }
+    
+    .assessment-row .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .assessment-row .btn-group .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .course-assessment-section .row {
+            flex-direction: column;
+        }
+        
+        .course-assessment-section .col-md-4,
+        .course-assessment-section .col-md-8 {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .course-header-left {
+            height: auto;
+            min-height: 120px;
+            padding: 20px 15px;
+        }
+        
+        .assessments-container {
+            padding: 20px 15px;
+        }
+        
+        .assessment-table thead th,
+        .assessment-row td {
+            padding: 12px 8px;
+        }
+        
+        .assessment-row .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+    
+    /* Collapsible Course Assessment Styling */
+    .assessments-container.collapsed {
+        max-height: 0;
+        padding: 0 25px;
+        opacity: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .course-header-left .course-icon .fa-chevron-down {
+        transition: transform 0.3s ease;
+    }
+    
+    .course-header-left .course-icon .fa-chevron-down.rotated {
+        transform: rotate(-90deg);
+    }
 </style>
+
+@section Scripts {
+    <script>
+        // Toggle course assessments visibility
+        function toggleCourseAssessments(courseId) {
+            const assessmentsContainer = document.getElementById(courseId);
+            const icon = document.getElementById(`icon_${courseId}`);
+            
+            if (assessmentsContainer.classList.contains('collapsed')) {
+                // Show assessments
+                assessmentsContainer.classList.remove('collapsed');
+                icon.classList.remove('rotated');
+            } else {
+                // Hide assessments
+                assessmentsContainer.classList.add('collapsed');
+                icon.classList.add('rotated');
+            }
+        }
+        
+        // Initialize all course sections as expanded by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // All course sections start expanded
+            console.log('Assessment page loaded - all course sections are expanded by default');
+        });
+    </script>
+}

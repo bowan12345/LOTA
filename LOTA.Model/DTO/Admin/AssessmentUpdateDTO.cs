@@ -15,18 +15,16 @@ namespace LOTA.Model.DTO.Admin
         [Required(ErrorMessage = "Assessment name is required")]
         [StringLength(50, ErrorMessage = "Assessment name cannot exceed 50 characters")]
         public string AssessmentName { get; set; }
+        [Required(ErrorMessage = "Assessment Type is required")]
         public string AssessmentTypeId { get; set; }
 
         [Required(ErrorMessage = "Course is required")]
         public string CourseOfferingId { get; set; }
 
-        [Required(ErrorMessage = "Trimester is required")]
-        public string TrimesterId { get; set; }
-
         [Required(ErrorMessage = "Weight percentage is required")]
-        public decimal TotalWeight { get; set; }
-        [Required(ErrorMessage = "TotalScore is required")]
-        public decimal TotalScore { get; set; }
+        public decimal Weight { get; set; }
+        [Required(ErrorMessage = "Score is required")]
+        public decimal Score { get; set; }
         public List<string> LearningOutcomes { get; set; }
     }
 }

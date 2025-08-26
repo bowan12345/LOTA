@@ -90,7 +90,7 @@ namespace LOTA.Test
             _trimesterRepoMock.Setup(r => r.GetActiveTrimestersAsync())
                 .ReturnsAsync(new List<Trimester> { trimester });
 
-            var result = await _service.GetCurrentTrimesterAsync();
+            var result = await _service.GetLatestTrimesterAsync();
 
             Assert.Equal("4", result.Id);
             Assert.Equal(trimester.TrimesterNumber, result.TrimesterNumber);

@@ -20,7 +20,6 @@ namespace LOTA.DataAccess.Repository
         {
             this._db = db;
             dbset = _db.Set<T>();
-           /* _db.Movies.Include(u => u.Category).Include(u=>u.CategoryId);*/
         }
 
         public async Task<T> AddAsync(T entity)

@@ -17,8 +17,8 @@ namespace LOTA.Model.DTO.Admin
 
         public AssessmentType AssessmentType { get; set; }
 
-        public decimal TotalWeight { get; set; }
-        public decimal TotalScore { get; set; }
+        public decimal Weight { get; set; }
+        public decimal Score { get; set; }
         public bool IsActive { get; set; } = true;
 
         public string? CreatedBy { get; set; }

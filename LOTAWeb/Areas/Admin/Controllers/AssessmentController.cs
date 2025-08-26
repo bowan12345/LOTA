@@ -107,33 +107,24 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
-        //get assessments for a course
-        [HttpGet]
-        public async Task<IActionResult> GetCourseAssessments(string courseId)
-        {
-            if (string.IsNullOrEmpty(courseId))
-            {
-                return BadRequest(new { success = false, message = "Course ID is required" });
-            }
-
-           
-
-            return Json(new { success = true, data = courseId });
-        }
-
         //  create a new assessment
         [HttpPost]
         public async Task<IActionResult> CreateAssessment([FromBody] AssessmentCreateDTO request)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
+                //checks if it has LOs
+                if (request.LearningOutcomes.Count <= 0)
                 {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+                    return Json(new { success = false, message = "Learning outcomes cannot be emplty" });
                 }
 
                 // Save to database
@@ -154,29 +145,24 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateAssessment([FromBody] AssessmentUpdateDTO request)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
+                //checks if it has LOs
+                if (request.LearningOutcomes.Count <= 0)
                 {
-                    return BadRequest(new { success = false, message = "Invalid data" });
+                    return Json(new { success = false, message = "Learning outcomes cannot be emplty" });
                 }
 
-                // Update assessment
-                var assessment = new Assessment
-                {
-                    Id = request.Id,
-                    AssessmentName = request.AssessmentName,
-                    AssessmentTypeId = request.AssessmentTypeId, // Use the AssessmentType ID
-                    TotalWeight = request.TotalWeight,
-                    TotalScore = request.TotalScore,
-                    CourseOfferingId = request.CourseOfferingId,
-                    TrimesterId = request.TrimesterId,
-                    IsActive = true,
-                    UpdatedDate = DateTime.UtcNow,
-                };
-
-                // Save to database
-                await _assessmentService.UpdateAssessmentAsync(assessment);
+                // update information
+                await _assessmentService.UpdateAssessmentAsync(request);
                 return Json(new { success = true, message = "Assessment updated successfully" });
             }
             catch (Exception ex)

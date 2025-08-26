@@ -3,6 +3,8 @@ using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.PortableExecutable;
+using Azure.Core;
 
 namespace LOTA.Service.Service
 {
@@ -17,9 +19,14 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<AssessmentReturnDTO>> GetAllAssessmentsAsync()
         {
-            // Load assessments with navigation properties
-            var assessments = await _unitOfWork.assessmentRepository.GetAllAsync(includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
-            
+            //get latest trimester
+            var trimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
+            if (trimester == null)
+            {
+                throw new NotImplementedException("No trimester Information ");
+            }
+            // get assessments at latest trimester
+            var assessments = await _unitOfWork.assessmentRepository.GetAllAsync(a=>a.TrimesterId == trimester.Id,includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
             var assessmentsWithDetails = new List<AssessmentReturnDTO>();
             
             foreach (var assessment in assessments)
@@ -32,93 +39,140 @@ namespace LOTA.Service.Service
 
         public async Task<AssessmentReturnDTO> GetAssessmentByIdAsync(string id)
         {
-            var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(id, includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
-            if (assessment == null) return null;
-            
+            //get assessment info
+            var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(id, includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course.LearningOutcomes");
+            if (assessment == null)
+            {
+                throw new NotImplementedException("Assessment information has not found");
+            }
+            //check LO info
+            IEnumerable<AssessmentLearningOutcome> LoLists = await _unitOfWork.assessmentRepository.GetLOListByAssessmentId(assessment.Id, "LearningOutcome");
+            if (LoLists == null || LoLists.Count()<=0)
+            {
+                throw new NotImplementedException("Learning outcome information has not found");
+            }
+            assessment.AssessmentLearningOutcomes = LoLists.ToList();
             return MapToReturnDTO(assessment, assessment.TrimesterCourse, assessment.Trimester, assessment.AssessmentType);
         }
 
         public async Task<AssessmentReturnDTO> CreateAssessmentAsync(AssessmentCreateDTO assessmentCreateDTO)
         {
-            try
-            {
-                // Create new assessment
-                var assessment = new Assessment
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    AssessmentName = assessmentCreateDTO.AssessmentName,
-                    AssessmentTypeId = assessmentCreateDTO.AssessmentTypeId,
-                    TotalWeight = assessmentCreateDTO.TotalWeight,
-                    TotalScore = assessmentCreateDTO.TotalScore,
-                    CourseOfferingId = assessmentCreateDTO.CourseOfferingId,
-                    TrimesterId = assessmentCreateDTO.TrimesterId,
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow,
-                };
-                Assessment createAssessment = await _unitOfWork.assessmentRepository.AddAsync(assessment);
-                await _unitOfWork.SaveAsync();
-                return new AssessmentReturnDTO()
-                {
-                    Id = createAssessment.Id,
-                    AssessmentName = createAssessment.AssessmentName,
-                    AssessmentType = createAssessment.AssessmentType,
-                    TotalWeight = createAssessment.TotalWeight,
-                    TotalScore = createAssessment.TotalScore
-                };
-            }
-            catch(Exception ex)
-            {
-                throw new NotImplementedException("Create assessment is failed");
-            }
-        }
 
-        public async Task UpdateAssessmentAsync(Assessment assessment)
-        {
-            try
+            //checks if it has assessments under the offered course
+            IEnumerable<Assessment> courseofferedassessmentList = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(assessmentCreateDTO.CourseOfferingId);
+            if (courseofferedassessmentList != null && courseofferedassessmentList.Count() > 0)
             {
-                var assessmentDb = await _unitOfWork.assessmentRepository.GetByIdAsync(assessment.Id);
-                if (assessmentDb == null)
+                //calculate total weight of all assessments of this offered course 
+                decimal totalWeight = courseofferedassessmentList.Sum(a => a.Weight);
+                if (totalWeight + assessmentCreateDTO.Weight > 100m)
                 {
-                    throw new NotImplementedException("Assessment is not found");
+                    throw new NotImplementedException("Total Weight of This Course Cannot exceed 100%");
                 }
-                _unitOfWork.assessmentRepository.Update(assessment);
-                await _unitOfWork.SaveAsync();
             }
-            catch (Exception ex)
+            // Create new assessment
+            var assessment = new Assessment
             {
-                throw new NotImplementedException("Update assessment is failed");
+                Id = Guid.NewGuid().ToString(),
+                AssessmentName = assessmentCreateDTO.AssessmentName,
+                AssessmentTypeId = assessmentCreateDTO.AssessmentTypeId,
+                Weight = assessmentCreateDTO.Weight,
+                Score = assessmentCreateDTO.Score,
+                CourseOfferingId = assessmentCreateDTO.CourseOfferingId,
+                TrimesterId = assessmentCreateDTO.TrimesterId,
+                IsActive = true,
+                CreatedDate = DateTime.UtcNow,
+            };
+            //add new assessment
+            Assessment createAssessment = await _unitOfWork.assessmentRepository.AddAsync(assessment);
+            //add LOs of the assessment
+            var LOList = assessmentCreateDTO.LearningOutcomes.Select(lo => new AssessmentLearningOutcome
+            {
+                Id = Guid.NewGuid().ToString(),
+                AssessmentId = createAssessment.Id,
+                LOId = lo
+            }).ToList();
+            await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(LOList);
+            //save to database
+            await _unitOfWork.SaveAsync();
+            return new AssessmentReturnDTO()
+            {
+                Id = createAssessment.Id,
+                AssessmentName = createAssessment.AssessmentName,
+                AssessmentType = createAssessment.AssessmentType,
+                Weight = createAssessment.Weight,
+                Score = createAssessment.Score
+            };
+        }
+           
+        public async Task UpdateAssessmentAsync(AssessmentUpdateDTO assessmentDTO)
+        {
+         
+            //checks if it has assessments under the offered course
+            IEnumerable<Assessment> courseofferedassessmentList = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(assessmentDTO.CourseOfferingId);
+            if (courseofferedassessmentList != null && courseofferedassessmentList.Count() > 0)
+            {
+                List<Assessment> assessments = courseofferedassessmentList.Where(a => a.Id != assessmentDTO.Id).ToList();
+                //calculate total weight of all assessments of this offered course 
+                decimal totalWeight = assessments.Sum(a => a.Weight);
+                if (totalWeight + assessmentDTO.Weight > 100m)
+                {
+                    throw new NotImplementedException("Total Weight of This Course Cannot exceed 100%");
+                }
             }
+            var assessmentDb = await _unitOfWork.assessmentRepository.GetByIdAsync(assessmentDTO.Id);
+            if (assessmentDb == null)
+            {
+                throw new NotImplementedException("Assessment is not found");
+            }
+            // Update assessment
+            assessmentDb.AssessmentName = assessmentDTO.AssessmentName;
+            assessmentDb.AssessmentTypeId = assessmentDTO.AssessmentTypeId;
+            assessmentDb.Weight = assessmentDTO.Weight;
+            assessmentDb.Score = assessmentDTO.Score;
+            assessmentDb.UpdatedDate = DateTime.UtcNow;
+
+            //remove old LOs of the assessment
+            _unitOfWork.assessmentRepository.RemoveLearningOutcomesByAssessmentIdAsync(assessmentDb.Id);
+            //add new LOs of the assessment
+            var LOList = assessmentDTO.LearningOutcomes.Select(lo => new AssessmentLearningOutcome
+            {
+                Id = Guid.NewGuid().ToString(),
+                AssessmentId = assessmentDTO.Id,
+                LOId = lo
+            }).ToList();
+            await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(LOList);
+            //save to database
+            await _unitOfWork.SaveAsync();
+
         }
 
         public async Task DeleteAssessmentAsync(string id)
         {
-            try
+            var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(id);
+            if (assessment == null)
             {
-                var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(id);
-                if (assessment == null)
-                {
-                    throw new NotImplementedException("Assessment is not found");
-                }
-                _unitOfWork.assessmentRepository.Remove(id);
-                await _unitOfWork.SaveAsync();
+                throw new NotImplementedException("Assessment is not found");
             }
-            catch (Exception ex)
-            {
-                throw new NotImplementedException("Delete assessment is failed");
-            }
+            _unitOfWork.assessmentRepository.Remove(id);
+            await _unitOfWork.SaveAsync();
+           
         }
 
         public async Task<IEnumerable<AssessmentReturnDTO>> GetAssessmentsBySearchTermAsync(string searchTerm)
         {
-            // Load assessments with navigation properties
-            var assessments = await _unitOfWork.assessmentRepository.GetAllAsync(includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
-            
+            //get latest trimester
+            var trimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
+            if (trimester == null)
+            {
+                throw new NotImplementedException("No trimester Information ");
+            }
+            // get assessments at latest trimester
+            var assessments = await _unitOfWork.assessmentRepository.GetAllAsync(a=>a.TrimesterId == trimester.Id, includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
             var filteredAssessments = assessments.Where(a => 
-                a.AssessmentName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (a.TrimesterCourse != null && a.TrimesterCourse.Course.CourseName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                 a.TrimesterCourse != null && a.TrimesterCourse.Course.CourseName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 (a.TrimesterCourse != null && a.TrimesterCourse.Course.CourseCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             );
-            
+           
             var assessmentsWithDetails = new List<AssessmentReturnDTO>();
             
             foreach (var assessment in filteredAssessments)
@@ -136,8 +190,8 @@ namespace LOTA.Service.Service
                 Id = assessment.Id,
                 AssessmentName = assessment.AssessmentName,
                 AssessmentType = assessmentType ?? assessment.AssessmentType,
-                TotalWeight = assessment.TotalWeight,
-                TotalScore = assessment.TotalScore,
+                Weight = assessment.Weight,
+                Score = assessment.Score,
                 IsActive = assessment.IsActive,
                 CreatedBy = assessment.CreatedBy,
                 CreatedDate = assessment.CreatedDate,

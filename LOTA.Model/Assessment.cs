@@ -23,9 +23,9 @@ namespace LOTA.Model
 
 
         [Precision(5, 2)]
-        public decimal TotalWeight { get; set; }
+        public decimal Weight { get; set; }
         [Precision(5, 2)]
-        public decimal TotalScore { get; set; }
+        public decimal Score { get; set; }
         public bool IsActive { get; set; } = false;
 
         [MaxLength(50)]
@@ -55,7 +55,5 @@ namespace LOTA.Model
         public string Id { get; set; }
         [Required, MaxLength(50)]
         public string AssessmentTypeName { get; set; }
-        // Relationships
-        public ICollection<Assessment> Assessments { get; set; }
     }
 }

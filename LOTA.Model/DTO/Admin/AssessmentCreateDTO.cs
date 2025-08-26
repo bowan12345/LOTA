@@ -24,9 +24,9 @@ namespace LOTA.Model.DTO.Admin
         public string TrimesterId { get; set; }
 
         [Required(ErrorMessage = "Weight percentage is required")]
-        public decimal TotalWeight { get; set; }
-        [Required(ErrorMessage = "TotalScore is required")]
-        public decimal TotalScore { get; set; }
+        public decimal Weight { get; set; }
+        [Required(ErrorMessage = "Score is required")]
+        public decimal Score { get; set; }
 
         [Required(ErrorMessage = "LearningOutcomes is required")]
         public List<string> LearningOutcomes { get; set; }

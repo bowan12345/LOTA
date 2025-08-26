@@ -86,10 +86,10 @@ namespace LOTA.DataAccess.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Assessment>()
-                .HasOne(c => c.AssessmentType)
-                .WithMany(q => q.Assessments)
-                .HasForeignKey(c => c.AssessmentTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasMany(a => a.AssessmentLearningOutcomes)
+                .WithOne(lo => lo.Assessment)
+                .HasForeignKey(lo => lo.AssessmentId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ApplicationUser>().HasData(
                new ApplicationUser
@@ -337,8 +337,8 @@ namespace LOTA.DataAccess.Data
                     Id = "ASSIGN-001",
                     AssessmentName = "Project Proposal",
                     AssessmentTypeId = "001",
-                    TotalWeight = 30,
-                    TotalScore = 100,
+                    Weight = 30,
+                    Score = 100,
                     CourseOfferingId = "TC001",
                     TrimesterId = "Trimester-001",
                     CreatedBy = "TUTOR-001",
