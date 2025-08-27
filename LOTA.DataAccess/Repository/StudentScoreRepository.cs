@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.DataAccess.Repository
 {
-    public class StudentScoreRepository : Repository<StudentScore>, IStudentScoreRepository
+    public class StudentScoreRepository : Repository<StudentAssessmentScore>, IStudentScoreRepository
     {
         public StudentScoreRepository(ApplicationDbContext db) : base(db)
         {
         }
 
-        public async Task<IEnumerable<StudentScore>> GetStudentScoresByAssessmentAsync(string assessmentId)
+        public async Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByAssessmentAsync(string assessmentId)
         {
-            return await _db.StudentScore
+            return await _db.StudentAssessmentScore
                 .Where(ss => ss.AssessmentId == assessmentId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
@@ -22,9 +22,9 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<StudentScore>> GetStudentScoresByStudentAsync(string studentId)
+        public async Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByStudentAsync(string studentId)
         {
-            return await _db.StudentScore
+            return await _db.StudentAssessmentScore
                 .Where(ss => ss.StudentId == studentId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
@@ -33,9 +33,9 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<StudentScore>> GetStudentScoresByCourseOfferingAsync(string courseOfferingId)
+        public async Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByCourseOfferingAsync(string courseOfferingId)
         {
-            return await _db.StudentScore
+            return await _db.StudentAssessmentScore
                 .Where(ss => ss.Assessment.CourseOfferingId == courseOfferingId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
@@ -44,9 +44,9 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
-        public async Task<StudentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId)
+        public async Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId)
         {
-            return await _db.StudentScore
+            return await _db.StudentAssessmentScore
                 .FirstOrDefaultAsync(ss => ss.StudentId == studentId && 
                                           ss.AssessmentId == assessmentId && 
                                           ss.LOId == loId);

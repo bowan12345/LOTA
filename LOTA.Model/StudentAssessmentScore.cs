@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.Model
 {
-    public class StudentScore
+    public class StudentAssessmentScore
     {
         [Key]
         public string Id { get; set; }
@@ -33,12 +33,15 @@ namespace LOTA.Model
 
         // Properties
         [Precision(5, 2)]
-        public decimal Score { get; set; }
-        [MaxLength(20)]
-        public string Status { get; set; }
+        public decimal TotalScore { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
         public bool?  IsRetake { get; set; } = false;
         public DateTime? RetakeDate { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
+
+        public ICollection<StudentLOScore> StudentLOScores { get; set; } = new List<StudentLOScore>();
     }
 }

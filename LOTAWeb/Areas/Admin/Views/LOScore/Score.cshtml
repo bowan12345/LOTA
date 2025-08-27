@@ -8,6 +8,8 @@
     var token = Html.AntiForgeryToken();
 }
 
+@token
+
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -26,10 +28,14 @@
                 <i class="fas fa-arrow-left me-2"></i>
                 Back to List
             </a>
-            <button class="btn btn-success" onclick="saveAllScores()">
-                <i class="fas fa-save me-2"></i>
-                Save All Scores
-            </button>
+                         <button class="btn btn-success" onclick="saveAllScores()">
+                 <i class="fas fa-save me-2"></i>
+                 Save All Scores
+             </button>
+             <button class="btn btn-warning" onclick="testButtonClick()">
+                 <i class="fas fa-bug me-2"></i>
+                 Test Button
+             </button>
         </div>
     </div>
 
@@ -383,7 +389,14 @@
 
     // Save scores for a specific student
     async function saveStudentScores(studentId, assessmentId) {
+        console.log('saveStudentScores function called');
+        console.log(`Saving scores for Student ID: ${studentId}, Assessment ID: ${assessmentId}`);
+        
         const row = document.querySelector(`tr[data-student-id="${studentId}"][data-assessment-id="${assessmentId}"]`);
+        if (!row) {
+            throw new Error(`Row not found for Student ID: ${studentId}, Assessment ID: ${assessmentId}`);
+        }
+        
         const scoreInputs = row.querySelectorAll('.lo-score-input');
         const scores = [];
         
@@ -391,6 +404,8 @@
             const loId = input.getAttribute('data-lo-id');
             const scoreId = input.getAttribute('data-score-id');
             const score = parseFloat(input.value) || 0;
+            
+            console.log(`Processing LO ID: ${loId}, Score: ${score}, Score ID: ${scoreId || 'New'}`);
             
             scores.push({
                 loId: loId,
@@ -423,9 +438,16 @@
 
     // Save all scores
     async function saveAllScores() {
-        const allRows = document.querySelectorAll('tbody tr');
-        let hasChanges = false;
+        console.log('saveAllScores function called');
+        console.log('Starting saveAllScores...');
         
+        const allRows = document.querySelectorAll('tbody tr');
+        console.log(`Found ${allRows.length} student rows to process`);
+        
+        let hasChanges = false;
+        let totalChanges = 0;
+        
+        // Check for changes and count them
         for (const row of allRows) {
             const scoreInputs = row.querySelectorAll('.lo-score-input');
             for (const input of scoreInputs) {
@@ -434,10 +456,9 @@
                 
                 if (Math.abs(originalValue - currentValue) > 0.01) {
                     hasChanges = true;
-                    break;
+                    totalChanges++;
                 }
             }
-            if (hasChanges) break;
         }
         
         if (!hasChanges) {
@@ -445,74 +466,147 @@
             return;
         }
         
+        console.log(`Found ${totalChanges} changes to save`);
+        
         try {
             showLoading();
             
+            let processedRows = 0;
             for (const row of allRows) {
                 const studentId = row.getAttribute('data-student-id');
                 const assessmentId = row.getAttribute('data-assessment-id');
+                
+                console.log(`Processing row ${++processedRows}/${allRows.length}: Student ${studentId}, Assessment ${assessmentId}`);
+                
                 await saveStudentScores(studentId, assessmentId);
             }
             
             hideLoading();
-            showSuccessMessage('All scores saved successfully!');
+            showSuccessMessage(`All scores saved successfully! Processed ${processedRows} students.`);
             
         } catch (error) {
             hideLoading();
+            console.error('Error in saveAllScores:', error);
             showErrorMessage('Error saving all scores: ' + error.message);
         }
     }
 
+    // Validate score data before saving
+    function validateScoreData(studentId, assessmentId, loId, score) {
+        if (!studentId) {
+            throw new Error('Student ID is required');
+        }
+        if (!assessmentId) {
+            throw new Error('Assessment ID is required');
+        }
+        if (!loId) {
+            throw new Error('Learning Outcome ID is required');
+        }
+        if (score < 0) {
+            throw new Error('Score cannot be negative');
+        }
+        
+        console.log(`Validated data: Student=${studentId}, Assessment=${assessmentId}, LO=${loId}, Score=${score}`);
+    }
+
     // Create LO Score
     async function createLOScore(studentId, assessmentId, loId, score) {
-        const response = await fetch('@Url.Action("CreateLOScore", "LOScore", new { area = "Admin" })', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify({
+        try {
+            // Validate data before sending
+            validateScoreData(studentId, assessmentId, loId, score);
+            
+            console.log(`Creating LO Score: Student=${studentId}, Assessment=${assessmentId}, LO=${loId}, Score=${score}`);
+            
+            const requestData = {
                 studentId: studentId,
                 assessmentId: assessmentId,
                 loId: loId,
                 trimesterId: '@Model.TrimesterCourse.Trimester.Id',
+                courseOfferingId: '@Model.TrimesterCourse.Id',
                 score: score,
                 status: 'Active',
                 isRetake: false
-            })
-        });
-        
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.message);
-        }
-        
-        return result.data;
-    }
+            };
+            
+            console.log('Request data:', requestData);
+            
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!tokenElement) {
+                throw new Error('Anti-forgery token not found');
+            }
+            
+                         const response = await fetch('@Url.Action("CreateLOScore", "LOScore", new { area = "Admin" })', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'RequestVerificationToken': tokenElement.value
+                 },
+                 body: JSON.stringify(requestData)
+             });
+             
+             console.log('Response status:', response.status);
+             
+             if (!response.ok) {
+                 throw new Error(`HTTP error! status: ${response.status}`);
+             }
+             
+             const result = await response.json();
+             console.log('Response result:', result);
+             
+             if (!result.success) {
+                 throw new Error(result.message || 'Unknown error occurred');
+             }
+             
+             return result.data;
+         } catch (error) {
+             console.error('Error in createLOScore:', error);
+             throw error;
+         }
+     }
 
-    // Update LO Score
-    async function updateLOScore(scoreId, score) {
-        const response = await fetch('@Url.Action("UpdateLOScore", "LOScore", new { area = "Admin" })', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify({
-                id: scoreId,
-                score: score,
-                status: 'Active',
-                isRetake: false
-            })
-        });
-        
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.message);
-        }
-        
-        return result.data;
-    }
+         // Update LO Score
+     async function updateLOScore(scoreId, score) {
+         try {
+             console.log(`Updating LO Score: Score ID=${scoreId}, Score=${score}`);
+             
+             const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+             if (!tokenElement) {
+                 throw new Error('Anti-forgery token not found');
+             }
+             
+             const response = await fetch('@Url.Action("UpdateLOScore", "LOScore", new { area = "Admin" })', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'RequestVerificationToken': tokenElement.value
+                 },
+                 body: JSON.stringify({
+                     id: scoreId,
+                     score: score,
+                     status: 'Active',
+                     isRetake: false
+                 })
+             });
+             
+             console.log('Update response status:', response.status);
+             
+             if (!response.ok) {
+                 throw new Error(`HTTP error! status: ${response.status}`);
+             }
+             
+             const result = await response.json();
+             console.log('Update response result:', result);
+             
+             if (!result.success) {
+                 throw new Error(result.message || 'Unknown error occurred');
+             }
+             
+             return result.data;
+         } catch (error) {
+             console.error('Error in updateLOScore:', error);
+             throw error;
+         }
+     }
 
     // Show loading modal
     function showLoading() {
@@ -582,12 +676,32 @@
         }, 3000);
     }
 
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Store original values for change detection
-        const scoreInputs = document.querySelectorAll('.lo-score-input');
-        scoreInputs.forEach(input => {
-            input.setAttribute('data-original-value', input.value);
-        });
-    });
+         // Test function to verify button clicks work
+     function testButtonClick() {
+         console.log('Button click test - function is working!');
+         alert('Button click test - JavaScript is working!');
+     }
+     
+     // Initialize page
+     document.addEventListener('DOMContentLoaded', function() {
+         console.log('DOM loaded - initializing page...');
+         
+         // Store original values for change detection
+         const scoreInputs = document.querySelectorAll('.lo-score-input');
+         console.log(`Found ${scoreInputs.length} score inputs`);
+         scoreInputs.forEach(input => {
+             input.setAttribute('data-original-value', input.value);
+         });
+         
+         // Test if functions are available
+         console.log('saveAllScores function available:', typeof saveAllScores);
+         console.log('saveStudentScores function available:', typeof saveStudentScores);
+         
+         // Check for anti-forgery token
+         const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+         console.log('Anti-forgery token found:', !!tokenElement);
+         if (tokenElement) {
+             console.log('Token value length:', tokenElement.value.length);
+         }
+     });
 </script>

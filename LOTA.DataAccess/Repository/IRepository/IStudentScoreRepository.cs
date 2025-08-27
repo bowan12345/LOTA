@@ -2,11 +2,11 @@ using LOTA.Model;
 
 namespace LOTA.DataAccess.Repository.IRepository
 {
-    public interface IStudentScoreRepository : IRepository<StudentScore,string>
+    public interface IStudentScoreRepository : IRepository<StudentAssessmentScore,string>
     {
-        Task<IEnumerable<StudentScore>> GetStudentScoresByAssessmentAsync(string assessmentId);
-        Task<IEnumerable<StudentScore>> GetStudentScoresByStudentAsync(string studentId);
-        Task<IEnumerable<StudentScore>> GetStudentScoresByCourseOfferingAsync(string courseOfferingId);
-        Task<StudentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId);
+        Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByAssessmentAsync(string assessmentId);
+        Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByStudentAsync(string studentId);
+        Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByCourseOfferingAsync(string courseOfferingId);
+        Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId);
     }
 }

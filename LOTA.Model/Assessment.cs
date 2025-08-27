@@ -45,7 +45,7 @@ namespace LOTA.Model
 
         // Relationships
         public ICollection<AssessmentLearningOutcome> AssessmentLearningOutcomes { get; set; } = new List<AssessmentLearningOutcome>();
-        public ICollection<StudentScore> StudentScores { get; set; } = new List<StudentScore>();
+        public ICollection<StudentAssessmentScore> StudentScores { get; set; } = new List<StudentAssessmentScore>();
     }
 
 

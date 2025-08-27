@@ -90,7 +90,6 @@ namespace LOTA.Service.Service
             return new LOScoreReturnDTO
             {
                 Id = studentScore.Id,
-                Status = studentScore.Status,
                 IsRetake = studentScore.IsRetake ?? false,
                 RetakeDate = studentScore.RetakeDate
             };
@@ -110,15 +109,15 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException("Score for this student, assessment, and LO already exists");
             }
 
-            var studentScore = new StudentScore
+            var studentScore = new StudentAssessmentScore
             {
                 Id = Guid.NewGuid().ToString(),
                 StudentId = loscoreCreateDTO.StudentId,
                 AssessmentId = loscoreCreateDTO.AssessmentId,
                 LOId = loscoreCreateDTO.LOId,
                 TrimesterId = loscoreCreateDTO.TrimesterId,
-                Score = loscoreCreateDTO.Score,
-                Status = loscoreCreateDTO.Status,
+                TotalScore = loscoreCreateDTO.Score,
+                IsActive = true,
                 IsRetake = loscoreCreateDTO.IsRetake,
                 RetakeDate = loscoreCreateDTO.RetakeDate,
                 CreatedDate = DateTime.UtcNow
@@ -138,8 +137,8 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException("LO Score not found");
             }
 
-            studentScore.Score = loscoreUpdateDTO.Score;
-            studentScore.Status = loscoreUpdateDTO.Status;
+            studentScore.TotalScore = loscoreUpdateDTO.Score;
+            studentScore.IsActive = true;
             studentScore.IsRetake = loscoreUpdateDTO.IsRetake;
             studentScore.RetakeDate = loscoreUpdateDTO.RetakeDate;
             studentScore.UpdatedDate = DateTime.UtcNow;
@@ -179,7 +178,6 @@ namespace LOTA.Service.Service
                 result.Add(new LOScoreReturnDTO
                 {
                     Id = ss.Id,
-                    Status = ss.Status,
                     IsRetake = ss.IsRetake ?? false,
                     RetakeDate = ss.RetakeDate
                 });
@@ -228,7 +226,6 @@ namespace LOTA.Service.Service
                 result.Add(new LOScoreReturnDTO
                 {
                     Id = ss.Id,
-                    Status = ss.Status,
                     IsRetake = ss.IsRetake ?? false,
                     RetakeDate = ss.RetakeDate
                 });

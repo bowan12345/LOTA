@@ -19,7 +19,8 @@ namespace LOTA.DataAccess.Data
         public DbSet<Qualification> Qualification { get; set; }
         public DbSet<QualificationType> QualificationType { get; set; }
         public DbSet<StudentCourse> StudentCourse { get; set; }
-        public DbSet<StudentScore> StudentScore { get; set; }
+        public DbSet<StudentAssessmentScore> StudentAssessmentScore { get; set; }
+        public DbSet<StudentLOScore> StudentLOScore { get; set; }
         public DbSet<TutorCourse> TutorCourse { get; set; }
         public DbSet<Trimester> Trimester { get; set; }
         public DbSet<TrimesterCourse> TrimesterCourse { get; set; }
@@ -41,18 +42,23 @@ namespace LOTA.DataAccess.Data
                 .HasForeignKey(sc => sc.StudentId)
                 .OnDelete(DeleteBehavior.Restrict); 
 
-            modelBuilder.Entity<StudentScore>()
+            modelBuilder.Entity<StudentAssessmentScore>()
                 .HasOne(ss => ss.Assessment)
                 .WithMany(a => a.StudentScores)
                 .HasForeignKey(ss => ss.AssessmentId)
                 .OnDelete(DeleteBehavior.Restrict);  
 
-            modelBuilder.Entity<StudentScore>()
+            modelBuilder.Entity<StudentAssessmentScore>()
                 .HasOne(ss => ss.Student)
                 .WithMany(s => s.StudentScores)
-                .HasForeignKey(ss => ss.StudentId)// FK is ApplicationUser.StudentIdentifier
+                .HasForeignKey(ss => ss.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<StudentAssessmentScore>()
+                .HasMany(s => s.StudentLOScores)
+                .WithOne(sc => sc.StudentAssessmentScore)
+                .HasForeignKey(sc => sc.StudentAssessmentScoreId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TutorCourse>()
                 .HasOne(tc => tc.Tutor)
@@ -90,6 +96,8 @@ namespace LOTA.DataAccess.Data
                 .WithOne(lo => lo.Assessment)
                 .HasForeignKey(lo => lo.AssessmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
 
             modelBuilder.Entity<ApplicationUser>().HasData(
                new ApplicationUser
@@ -381,20 +389,40 @@ namespace LOTA.DataAccess.Data
                 }
             );
 
-            // student score
-            modelBuilder.Entity<StudentScore>().HasData(
-                new StudentScore
+            // student assessment score
+            modelBuilder.Entity<StudentAssessmentScore>().HasData(
+                new StudentAssessmentScore
                 {
                     Id = "SCORE-001",
                     StudentId = "STUDENT-001",
                     AssessmentId = "ASSIGN-001",
                     LOId = "LO-001",
                     TrimesterId = "Trimester-001",
-                    Score = 80,
-                    Status = "Pass",
+                    TotalScore = 100,
+                    IsActive = true,
                     IsRetake = false,
                     CreatedDate = DateTime.Now
                 }
+            );
+
+            // student LO score
+            modelBuilder.Entity<StudentLOScore>().HasData(
+                new StudentLOScore
+                {
+                    Id = "LOSCORE-001",
+                    StudentAssessmentScoreId = "SCORE-001",
+                    Score = 50,
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                },
+                 new StudentLOScore
+                 {
+                     Id = "LOSCORE-002",
+                     StudentAssessmentScoreId = "SCORE-001",
+                     Score = 50,
+                     IsActive = true,
+                     CreatedDate = DateTime.Now
+                 }
             );
 
         }
