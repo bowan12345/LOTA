@@ -25,6 +25,6 @@ namespace LOTA.Model.DTO.Admin
         public decimal Weight { get; set; }
         [Required(ErrorMessage = "Score is required")]
         public decimal Score { get; set; }
-        public List<string> LearningOutcomes { get; set; }
+        public List<AssessmentLearningOutcomeCreateDTO> LearningOutcomes { get; set; }
     }
 }

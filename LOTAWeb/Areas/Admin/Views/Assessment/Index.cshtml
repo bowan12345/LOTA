@@ -233,7 +233,7 @@
                             </div>
                             <div class="alert alert-info mt-2">
                                 <i class="fas fa-info-circle me-2"></i>
-                                Select the learning outcomes that this assessment will assess
+                                Select the learning outcomes that this assessment will assess and enter the score for each selected LO
                             </div>
                         </div>
                     </div>
@@ -243,7 +243,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success" onclick="saveAssessment()">
                     <i class="fas fa-save me-2"></i>
-                    Add Assessment
+                    Add 
                 </button>
             </div>
         </div>
@@ -326,6 +326,10 @@
                             <div id="editLearningOutcomesContainer">
                                 <!-- Learning outcomes will be loaded dynamically -->
                             </div>
+                            <div class="alert alert-info mt-2">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Select the learning outcomes that this assessment will assess and enter the score for each selected LO
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -334,7 +338,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success" onclick="updateAssessment()">
                     <i class="fas fa-save me-2"></i>
-                    Update Assessment
+                    Update
                 </button>
             </div>
         </div>
@@ -511,11 +515,21 @@
                         const loName = lo.loName || lo.LOName || '';
                         const description = lo.description || lo.Description || '';
                         return `
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="learningOutcomes" value="${lo.id}" id="lo_${lo.id}">
-                                <label class="form-check-label" for="lo_${lo.id}">
-                                    <strong>${loName}</strong> - ${description}
-                                </label>
+                            <div class="form-check d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0 me-3 mt-1">
+                                    <input class="form-check-input" type="checkbox" name="learningOutcomes" value="${lo.id}" id="lo_${lo.id}" onchange="toggleLOScoreInput('${lo.id}')">
+                                </div>
+                                <div class="flex-grow-1 me-3">
+                                    <label class="form-check-label" for="lo_${lo.id}">
+                                        <strong>${loName}</strong> - ${description}
+                                    </label>
+                                </div>
+                                <div class="flex-shrink-0" style="width: 120px;">
+                                    <input type="number" class="form-control form-control-sm lo-score-input" 
+                                           id="lo_score_${lo.id}" name="lo_score_${lo.id}" 
+                                           placeholder="Score" min="0" max="100" step="0.01" 
+                                           style="display: none;" disabled>
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -752,6 +766,12 @@
         const form = document.getElementById('addAssessmentForm');
         const formData = new FormData(form);
         
+        // Show loading state first
+        const saveButton = document.querySelector('#addAssessmentModal .btn-success');
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        saveButton.disabled = true;
+        
         // Validate required fields
         const courseId = formData.get('courseId');
         const assessmentName = formData.get('assessmentName');
@@ -761,23 +781,61 @@
         
         if (!courseId || !assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
+            // Reset button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
             return;
         }
         
         // Validate weight
         if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
             showError('weight must be between 0 and 100!');
+            // Reset button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
             return;
         }
         
-        // Show loading state
-        const saveButton = document.querySelector('#addAssessmentModal .btn-success');
-        const originalText = saveButton.innerHTML;
-        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-        saveButton.disabled = true;
+        // Get selected learning outcomes with scores
+        const selectedLOs = [];
+        const checkedLOs = document.querySelectorAll('input[name="learningOutcomes"]:checked');
         
-        // Get selected learning outcomes
-        const selectedLOs = Array.from(document.querySelectorAll('input[name="learningOutcomes"]:checked')).map(cb => cb.value);
+        if (checkedLOs.length === 0) {
+            showError('Please select at least one learning outcome!');
+            // Reset button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+            return;
+        }
+        
+        for (let i = 0; i < checkedLOs.length; i++) {
+            const checkbox = checkedLOs[i];
+            const loId = checkbox.value;
+            const scoreInput = document.getElementById(`lo_score_${loId}`);
+            const score = scoreInput ? parseFloat(scoreInput.value) || 0 : 0;
+            
+            // Validate score input
+            if (!scoreInput || scoreInput.value.trim() === '') {
+                showError('Please enter a score for all selected learning outcomes!');
+                // Reset button state
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
+                return;
+            }
+            
+            if (score < 0 || score > 100) {
+                showError('Score must be between 0 and 100!');
+                // Reset button state
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
+                return;
+            }
+            
+            selectedLOs.push({
+                LOId: loId,
+                Score: score
+            });
+        }
         
                  // Get the selected course offering to get trimester ID and course ID
          const courseSelect = document.getElementById('courseId');
@@ -785,6 +843,9 @@
          
          if (!selectedOption) {
              showError('Course not selected!');
+             // Reset button state
+             saveButton.innerHTML = originalText;
+             saveButton.disabled = false;
              return;
          }
          
@@ -794,11 +855,17 @@
          
          if (!trimesterId) {
              showError('Trimester information not found for this course!');
+             // Reset button state
+             saveButton.innerHTML = originalText;
+             saveButton.disabled = false;
              return;
          }
          
          if (!actualCourseId) {
              showError('Course information not found!');
+             // Reset button state
+             saveButton.innerHTML = originalText;
+             saveButton.disabled = false;
              return;
          }
          
@@ -934,12 +1001,19 @@
         
         // Create a set of selected LO IDs for quick lookup
         const selectedLOIds = new Set();
+        const selectedLOScores = new Map();
         if (selectedLOs && selectedLOs.length > 0) {
             selectedLOs.forEach(lo => {
                 if (lo.learningOutcome && lo.learningOutcome.id) {
                     selectedLOIds.add(lo.learningOutcome.id);
+                    if (lo.score !== undefined) {
+                        selectedLOScores.set(lo.learningOutcome.id, lo.score);
+                    }
                 } else if (lo.loId) {
                     selectedLOIds.add(lo.loId);
+                    if (lo.score !== undefined) {
+                        selectedLOScores.set(lo.loId, lo.score);
+                    }
                 }
             });
         }
@@ -950,13 +1024,26 @@
                 const loName = lo.loName || lo.LOName || '';
                 const description = lo.description || lo.Description || '';
                 const isChecked = selectedLOIds.has(lo.id) ? 'checked' : '';
+                const score = selectedLOScores.get(lo.id) || '';
+                const isVisible = isChecked ? '' : 'style="display: none;"';
+                const isDisabled = isChecked ? '' : 'disabled';
                 
                 return `
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="${lo.id}" id="editLo_${lo.id}" ${isChecked}>
-                        <label class="form-check-label" for="editLo_${lo.id}">
-                            <strong>${loName}</strong> - ${description}
-                        </label>
+                    <div class="form-check d-flex align-items-start mb-3">
+                        <div class="flex-shrink-0 me-3 mt-1">
+                            <input class="form-check-input" type="checkbox" name="editLearningOutcomes" value="${lo.id}" id="editLo_${lo.id}" ${isChecked} onchange="toggleEditLOScoreInput('${lo.id}')">
+                        </div>
+                        <div class="flex-grow-1 me-3">
+                            <label class="form-check-label" for="editLo_${lo.id}">
+                                <strong>${loName}</strong> - ${description}
+                            </label>
+                        </div>
+                        <div class="flex-shrink-0" style="width: 120px;">
+                            <input type="number" class="form-control form-control-sm edit-lo-score-input" 
+                                   id="edit_lo_score_${lo.id}" name="edit_lo_score_${lo.id}" 
+                                   placeholder="Score" min="0" max="100" step="0.01" 
+                                   value="${score}" ${isVisible} ${isDisabled}>
+                        </div>
                     </div>
                 `;
             }
@@ -1002,6 +1089,36 @@
             }
             return '';
         }).join('');
+    }
+    
+    // Toggle LO score input visibility for add modal
+    function toggleLOScoreInput(loId) {
+        const checkbox = document.getElementById(`lo_${loId}`);
+        const scoreInput = document.getElementById(`lo_score_${loId}`);
+        
+        if (checkbox.checked) {
+            scoreInput.style.display = 'block';
+            scoreInput.disabled = false;
+        } else {
+            scoreInput.style.display = 'none';
+            scoreInput.disabled = true;
+            scoreInput.value = '';
+        }
+    }
+    
+    // Toggle LO score input visibility for edit modal
+    function toggleEditLOScoreInput(loId) {
+        const checkbox = document.getElementById(`editLo_${loId}`);
+        const scoreInput = document.getElementById(`edit_lo_score_${loId}`);
+        
+        if (checkbox.checked) {
+            scoreInput.style.display = 'block';
+            scoreInput.disabled = false;
+        } else {
+            scoreInput.style.display = 'none';
+            scoreInput.disabled = true;
+            scoreInput.value = '';
+        }
     }
     
     // Load learning outcomes for editing (legacy function for add modal)
@@ -1078,6 +1195,12 @@
         const form = document.getElementById('editAssessmentForm');
         const formData = new FormData(form);
         
+        // Show loading state first
+        const updateButton = document.querySelector('#editAssessmentModal .btn-success');
+        const originalText = updateButton.innerHTML;
+        updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        updateButton.disabled = true;
+        
         // Validate required fields
         const assessmentName = formData.get('assessmentName');
         const assessmentType = formData.get('assessmentType');
@@ -1086,23 +1209,61 @@
         
         if (!assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
             return;
         }
         
         // Validate weight
         if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
             showError('weight must be between 0 and 100!');
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
             return;
         }
         
-        // Show loading state
-        const updateButton = document.querySelector('#editAssessmentModal .btn-success');
-        const originalText = updateButton.innerHTML;
-        updateButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
-        updateButton.disabled = true;
+        // Get selected learning outcomes with scores
+        const selectedLOs = [];
+        const checkedLOs = document.querySelectorAll('input[name="editLearningOutcomes"]:checked');
         
-        // Get selected learning outcomes
-        const selectedLOs = Array.from(document.querySelectorAll('input[name="editLearningOutcomes"]:checked')).map(cb => cb.value);
+        if (checkedLOs.length === 0) {
+            showError('Please select at least one learning outcome!');
+            // Reset button state
+            updateButton.innerHTML = originalText;
+            updateButton.disabled = false;
+            return;
+        }
+        
+        for (let i = 0; i < checkedLOs.length; i++) {
+            const checkbox = checkedLOs[i];
+            const loId = checkbox.value;
+            const scoreInput = document.getElementById(`edit_lo_score_${loId}`);
+            const score = scoreInput ? parseFloat(scoreInput.value) || 0 : 0;
+            
+            // Validate score input
+            if (!scoreInput || scoreInput.value.trim() === '') {
+                showError('Please enter a score for all selected learning outcomes!');
+                // Reset button state
+                updateButton.innerHTML = originalText;
+                updateButton.disabled = false;
+                return;
+            }
+            
+            if (score < 0 || score > 100) {
+                showError('Score must be between 0 and 100!');
+                // Reset button state
+                updateButton.innerHTML = originalText;
+                updateButton.disabled = false;
+                return;
+            }
+            
+            selectedLOs.push({
+                LOId: loId,
+                Score: score
+            });
+        }
         
         // Prepare data for API call
         const assessmentData = {
@@ -1324,6 +1485,24 @@
         }
     }
     
+    /* Learning Outcome responsive styling */
+    @@media (max-width: 768px) {
+        .form-check.d-flex {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .form-check.d-flex .flex-shrink-0:last-child {
+            width: 100%;
+            min-width: auto;
+        }
+        
+        .form-check.d-flex .form-check-label {
+            font-size: 0.875rem;
+        }
+    }
+    
     @@media (max-width: 992px) {
         .responsive-table {
             min-width: 600px;
@@ -1417,6 +1596,62 @@
     .form-check-label {
         font-size: 0.875rem;
         color: #495057;
+    }
+    
+    /* Learning Outcome score input styling */
+    .lo-score-input,
+    .edit-lo-score-input {
+        transition: all 0.3s ease;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+    }
+    
+    .lo-score-input:focus,
+    .edit-lo-score-input:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+    
+    .lo-score-input:disabled,
+    .edit-lo-score-input:disabled {
+        background-color: #f8f9fa;
+        opacity: 0.6;
+    }
+    
+    /* Learning Outcome item styling */
+    .form-check.d-flex {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+        min-height: 60px;
+    }
+    
+    .form-check.d-flex:hover {
+        background-color: #e9ecef;
+        border-color: #198754;
+    }
+    
+    .form-check.d-flex .form-check-input:checked ~ .form-check-label {
+        color: #198754;
+        font-weight: 600;
+    }
+    
+    /* Learning Outcome label styling */
+    .form-check.d-flex .form-check-label {
+        word-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+        line-height: 1.4;
+        margin-bottom: 0;
+    }
+    
+    /* Score input container styling */
+    .form-check.d-flex .flex-shrink-0:last-child {
+        min-width: 120px;
+        flex-shrink: 0;
     }
     
     /* Search input styling */

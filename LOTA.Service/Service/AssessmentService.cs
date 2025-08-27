@@ -57,7 +57,12 @@ namespace LOTA.Service.Service
 
         public async Task<AssessmentReturnDTO> CreateAssessmentAsync(AssessmentCreateDTO assessmentCreateDTO)
         {
-
+            //checks if LOs are empty or and sum of LOs equals assessment's score
+            List<AssessmentLearningOutcomeCreateDTO> learningOutcomes = assessmentCreateDTO.LearningOutcomes;
+            if (learningOutcomes.Sum(lo => lo.Score) != assessmentCreateDTO.Score)
+            {
+                throw new NotImplementedException("The sum of the LO's score should equal the assessment's score");
+            }
             //checks if it has assessments under the offered course
             IEnumerable<Assessment> courseofferedassessmentList = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(assessmentCreateDTO.CourseOfferingId);
             if (courseofferedassessmentList != null && courseofferedassessmentList.Count() > 0)
@@ -89,7 +94,8 @@ namespace LOTA.Service.Service
             {
                 Id = Guid.NewGuid().ToString(),
                 AssessmentId = createAssessment.Id,
-                LOId = lo
+                LOId = lo.LOId,
+                Score = lo.Score
             }).ToList();
             await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(LOList);
             //save to database
@@ -106,7 +112,13 @@ namespace LOTA.Service.Service
            
         public async Task UpdateAssessmentAsync(AssessmentUpdateDTO assessmentDTO)
         {
-         
+            //checks if LOs are empty or and sum of LOs equals assessment's score
+            List<AssessmentLearningOutcomeCreateDTO> learningOutcomes = assessmentDTO.LearningOutcomes;
+            if (learningOutcomes.Sum(lo => lo.Score) != assessmentDTO.Score)
+            {
+                throw new NotImplementedException("The sum of the LO's score should equal the assessment's score");
+            }
+
             //checks if it has assessments under the offered course
             IEnumerable<Assessment> courseofferedassessmentList = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(assessmentDTO.CourseOfferingId);
             if (courseofferedassessmentList != null && courseofferedassessmentList.Count() > 0)
@@ -138,7 +150,8 @@ namespace LOTA.Service.Service
             {
                 Id = Guid.NewGuid().ToString(),
                 AssessmentId = assessmentDTO.Id,
-                LOId = lo
+                LOId = lo.LOId,
+                Score = lo.Score
             }).ToList();
             await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(LOList);
             //save to database

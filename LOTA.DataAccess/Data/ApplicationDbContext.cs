@@ -353,13 +353,15 @@ namespace LOTA.DataAccess.Data
                 {
                     Id= "ALO1001",
                     AssessmentId = "ASSIGN-001",
-                    LOId = "LO-001"
+                    LOId = "LO-001",
+                    Score = 60
                 },
                 new AssessmentLearningOutcome
                 {
                     Id= "ALO1002",
                     AssessmentId = "ASSIGN-001",
-                    LOId = "LO-002"
+                    LOId = "LO-002",
+                    Score = 40
                 }
             );
 

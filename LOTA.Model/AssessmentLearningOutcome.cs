@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,5 +20,8 @@ namespace LOTA.Model
         public string? LOId { get; set; }
         [ForeignKey("LOId")]
         public LearningOutcome? LearningOutcome { get; set; }
+
+        [Precision(5, 2)]
+        public decimal Score { get; set; }
     }
 }

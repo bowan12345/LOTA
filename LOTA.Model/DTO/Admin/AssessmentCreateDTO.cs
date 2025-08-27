@@ -29,6 +29,14 @@ namespace LOTA.Model.DTO.Admin
         public decimal Score { get; set; }
 
         [Required(ErrorMessage = "LearningOutcomes is required")]
-        public List<string> LearningOutcomes { get; set; }
+        public List<AssessmentLearningOutcomeCreateDTO> LearningOutcomes { get; set; }
     }
+
+    public class AssessmentLearningOutcomeCreateDTO
+    {
+        public string LOId { get; set; }
+
+        public decimal Score { get; set; }
+    }
+
 }
