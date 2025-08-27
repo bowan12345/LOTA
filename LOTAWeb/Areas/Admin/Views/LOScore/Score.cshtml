@@ -119,12 +119,13 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="width: 200px;">Student</th>
-                                                @foreach (var alo in assessment.AssessmentLearningOutcomes)
+                                                @foreach (var alo in assessment.AssessmentLearningOutcomes.OrderBy(alo => alo.LearningOutcome.LOName))
                                                 {
                                                     <th class="text-center" style="min-width: 120px;">
                                                         <div class="d-flex flex-column align-items-center">
                                                             <small class="fw-bold">@alo.LearningOutcome.LOName</small>
                                                             <small class="text-muted">LO</small>
+                                                            <small class="text-primary fw-bold">@alo.Score</small>
                                                         </div>
                                                     </th>
                                                 }
@@ -147,22 +148,25 @@
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    @foreach (var alo in assessment.AssessmentLearningOutcomes)
+                                                    @foreach (var alo in assessment.AssessmentLearningOutcomes.OrderBy(alo => alo.LearningOutcome.LOName))
                                                     {
                                                         <td class="text-center">
-                                                            <input type="number" 
-                                                                   class="form-control form-control-sm text-center lo-score-input" 
-                                                                   data-lo-id="@alo.LOId"
-                                                                   data-score-id=""
-                                                                   data-student-id="@student.StudentId"
-                                                                   data-assessment-id="@assessment.Id"
-                                                                   data-assessment-score="@assessment.Score"
-                                                                   value="0"
-                                                                   min="0" 
-                                                                   max="@assessment.Score" 
-                                                                   step="0.01"
-                                                                   style="width: 80px;"
-                                                                   onchange="validateScore(this)">
+                                                            <div class="d-flex flex-column align-items-center">
+                                                                <input type="number" 
+                                                                       class="form-control form-control-sm text-center lo-score-input" 
+                                                                       data-lo-id="@alo.LOId"
+                                                                       data-score-id=""
+                                                                       data-student-id="@student.StudentId"
+                                                                       data-assessment-id="@assessment.Id"
+                                                                       data-assessment-score="@assessment.Score"
+                                                                       data-lo-score="@alo.Score"
+                                                                       value="0"
+                                                                       min="0" 
+                                                                       max="@alo.Score" 
+                                                                       step="0.01"
+                                                                       style="width: 80px;"
+                                                                       onchange="validateScore(this)">
+                                                            </div>
                                                         </td>
                                                     }
                                                     <td class="text-center">
@@ -269,10 +273,74 @@
         border-top: none;
         font-weight: 600;
         color: #495057;
+        vertical-align: top;
+        padding: 12px 8px;
     }
 
     .table td {
-        vertical-align: middle;
+        vertical-align: top;
+        padding: 12px 8px;
+    }
+    
+    /* LO Header styling */
+    .table th .d-flex.flex-column {
+        gap: 4px;
+        min-height: 60px;
+        justify-content: flex-start;
+    }
+    
+    .table th .d-flex.flex-column small {
+        line-height: 1.2;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    
+    .table th .d-flex.flex-column .text-primary {
+        font-size: 0.9em;
+        padding: 2px 6px;
+        background-color: #e3f2fd;
+        border-radius: 4px;
+        border: 1px solid #bbdefb;
+    }
+    
+    /* LO Input styling */
+    .table td .d-flex.flex-column {
+        gap: 8px;
+        min-height: 60px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    
+    .lo-score-input {
+        margin-top: 8px;
+    }
+    
+    /* Responsive styling */
+    @@media (max-width: 768px) {
+        .table th .d-flex.flex-column {
+            min-height: 50px;
+            gap: 2px;
+        }
+        
+        .table th .d-flex.flex-column small {
+            font-size: 0.75em;
+        }
+        
+        .table th .d-flex.flex-column .text-primary {
+            font-size: 0.8em;
+            padding: 1px 4px;
+        }
+        
+        .table td .d-flex.flex-column {
+            min-height: 50px;
+            gap: 4px;
+        }
+        
+        .lo-score-input {
+            width: 60px !important;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
     }
 </style>
 
@@ -280,7 +348,7 @@
     // Validate score input
     function validateScore(input) {
         const value = parseFloat(input.value) || 0;
-        const maxScore = parseFloat(input.getAttribute('data-assessment-score'));
+        const maxScore = parseFloat(input.getAttribute('data-lo-score'));
         
         if (value > maxScore) {
             input.value = maxScore;

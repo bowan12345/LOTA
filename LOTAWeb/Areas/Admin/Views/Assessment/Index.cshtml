@@ -511,7 +511,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.length > 0) {
-                    container.innerHTML = data.data.map(lo => {
+                    // Sort learning outcomes by name
+                    const sortedData = data.data.sort((a, b) => {
+                        const nameA = (a.loName || a.LOName || '').toLowerCase();
+                        const nameB = (b.loName || b.LOName || '').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
+                    container.innerHTML = sortedData.map(lo => {
                         const loName = lo.loName || lo.LOName || '';
                         const description = lo.description || lo.Description || '';
                         return `
@@ -650,7 +657,7 @@
                              <div class="col-12">
                                  <h6 class="fw-bold">Learning Outcomes</h6>
                                  <div class="d-flex flex-wrap gap-2">
-                                     ${assessment.learningOutcomes ? assessment.learningOutcomes.map(lo => 
+                                     ${assessment.learningOutcomes ? assessment.learningOutcomes.sort().map(lo => 
                                          `<span class="badge bg-info">${lo}</span>`
                                      ).join('') : '<span class="text-muted">No learning outcomes assigned</span>'}
                                  </div>
@@ -719,7 +726,7 @@
                                             <td><span class="badge bg-info">Assignment</span></td>
                                             <td>${assessment.Weight}</td>
                                             <td>${assessment.Score}</td>
-                                            <td>${assessment.learningOutcomes.join(', ')}</td>
+                                            <td>${assessment.learningOutcomes.sort().join(', ')}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <button class="btn btn-warning btn-sm" onclick="editAssessment('${assessment.id}', '${assessment.assignmentName}')">
@@ -1018,8 +1025,15 @@
             });
         }
         
+        // Sort learning outcomes by name
+        const sortedLOs = allCourseLOs.sort((a, b) => {
+            const nameA = (a.loName || a.LOName || '').toLowerCase();
+            const nameB = (b.loName || b.LOName || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
         // Render all course learning outcomes with selection state
-        container.innerHTML = allCourseLOs.map(lo => {
+        container.innerHTML = sortedLOs.map(lo => {
             if (lo && lo.id) {
                 const loName = lo.loName || lo.LOName || '';
                 const description = lo.description || lo.Description || '';
@@ -1073,8 +1087,15 @@
             }
         });
         
+        // Sort learning outcomes by name
+        const sortedLOs = assessmentLearningOutcomes.sort((a, b) => {
+            const nameA = (a.learningOutcome?.loName || a.learningOutcome?.LOName || '').toLowerCase();
+            const nameB = (b.learningOutcome?.loName || b.learningOutcome?.LOName || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
         // Render the learning outcomes directly from assessment data
-        container.innerHTML = assessmentLearningOutcomes.map(lo => {
+        container.innerHTML = sortedLOs.map(lo => {
             if (lo.learningOutcome) {
                 const loName = lo.learningOutcome.loName || lo.learningOutcome.LOName || '';
                 const description = lo.learningOutcome.description || lo.learningOutcome.Description || '';
@@ -1156,7 +1177,14 @@
                     }
                     console.log('Final selected LO IDs:', Array.from(selectedLOIds));
                     
-                    container.innerHTML = data.data.map(lo => {
+                    // Sort learning outcomes by name
+                    const sortedData = data.data.sort((a, b) => {
+                        const nameA = (a.loName || a.LOName || '').toLowerCase();
+                        const nameB = (b.loName || b.LOName || '').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
+                    container.innerHTML = sortedData.map(lo => {
                         const isChecked = selectedLOIds.has(lo.id) ? 'checked' : '';
                         // Get LO name and description with proper field name handling
                         const loName = lo.loName || lo.LOName || lo.loName || '';

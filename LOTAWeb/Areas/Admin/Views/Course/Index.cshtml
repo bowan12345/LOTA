@@ -153,9 +153,9 @@
                                             <td class="d-none d-xxl-table-cell">
                                                 @if (course.LearningOutcomes != null && course.LearningOutcomes.Any())
                                                 {
-                                                    <span title="@string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName))">
+                                                    <span title="@string.Join(", ", course.LearningOutcomes.OrderBy(lo => lo.LOName).Select(lo => lo.LOName))">
                                                         @{
-                                                            var loNames = string.Join(", ", course.LearningOutcomes.Select(lo => lo.LOName));
+                                                            var loNames = string.Join(", ", course.LearningOutcomes.OrderBy(lo => lo.LOName).Select(lo => lo.LOName));
                                                             var displayText = loNames.Length > 60 ? loNames.Substring(0, 60) + "..." : loNames;
                                                         }
                                                         @displayText
@@ -752,7 +752,14 @@
                                            // Load learning outcomes
                       clearEditLearningOutcomes();
                       if (course.learningOutcomes && course.learningOutcomes.length > 0) {
-                          course.learningOutcomes.forEach(lo => {
+                          // Sort learning outcomes by name
+                          const sortedLOs = course.learningOutcomes.sort((a, b) => {
+                              const nameA = (a.loName || a.LOName || '').toLowerCase();
+                              const nameB = (b.loName || b.LOName || '').toLowerCase();
+                              return nameA.localeCompare(nameB);
+                          });
+                          
+                          sortedLOs.forEach(lo => {
                               addEditLearningOutcome();
                               const tbody = document.querySelector('#editLearningOutcomesContainer .lo-table tbody');
                               const lastRow = tbody.lastElementChild;
