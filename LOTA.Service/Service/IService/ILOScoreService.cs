@@ -7,7 +7,8 @@ namespace LOTA.Service.Service.IService
         Task<IEnumerable<CourseOfferingAssessmentDTO>> GetCourseOfferingsWithAssessmentsAsync();
         Task<CourseOfferingAssessmentDTO> GetCourseOfferingWithAssessmentsAsync(string courseOfferingId);
         Task<LOScoreReturnDTO> GetLOScoreByIdAsync(string id);
-        Task<bool> BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores);
-        Task<bool> BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO);
+        Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores);
+        Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO);
+        Task<bool> ValidateLOScoresAsync(string assessmentId, List<LOScoreCreateDTO> loScores);
     }
 }

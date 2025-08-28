@@ -109,112 +109,146 @@ namespace LOTA.Service.Service
         /// <summary>
         /// Batch save all LO scores for a student in a specific assessment
         /// </summary>
-        public async Task<bool> BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores)
+        public async Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores)
         {
-            try
+            // Validate LO scores before saving
+            await ValidateLOScoresAsync(assessmentId, loScores);
+            
+            // Check if StudentAssessmentScore record exists
+            var existingStudentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(
+                studentId, assessmentId);
+
+            string studentAssessmentScoreId;
+            StudentAssessmentScore studentAssessmentScore;
+
+            if (existingStudentAssessmentScore == null)
             {
-                // Check if StudentAssessmentScore record exists
-                var existingStudentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(
-                    studentId, assessmentId);
-
-                string studentAssessmentScoreId;
-                StudentAssessmentScore studentAssessmentScore;
-
-                if (existingStudentAssessmentScore == null)
+                // Create new StudentAssessmentScore record with calculated total score
+                var totalScore = loScores.Sum(s => s.Score);
+                studentAssessmentScore = new StudentAssessmentScore
                 {
-                    // Create new StudentAssessmentScore record with calculated total score
-                    var totalScore = loScores.Sum(s => s.Score);
-                    studentAssessmentScore = new StudentAssessmentScore
+                    Id = Guid.NewGuid().ToString(),
+                    StudentId = studentId,
+                    AssessmentId = assessmentId,
+                    TotalScore = totalScore,
+                    IsActive = true,
+                    IsRetake = false,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                await _unitOfWork.studentScoreRepository.AddAsync(studentAssessmentScore);
+                studentAssessmentScoreId = studentAssessmentScore.Id;
+            }
+            else
+            {
+                // Use existing record and update total score
+                studentAssessmentScore = existingStudentAssessmentScore;
+                studentAssessmentScoreId = existingStudentAssessmentScore.Id;
+                
+                // Calculate and update total score
+                var totalScore = loScores.Sum(s => s.Score);
+                studentAssessmentScore.TotalScore = totalScore;
+                studentAssessmentScore.UpdatedDate = DateTime.UtcNow;
+                _unitOfWork.studentScoreRepository.Update(studentAssessmentScore);
+            }
+
+            // Process each LO score
+            foreach (var loScore in loScores)
+            {
+                // Check if StudentLOScore already exists
+                var existingLOScore = await _unitOfWork.studentLOScoreRepository.GetStudentLOScoreByStudentAssessmentAndLOAsync(
+                    studentAssessmentScoreId, loScore.AssessmentLearningOutcomeId);
+
+                if (existingLOScore == null)
+                {
+                    // Create new StudentLOScore
+                    var newLOScore = new StudentLOScore
                     {
                         Id = Guid.NewGuid().ToString(),
-                        StudentId = studentId,
-                        AssessmentId = assessmentId,
-                        TotalScore = totalScore,
+                        StudentAssessmentScoreId = studentAssessmentScoreId,
+                        AssessmentLearningOutcomeId = loScore.AssessmentLearningOutcomeId,
+                        Score = loScore.Score,
                         IsActive = true,
-                        IsRetake = false,
                         CreatedDate = DateTime.UtcNow
                     };
 
-                    await _unitOfWork.studentScoreRepository.AddAsync(studentAssessmentScore);
-                    studentAssessmentScoreId = studentAssessmentScore.Id;
+                    await _unitOfWork.studentLOScoreRepository.AddAsync(newLOScore);
                 }
                 else
                 {
-                    // Use existing record and update total score
-                    studentAssessmentScore = existingStudentAssessmentScore;
-                    studentAssessmentScoreId = existingStudentAssessmentScore.Id;
-                    
-                    // Calculate and update total score
-                    var totalScore = loScores.Sum(s => s.Score);
-                    studentAssessmentScore.TotalScore = totalScore;
-                    studentAssessmentScore.UpdatedDate = DateTime.UtcNow;
-                    _unitOfWork.studentScoreRepository.Update(studentAssessmentScore);
+                    // Update existing StudentLOScore
+                    existingLOScore.Score = loScore.Score;
+                    existingLOScore.UpdatedDate = DateTime.UtcNow;
+                    existingLOScore.IsActive = true;
+
+                    _unitOfWork.studentLOScoreRepository.Update(existingLOScore);
                 }
-
-                // Process each LO score
-                foreach (var loScore in loScores)
-                {
-                    // Check if StudentLOScore already exists
-                    var existingLOScore = await _unitOfWork.studentLOScoreRepository.GetStudentLOScoreByStudentAssessmentAndLOAsync(
-                        studentAssessmentScoreId, loScore.AssessmentLearningOutcomeId);
-
-                    if (existingLOScore == null)
-                    {
-                        // Create new StudentLOScore
-                        var newLOScore = new StudentLOScore
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            StudentAssessmentScoreId = studentAssessmentScoreId,
-                            AssessmentLearningOutcomeId = loScore.AssessmentLearningOutcomeId,
-                            Score = loScore.Score,
-                            IsActive = true,
-                            CreatedDate = DateTime.UtcNow
-                        };
-
-                        await _unitOfWork.studentLOScoreRepository.AddAsync(newLOScore);
-                    }
-                    else
-                    {
-                        // Update existing StudentLOScore
-                        existingLOScore.Score = loScore.Score;
-                        existingLOScore.UpdatedDate = DateTime.UtcNow;
-                        existingLOScore.IsActive = true;
-
-                        _unitOfWork.studentLOScoreRepository.Update(existingLOScore);
-                    }
-                }
-                await _unitOfWork.SaveAsync();
-                return true;
             }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Batch Save Student LO Scores Failed");
-            }
+            await _unitOfWork.SaveAsync();
         }
 
 
 
-
-
-        public async Task<bool> BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
+        public async Task<bool> ValidateLOScoresAsync(string assessmentId, List<LOScoreCreateDTO> loScores)
         {
             try
             {
-                foreach (var studentScore in batchSaveDTO.StudentScores)
+                // Get the assessment with its learning outcomes
+                var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(assessmentId);
+                if (assessment == null)
                 {
-                    await BatchSaveStudentLOScoresAsync(
-                        studentScore.StudentId, 
-                        batchSaveDTO.AssessmentId, 
-                        studentScore.LOScores);
+                    throw new InvalidOperationException($"Assessment {assessmentId} not found");
                 }
 
-                await _unitOfWork.SaveAsync();
+                // Get all assessment learning outcomes for this assessment
+                var assessmentLearningOutcomes = await _unitOfWork.assessmentRepository.GetLOListByAssessmentId(assessmentId);
+                
+                foreach (var loScore in loScores)
+                {
+                    // Find the corresponding assessment learning outcome
+                    var assessmentLO = assessmentLearningOutcomes.FirstOrDefault(alo => alo.Id == loScore.AssessmentLearningOutcomeId);
+                    if (assessmentLO == null)
+                    {
+                        throw new InvalidOperationException($"Assessment Learning Outcome {loScore.AssessmentLearningOutcomeId} not found for Assessment {assessmentId}");
+                    }
+
+                    // Validate score range
+                    if (loScore.Score < 0)
+                    {
+                        throw new InvalidOperationException($"Score cannot be negative. Assessment Learning Outcome: {assessmentLO.Id}, Score: {loScore.Score}");
+                    }
+
+                    if (loScore.Score > assessmentLO.Score)
+                    {
+                        throw new InvalidOperationException($"Score cannot exceed maximum LO score. Assessment Learning Outcome: {assessmentLO.Id}, Maximum: {assessmentLO.Score}, Current: {loScore.Score}");
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Batch Save All Students LO Scores Failed: {ex.Message}");
+                throw new InvalidOperationException($"LO Score validation failed: {ex.Message}");
             }
+        }
+
+        public async Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
+        {
+            // Validate all LO scores before saving
+            foreach (var studentScore in batchSaveDTO.StudentScores)
+            {
+                await ValidateLOScoresAsync(batchSaveDTO.AssessmentId, studentScore.LOScores);
+            }
+            
+            foreach (var studentScore in batchSaveDTO.StudentScores)
+            {
+                await BatchSaveStudentLOScoresAsync(
+                    studentScore.StudentId, 
+                    batchSaveDTO.AssessmentId, 
+                    studentScore.LOScores);
+            }
+
+            await _unitOfWork.SaveAsync();
         }
 
 

@@ -64,12 +64,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "No LO scores provided" });
                 }
                 
-                var result = await _loScoreService.BatchSaveStudentLOScoresAsync(
+                await _loScoreService.BatchSaveStudentLOScoresAsync(
                     batchSaveDTO.StudentId, 
                     batchSaveDTO.AssessmentId, 
                     batchSaveDTO.LOScores);
                 
-                return Json(new { success = result });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
@@ -92,9 +92,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "No student scores provided" });
                 }
                 
-                var result = await _loScoreService.BatchSaveAllStudentsLOScoresAsync(batchSaveDTO);
+                await _loScoreService.BatchSaveAllStudentsLOScoresAsync(batchSaveDTO);
                 
-                return Json(new { success = result });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
