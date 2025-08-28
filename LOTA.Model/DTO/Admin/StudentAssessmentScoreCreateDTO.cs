@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LOTA.Model.DTO.Admin
 {
-    public class LOScoreCreateDTO
+    public class StudentAssessmentScoreCreateDTO
     {
         [Required]
         public string StudentId { get; set; }
@@ -16,17 +16,17 @@ namespace LOTA.Model.DTO.Admin
         public string AssessmentId { get; set; }
 
         [Required]
-        public string AssessmentLearningOutcomeId { get; set; }
+        public string LOId { get; set; }
 
         [Required]
         public string TrimesterId { get; set; }
 
         [Required]
-        [Range(0, 100, ErrorMessage = "Score must be between 0 and 100")]
-        public decimal Score { get; set; }
+        [Range(0, 100, ErrorMessage = "Total score must be between 0 and 100")]
+        public decimal TotalScore { get; set; }
 
-        public string Status { get; set; } = "Active";
-        public bool IsRetake { get; set; } = false;
+        public bool IsActive { get; set; } = true;
+        public bool? IsRetake { get; set; } = false;
         public DateTime? RetakeDate { get; set; }
     }
 }

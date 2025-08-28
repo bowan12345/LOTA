@@ -8,5 +8,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByStudentAsync(string studentId);
         Task<IEnumerable<StudentAssessmentScore>> GetStudentScoresByCourseOfferingAsync(string courseOfferingId);
         Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId);
+        Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentAsync(string studentId, string assessmentId);
+
     }
 }

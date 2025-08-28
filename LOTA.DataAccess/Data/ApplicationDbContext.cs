@@ -40,13 +40,19 @@ namespace LOTA.DataAccess.Data
                 .HasOne(sc => sc.Student)
                 .WithMany(s => s.StudentCourses)
                 .HasForeignKey(sc => sc.StudentId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<StudentAssessmentScore>()
+            /*modelBuilder.Entity<StudentAssessmentScore>()
                 .HasOne(ss => ss.Assessment)
                 .WithMany(a => a.StudentScores)
                 .HasForeignKey(ss => ss.AssessmentId)
-                .OnDelete(DeleteBehavior.Restrict);  
+                .OnDelete(DeleteBehavior.Restrict); */
+
+            modelBuilder.Entity<Assessment>()
+                .HasOne(a => a.TrimesterCourse)
+                .WithMany(tc => tc.Assessments)
+                .HasForeignKey(a => a.CourseOfferingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StudentAssessmentScore>()
                 .HasOne(ss => ss.Student)
@@ -95,7 +101,7 @@ namespace LOTA.DataAccess.Data
                 .HasMany(a => a.AssessmentLearningOutcomes)
                 .WithOne(lo => lo.Assessment)
                 .HasForeignKey(lo => lo.AssessmentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -396,8 +402,6 @@ namespace LOTA.DataAccess.Data
                     Id = "SCORE-001",
                     StudentId = "STUDENT-001",
                     AssessmentId = "ASSIGN-001",
-                    LOId = "LO-001",
-                    TrimesterId = "Trimester-001",
                     TotalScore = 100,
                     IsActive = true,
                     IsRetake = false,
@@ -411,6 +415,7 @@ namespace LOTA.DataAccess.Data
                 {
                     Id = "LOSCORE-001",
                     StudentAssessmentScoreId = "SCORE-001",
+                    AssessmentLearningOutcomeId = "ALO1001",
                     Score = 50,
                     IsActive = true,
                     CreatedDate = DateTime.Now
@@ -419,6 +424,7 @@ namespace LOTA.DataAccess.Data
                  {
                      Id = "LOSCORE-002",
                      StudentAssessmentScoreId = "SCORE-001",
+                     AssessmentLearningOutcomeId = "ALO1002",
                      Score = 50,
                      IsActive = true,
                      CreatedDate = DateTime.Now

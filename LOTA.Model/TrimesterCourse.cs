@@ -33,5 +33,6 @@ namespace LOTA.Model
         public DateTime? UpdatedDate { get; set; }
 
         public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
+        public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
     }
 }

@@ -2,6 +2,7 @@
 using LOTA.Service.Service.IService;
 using LOTA.Model.DTO.Admin;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -10,10 +11,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
     public class LOScoreController : Controller
     {
         private readonly ILOScoreService _loScoreService;
+        private readonly ILogger<LOScoreController> _logger;
 
-        public LOScoreController(ILOScoreService loScoreService)
+        public LOScoreController(ILOScoreService loScoreService, ILogger<LOScoreController> logger)
         {
             _loScoreService = loScoreService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -44,88 +47,62 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLOScore([FromBody] LOScoreCreateDTO loscoreCreateDTO)
-        {
-            try
-            {
-                var result = await _loScoreService.CreateLOScoreAsync(loscoreCreateDTO);
-                return Json(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
+
+
+
 
         [HttpPost]
-        public async Task<IActionResult> UpdateLOScore([FromBody] LOScoreUpdateDTO loscoreUpdateDTO)
+        public async Task<IActionResult> BatchSaveStudentLOScores([FromBody] StudentLOScoresBatchSaveDTO batchSaveDTO)
         {
             try
             {
-                var result = await _loScoreService.UpdateLOScoreAsync(loscoreUpdateDTO);
-                return Json(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteLOScore(string id)
-        {
-            try
-            {
-                var result = await _loScoreService.DeleteLOScoreAsync(id);
+                // Log the received data
+                _logger.LogInformation($"BatchSaveStudentLOScores called with StudentId: {batchSaveDTO.StudentId}, AssessmentId: {batchSaveDTO.AssessmentId}, LOScores count: {batchSaveDTO.LOScores?.Count ?? 0}");
+                
+                if (batchSaveDTO.LOScores == null || !batchSaveDTO.LOScores.Any())
+                {
+                    return Json(new { success = false, message = "No LO scores provided" });
+                }
+                
+                var result = await _loScoreService.BatchSaveStudentLOScoresAsync(
+                    batchSaveDTO.StudentId, 
+                    batchSaveDTO.AssessmentId, 
+                    batchSaveDTO.LOScores);
+                
                 return Json(new { success = result });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error in BatchSaveStudentLOScores");
                 return Json(new { success = false, message = ex.Message });
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetLOScoresByAssessment(string assessmentId)
+
+
+        [HttpPost]
+        public async Task<IActionResult> BatchSaveAllStudentsLOScores([FromBody] AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
         {
             try
             {
-                var scores = await _loScoreService.GetLOScoresByAssessmentAsync(assessmentId);
-                return Json(new { success = true, data = scores });
+                _logger.LogInformation($"BatchSaveAllStudentsLOScores called with AssessmentId: {batchSaveDTO.AssessmentId}, StudentScores count: {batchSaveDTO.StudentScores?.Count ?? 0}");
+                
+                if (batchSaveDTO.StudentScores == null || !batchSaveDTO.StudentScores.Any())
+                {
+                    return Json(new { success = false, message = "No student scores provided" });
+                }
+                
+                var result = await _loScoreService.BatchSaveAllStudentsLOScoresAsync(batchSaveDTO);
+                
+                return Json(new { success = result });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error in BatchSaveAllStudentsLOScores");
                 return Json(new { success = false, message = ex.Message });
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetLOScoresByStudent(string studentId)
-        {
-            try
-            {
-                var scores = await _loScoreService.GetLOScoresByStudentAsync(studentId);
-                return Json(new { success = true, data = scores });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
 
-        [HttpGet]
-        public async Task<IActionResult> GetLOScoresByCourseOffering(string courseOfferingId)
-        {
-            try
-            {
-                var scores = await _loScoreService.GetLOScoresByCourseOfferingAsync(courseOfferingId);
-                return Json(new { success = true, data = scores });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
     }
 }

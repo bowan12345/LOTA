@@ -20,6 +20,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         IAssessmentRepository assessmentRepository { get; }
         IAssessmentTypeRepository assessmentTypeRepository { get; }
         IStudentScoreRepository studentScoreRepository { get; }
+        IStudentLOScoreRepository studentLOScoreRepository { get; }
         
         Task<int> SaveAsync();
     }

@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.Model
@@ -18,6 +15,10 @@ namespace LOTA.Model
         public string StudentAssessmentScoreId { get; set; }
         [ForeignKey("StudentAssessmentScoreId")]
         public StudentAssessmentScore StudentAssessmentScore { get; set; }
+
+        public string AssessmentLearningOutcomeId { get; set; }
+        [ForeignKey("AssessmentLearningOutcomeId")]
+        public AssessmentLearningOutcome AssessmentLearningOutcome { get; set; }
 
         // Properties
         [Precision(5, 2)]

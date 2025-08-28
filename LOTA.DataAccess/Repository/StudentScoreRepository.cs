@@ -17,8 +17,6 @@ namespace LOTA.DataAccess.Repository
                 .Where(ss => ss.AssessmentId == assessmentId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
-                .Include(ss => ss.LearningOutcome)
-                .Include(ss => ss.Trimester)
                 .ToListAsync();
         }
 
@@ -28,8 +26,6 @@ namespace LOTA.DataAccess.Repository
                 .Where(ss => ss.StudentId == studentId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
-                .Include(ss => ss.LearningOutcome)
-                .Include(ss => ss.Trimester)
                 .ToListAsync();
         }
 
@@ -39,8 +35,6 @@ namespace LOTA.DataAccess.Repository
                 .Where(ss => ss.Assessment.CourseOfferingId == courseOfferingId)
                 .Include(ss => ss.Student)
                 .Include(ss => ss.Assessment)
-                .Include(ss => ss.LearningOutcome)
-                .Include(ss => ss.Trimester)
                 .ToListAsync();
         }
 
@@ -48,8 +42,15 @@ namespace LOTA.DataAccess.Repository
         {
             return await _db.StudentAssessmentScore
                 .FirstOrDefaultAsync(ss => ss.StudentId == studentId && 
-                                          ss.AssessmentId == assessmentId && 
-                                          ss.LOId == loId);
+                                          ss.AssessmentId == assessmentId);
         }
+
+        public async Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentAsync(string studentId, string assessmentId)
+        {
+            return await _db.StudentAssessmentScore
+                .FirstOrDefaultAsync(ss => ss.StudentId == studentId && 
+                                          ss.AssessmentId == assessmentId);
+        }
+
     }
 }
