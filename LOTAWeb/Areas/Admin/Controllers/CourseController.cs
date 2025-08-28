@@ -95,18 +95,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CourseCreateDTO courseCreateDTO) 
         {
+            // Controller layer data validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+            }
             try
             {
-                // Controller layer data validation
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
-                }
-
                 // Check if course code already exists
                 var existingCourse = await _courseService.GetCourseByCodeAsync(courseCreateDTO.CourseCode);
                 if (existingCourse != null)
@@ -164,18 +163,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] CourseUpdateDTO courseUpdateDTO)
         {
+            // Controller layer data validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
+            }
             try
             {
-                // Controller layer data validation
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation errors: " + string.Join(", ", errors) });
-                }
-
                 // Call Service layer to handle business logic
                 await _courseService.UpdateCourse(courseUpdateDTO);
                 
