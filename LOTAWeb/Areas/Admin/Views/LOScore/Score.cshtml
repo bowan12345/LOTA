@@ -8,37 +8,7 @@
     var token = Html.AntiForgeryToken();
 }
 
-@functions {
-    // Helper method to get student score for a specific assessment and learning outcome
-    public decimal GetStudentScore(string studentId, string assessmentId, string loId)
-    {
-        var studentScore = Model.StudentAssessmentScores
-            .FirstOrDefault(ss => ss.StudentId == studentId && ss.AssessmentId == assessmentId);
-        
-        if (studentScore?.StudentLOScores != null)
-        {
-            var loScore = studentScore.StudentLOScores.FirstOrDefault(ls => ls.AssessmentLearningOutcomeId == loId);
-            return loScore?.Score ?? 0;
-        }
-        
-        return 0;
-    }
-    
-    // Helper method to get score ID for a specific assessment and learning outcome
-    public string GetScoreId(string studentId, string assessmentId, string loId)
-    {
-        var studentScore = Model.StudentAssessmentScores
-            .FirstOrDefault(ss => ss.StudentId == studentId && ss.AssessmentId == assessmentId);
-        
-        if (studentScore?.StudentLOScores != null)
-        {
-            var loScore = studentScore.StudentLOScores.FirstOrDefault(ls => ls.AssessmentLearningOutcomeId == loId);
-            return loScore?.Id ?? "";
-        }
-        
-        return "";
-    }
-}
+
 
 @token
 
@@ -184,22 +154,40 @@
                                                     </td>
                                                     @foreach (var alo in assessment.AssessmentLearningOutcomes.OrderBy(alo => alo.LearningOutcome.LOName))
                                                     {
+                                                        var studentScore = Model.StudentAssessmentScores
+                                                            .FirstOrDefault(ss => ss.StudentId == student.StudentId && ss.AssessmentId == assessment.Id);
+                                                        var loScore = studentScore?.StudentLOScores?.FirstOrDefault(ls => ls.AssessmentLearningOutcomeId == alo.Id);
+                                                        var isRetake = loScore?.IsRetake ?? false;
+                                                        var scoreValue = loScore?.Score ?? 0;
+                                                        var scoreId = loScore?.Id ?? "";
+                                                        
                                                         <td class="text-center">
                                                             <div class="d-flex flex-column align-items-center">
-                                                                <input type="number" 
-                                                                       class="form-control form-control-sm text-center lo-score-input" 
-                                                                       data-lo-id="@alo.Id"
-                                                                       data-score-id="@GetScoreId(student.StudentId, assessment.Id, alo.Id)"
-                                                                       data-student-id="@student.StudentId"
-                                                                       data-assessment-id="@assessment.Id"
-                                                                       data-assessment-score="@assessment.Score"
-                                                                       data-lo-score="@alo.Score"
-                                                                       value="@GetStudentScore(student.StudentId, assessment.Id, alo.Id)"
-                                                                       min="0" 
-                                                                       max="@alo.Score" 
-                                                                       step="0.01"
-                                                                       style="width: 110px; height: 40px; font-size: 15px;"
-                                                                       onchange="validateScore(this)">
+                                                                <div class="position-relative">
+                                                                    <input type="number" 
+                                                                           class="form-control form-control-sm text-center lo-score-input @(isRetake ? "retake-input" : "")" 
+                                                                           data-lo-id="@alo.Id"
+                                                                           data-score-id="@scoreId"
+                                                                           data-student-id="@student.StudentId"
+                                                                           data-assessment-id="@assessment.Id"
+                                                                           data-assessment-score="@assessment.Score"
+                                                                           data-lo-score="@alo.Score"
+                                                                           data-is-retake="@isRetake.ToString().ToLower()"
+                                                                           value="@scoreValue"
+                                                                           min="0" 
+                                                                           max="@alo.Score" 
+                                                                           step="0.01"
+                                                                           style="width: 110px; height: 40px; font-size: 15px; @(isRetake ? "background-color: #f8f9fa;" : "")"
+                                                                           @(isRetake ? "readonly disabled" : "")
+                                                                           @(isRetake ? "" : "onchange=\"validateScore(this)\"")>
+                                                                    @if (isRetake)
+                                                                    {
+                                                                        <span class="badge bg-warning text-dark retake-badge-overlay" 
+                                                                              title="This is a retake score and cannot be modified">
+                                                                            RETAKE
+                                                                        </span>
+                                                                    }
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     }
@@ -349,6 +337,30 @@
         margin-top: 8px;
     }
     
+    .retake-input {
+        background-color: #f8f9fa !important;
+        cursor: not-allowed;
+    }
+    
+    .retake-badge-overlay {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        white-space: nowrap;
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .position-relative {
+        display: inline-block;
+    }
+    
     /* Responsive styling */
     @@media (max-width: 768px) {
         .table th .d-flex.flex-column {
@@ -426,6 +438,13 @@
         const loScores = [];
         
         scoreInputs.forEach(input => {
+            // Skip retake scores - they cannot be edited
+            const isRetake = input.getAttribute('data-is-retake') === 'true';
+            if (isRetake) {
+                console.log(`Skipping retake score for LO: ${input.getAttribute('data-lo-id')}`);
+                return; // Skip this input
+            }
+            
             const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
             const score = parseFloat(input.value) || 0;
             
@@ -439,6 +458,11 @@
                 isRetake: false
             });
         });
+        
+        // Check if there are any scores to save
+        if (loScores.length === 0) {
+            throw new Error('No editable scores found. All scores may be retake data.');
+        }
         
         try {
             // Use batch save method

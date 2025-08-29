@@ -166,6 +166,7 @@ namespace LOTA.Service.Service
                         AssessmentLearningOutcomeId = loScore.AssessmentLearningOutcomeId,
                         Score = loScore.Score,
                         IsActive = true,
+                        IsRetake = false,
                         CreatedDate = DateTime.UtcNow
                     };
 
@@ -177,6 +178,7 @@ namespace LOTA.Service.Service
                     existingLOScore.Score = loScore.Score;
                     existingLOScore.UpdatedDate = DateTime.UtcNow;
                     existingLOScore.IsActive = true;
+                    existingLOScore.IsRetake = false;
 
                     _unitOfWork.studentLOScoreRepository.Update(existingLOScore);
                 }

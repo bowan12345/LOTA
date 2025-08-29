@@ -26,7 +26,7 @@ namespace LOTA.Model.DTO.Admin
         public decimal Score { get; set; }
 
         public string Status { get; set; } = "Active";
-        public bool IsRetake { get; set; } = false;
+        public bool IsRetake { get; set; }
         public DateTime? RetakeDate { get; set; }
     }
 }
