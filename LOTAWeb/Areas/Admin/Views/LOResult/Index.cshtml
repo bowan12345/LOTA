@@ -1131,8 +1131,24 @@
     // Load LO results when course offering is selected
     async function loadLOResults(courseOfferingId) {
         if (!courseOfferingId) {
-            courseOfferingId = document.getElementById('courseSearchInput').value ? 
-                document.querySelector('#courseDropdown .dropdown-item[data-value]').getAttribute('data-value') : '';
+            // Try to get from currentCourseOfferingId first
+            courseOfferingId = currentCourseOfferingId;
+            
+            // If still no course offering ID, try to get from search input
+            if (!courseOfferingId) {
+                const searchInput = document.getElementById('courseSearchInput');
+                if (searchInput && searchInput.value) {
+                    // Find the selected course offering from dropdown
+                    const dropdownItems = document.querySelectorAll('#courseDropdown .dropdown-item[data-value]');
+                    for (const item of dropdownItems) {
+                        const itemText = item.textContent.trim();
+                        if (itemText === searchInput.value.trim()) {
+                            courseOfferingId = item.getAttribute('data-value');
+                            break;
+                        }
+                    }
+                }
+            }
         }
         
         if (!courseOfferingId) {
@@ -1880,7 +1896,7 @@
                  bootstrap.Modal.getInstance(document.getElementById('retakeModal')).hide();
                  
                  // Reload the current course offering results
-                 loadLOResults();
+                 loadLOResults(currentCourseOfferingId);
              } else {
                  showErrorMessage(result.message || 'Failed to update retake scores');
              }
@@ -2082,8 +2098,12 @@
             dropdown.style.display = 'none';
         }
         
-        // Trigger loadLOResults if a course is selected
+        // Store the selected course offering ID and text for persistence
         if (value) {
+            currentCourseOfferingId = value;
+            // Store in sessionStorage for persistence across page interactions
+            sessionStorage.setItem('selectedCourseOfferingId', value);
+            sessionStorage.setItem('selectedCourseOfferingText', text);
             loadLOResults(value);
         }
     }
@@ -2099,6 +2119,21 @@
         setTimeout(() => {
             removeOverlay();
         }, 1500);
+        
+        // Restore previously selected course offering if available
+        const savedCourseOfferingId = sessionStorage.getItem('selectedCourseOfferingId');
+        const savedCourseOfferingText = sessionStorage.getItem('selectedCourseOfferingText');
+        
+        if (savedCourseOfferingId && savedCourseOfferingText) {
+            // Restore the selected course offering
+            currentCourseOfferingId = savedCourseOfferingId;
+            const searchInput = document.getElementById('courseSearchInput');
+            if (searchInput) {
+                searchInput.value = savedCourseOfferingText;
+            }
+            // Load the results for the restored course offering
+            loadLOResults(savedCourseOfferingId);
+        }
         
         // Initialize dropdown search functionality
         const searchInput = document.getElementById('courseSearchInput');
