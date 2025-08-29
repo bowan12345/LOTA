@@ -53,11 +53,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateRetakeScores([FromBody] RetakeScoreDTO retakeScoreDTO)
+        public async Task<IActionResult> UpdateRetakeScores([FromBody] RetakeRequestDTO retakeRequest)
         {
             try
             {
-                var result = await _loResultService.UpdateRetakeScoresAsync(retakeScoreDTO);
+                var result = await _loResultService.UpdateRetakeScoresAsync(retakeRequest);
                 return Json(new { success = true, message = "Retake scores updated successfully" });
             }
             catch (Exception ex)
@@ -66,26 +66,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetRetakeHistory(string studentId, string learningOutcomeName)
-        {
-            try
-            {
-                var history = await _loResultService.GetRetakeHistoryAsync(studentId, learningOutcomeName);
-                return Json(new { success = true, data = history });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
+
 
         [HttpGet]
         public async Task<IActionResult> GetFailedAssessmentsForRetake(string studentId, string courseOfferingId, string loName)
         {
             try
             {
-                var failedAssessments = await _loResultService.GetFailedAssessmentsForRetakeAsync(studentId, courseOfferingId, loName);
+                var failedAssessments = await _loResultService.GetFailedAssessmentsForRetakeAsync(
+                    studentId, 
+                    courseOfferingId, 
+                    loName);
                 return Json(new { success = true, data = failedAssessments });
             }
             catch (Exception ex)

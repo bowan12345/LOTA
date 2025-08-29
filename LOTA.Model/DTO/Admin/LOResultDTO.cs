@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace LOTA.Model.DTO.Admin
@@ -48,6 +49,7 @@ namespace LOTA.Model.DTO.Admin
     {
         public string LearningOutcomeId { get; set; }
         public string LearningOutcomeName { get; set; }
+        public string AssessmentLearningOutcomeId { get; set; }
         public decimal LOScore { get; set; }
         public decimal MaxLOScore { get; set; }
         public decimal LOPercentage { get; set; }
@@ -56,6 +58,22 @@ namespace LOTA.Model.DTO.Admin
         public bool HasRetake { get; set; }
         public bool HasFailed { get; set; }
         public List<FailedAssessmentDTO> FailedAssessments { get; set; } = new List<FailedAssessmentDTO>();
+        
+        // Retake-related properties
+        public bool IsRetake { get; set; }
+        public DateTime? RetakeDate { get; set; }
+        public bool RetakePassed { get; set; }
+        public bool RetakeFailed { get; set; }
+        
+        // Historical scores for tooltip
+        public List<HistoricalScoreDTO> HistoricalScores { get; set; } = new List<HistoricalScoreDTO>();
+    }
+
+    public class HistoricalScoreDTO
+    {
+        public decimal Score { get; set; }
+        public decimal MaxScore { get; set; }
+        public DateTime Date { get; set; }
     }
 
     public class FailedAssessmentDTO
@@ -69,15 +87,17 @@ namespace LOTA.Model.DTO.Admin
 
     public class RetakeScoreDTO
     {
-        public string StudentId { get; set; }
-        public string LearningOutcomeName { get; set; }
-        public List<RetakeScoreItemDTO> RetakeScores { get; set; } = new List<RetakeScoreItemDTO>();
-    }
-
-    public class RetakeScoreItemDTO
-    {
         public string AssessmentId { get; set; }
         public decimal NewScore { get; set; }
+        public decimal MaxScore { get; set; }
+    }
+
+    public class RetakeRequestDTO
+    {
+        public string StudentId { get; set; }
+        public string LearningOutcomeName { get; set; }
+        public string CourseOfferingId { get; set; }
+        public List<RetakeScoreDTO> RetakeScores { get; set; } = new List<RetakeScoreDTO>();
     }
 
     public class RetakeHistoryDTO

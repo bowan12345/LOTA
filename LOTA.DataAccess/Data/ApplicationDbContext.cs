@@ -301,7 +301,7 @@ namespace LOTA.DataAccess.Data
                 new LearningOutcome
                 {
                     Id = "LO-001",
-                    LOName = "Requirement Analysis",
+                    LOName = "LO1",
                     Description = "Understand and document software requirements effectively.",
                     CourseId = "COURSE-001",
                     CreatedDate = DateTime.Now
@@ -309,7 +309,7 @@ namespace LOTA.DataAccess.Data
                 new LearningOutcome
                 {
                     Id = "LO-002",
-                    LOName = "System Design",
+                    LOName = "LO2",
                     Description = "Apply design principles to create robust software architectures.",
                     CourseId = "COURSE-001",
                     CreatedDate = DateTime.Now
@@ -404,7 +404,6 @@ namespace LOTA.DataAccess.Data
                     AssessmentId = "ASSIGN-001",
                     TotalScore = 100,
                     IsActive = true,
-                    IsRetake = false,
                     CreatedDate = DateTime.Now
                 }
             );
@@ -418,6 +417,7 @@ namespace LOTA.DataAccess.Data
                     AssessmentLearningOutcomeId = "ALO1001",
                     Score = 50,
                     IsActive = true,
+                    IsRetake = false,
                     CreatedDate = DateTime.Now
                 },
                  new StudentLOScore
@@ -427,6 +427,7 @@ namespace LOTA.DataAccess.Data
                      AssessmentLearningOutcomeId = "ALO1002",
                      Score = 50,
                      IsActive = true,
+                     IsRetake = false,
                      CreatedDate = DateTime.Now
                  }
             );

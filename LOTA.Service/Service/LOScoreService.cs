@@ -99,8 +99,6 @@ namespace LOTA.Service.Service
             return new LOScoreReturnDTO
             {
                 Id = studentAssessmentScore.Id,
-                IsRetake = studentAssessmentScore.IsRetake ?? false,
-                RetakeDate = studentAssessmentScore.RetakeDate
             };
         }
 
@@ -132,7 +130,6 @@ namespace LOTA.Service.Service
                     AssessmentId = assessmentId,
                     TotalScore = totalScore,
                     IsActive = true,
-                    IsRetake = false,
                     CreatedDate = DateTime.UtcNow
                 };
 

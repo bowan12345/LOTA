@@ -10,9 +10,7 @@ namespace LOTA.Service.Service.IService
         Task<LOResultDTO> GetLOResultsByCourseOfferingAsync(string courseOfferingId);
         Task<StudentResultDTO> GetStudentLOResultAsync(string studentId, string courseOfferingId);
         Task<bool> UpdateStudentLOScoreAsync(string studentId, string assessmentId, string learningOutcomeId, decimal score);
-        Task<bool> UpdateRetakeScoresAsync(RetakeScoreDTO retakeScoreDTO);
-        Task<List<RetakeHistoryDTO>> GetRetakeHistoryAsync(string studentId, string learningOutcomeName);
-        Task<List<object>> GetFailedAssessmentsForRetakeAsync(string studentId, string courseOfferingId, string loName);
-        Task<object> GetRetakeDataByAssessmentIdsAsync(string studentId, string courseOfferingId, List<string> assessmentIds);
+        Task<bool> UpdateRetakeScoresAsync(RetakeRequestDTO retakeRequest);
+        Task<List<FailedAssessmentForRetakeDTO>> GetFailedAssessmentsForRetakeAsync(string studentId, string courseOfferingId, string loName);
     }
 }

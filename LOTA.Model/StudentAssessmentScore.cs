@@ -29,8 +29,6 @@ namespace LOTA.Model
 
         public bool IsActive { get; set; } = true;
 
-        public bool?  IsRetake { get; set; } = false;
-        public DateTime? RetakeDate { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 

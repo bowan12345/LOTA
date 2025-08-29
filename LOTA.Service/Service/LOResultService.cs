@@ -227,63 +227,7 @@ namespace LOTA.Service.Service
             }
         }
 
-        public async Task<bool> UpdateRetakeScoresAsync(RetakeScoreDTO retakeScoreDTO)
-        {
-            try
-            {
-                foreach (var retakeScore in retakeScoreDTO.RetakeScores)
-                {
-                    // Get the assessment to find the learning outcome
-                    var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(retakeScore.AssessmentId);
-                    if (assessment == null) continue;
-                    
-                    // Find the learning outcome by name
-                    var learningOutcome = assessment.AssessmentLearningOutcomes
-                        .FirstOrDefault(alo => alo.LearningOutcome.LOName == retakeScoreDTO.LearningOutcomeName);
-                    
-                    if (learningOutcome == null) continue;
-                    
-                    // Get student assessment score for this assessment
-                    var studentAssessmentScore = await _unitOfWork.studentScoreRepository
-                        .GetStudentScoreByStudentAssessmentAsync(retakeScoreDTO.StudentId, retakeScore.AssessmentId);
-                    
-                    if (studentAssessmentScore == null) continue;
-                    
-                    // Get existing student LO scores for this assessment and learning outcome
-                    var existingScores = await _unitOfWork.studentLOScoreRepository
-                        .GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
-                    
-                    var existingScore = existingScores.FirstOrDefault(s => s.AssessmentLearningOutcomeId == learningOutcome.Id);
-                    
-                    // Deactivate existing score if it exists
-                    if (existingScore != null)
-                    {
-                        existingScore.IsActive = false;
-                        _unitOfWork.studentLOScoreRepository.Update(existingScore);
-                    }
-                    
-                    // Create new retake score
-                    var newRetakeScore = new StudentLOScore
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        StudentAssessmentScoreId = studentAssessmentScore.Id,
-                        AssessmentLearningOutcomeId = learningOutcome.Id,
-                        Score = retakeScore.NewScore,
-                        IsActive = true,
-                        CreatedDate = DateTime.UtcNow
-                    };
-                    
-                    await _unitOfWork.studentLOScoreRepository.AddAsync(newRetakeScore);
-                }
-                
-                await _unitOfWork.SaveAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to update retake scores: {ex.Message}");
-            }
-        }
+
         
         public async Task<List<RetakeHistoryDTO>> GetRetakeHistoryAsync(string studentId, string learningOutcomeName)
         {
@@ -339,70 +283,7 @@ namespace LOTA.Service.Service
             }
         }
         
-        public async Task<List<object>> GetFailedAssessmentsForRetakeAsync(string studentId, string courseOfferingId, string loName)
-        {
-            try
-            {
-                var failedAssessments = new List<object>();
-                
-                // Get all assessments
-                var allAssessments = await _unitOfWork.assessmentRepository.GetAllAsync();
-                
-                // Filter assessments that belong to the course offering
-                var courseAssessments = allAssessments.Where(assessment => assessment.CourseOfferingId == courseOfferingId).ToList();
-                
-                foreach (var assessment in courseAssessments)
-                {
-                    // Find the learning outcome in this assessment
-                    var assessmentLearningOutcome = assessment.AssessmentLearningOutcomes
-                        .FirstOrDefault(assessmentLearningOutcome => assessmentLearningOutcome.LearningOutcome.LOName == loName);
-                    
-                    if (assessmentLearningOutcome == null)
-                    {
-                        continue;
-                    }
-                    
-                    // Get student's score for this assessment and LO
-                    var studentAssessmentScore = await _unitOfWork.studentScoreRepository
-                        .GetStudentScoreByStudentAssessmentAsync(studentId, assessment.Id);
-                    
-                    if (studentAssessmentScore == null)
-                    {
-                        continue;
-                    }
-                    
-                    // Get all student LO scores for this assessment
-                    var studentLOScores = await _unitOfWork.studentLOScoreRepository
-                        .GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
-                    
-                    var studentLOScore = studentLOScores.FirstOrDefault(studentLOScore => studentLOScore.AssessmentLearningOutcomeId == assessmentLearningOutcome.Id);
-                    
-                    if (studentLOScore != null)
-                    {
-                        var percentage = (studentLOScore.Score / assessmentLearningOutcome.Score) * 100;
-                        
-                        // Only include failed assessments (below 50%)
-                        if (percentage < 50)
-                        {
-                            failedAssessments.Add(new
-                            {
-                                AssessmentId = assessment.Id,
-                                AssessmentName = assessment.AssessmentName,
-                                LOScore = studentLOScore.Score,
-                                MaxLOScore = assessmentLearningOutcome.Score,
-                                LOPercentage = percentage
-                            });
-                        }
-                    }
-                }
-                
-                return failedAssessments;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to get failed assessments for retake: {ex.Message}");
-            }
-        }
+
         
         public async Task<object> GetRetakeDataByAssessmentIdsAsync(string studentId, string courseOfferingId, List<string> assessmentIds)
         {
@@ -530,8 +411,31 @@ namespace LOTA.Service.Service
                         {
                             LearningOutcomeId = assessmentLO.LOId,
                             LearningOutcomeName = assessmentLO.LearningOutcome.LOName,
+                            AssessmentLearningOutcomeId = assessmentLO.Id,
                             MaxLOScore = assessmentLO.Score
                         };
+
+                        // Get historical scores for this LO (IsActive = false)
+                        try
+                        {
+                            var historicalScores = await _unitOfWork.studentLOScoreRepository.GetAllAsync(lo=>lo.IsActive == false&& lo.AssessmentLearningOutcomeId == assessmentLO.Id);
+                            if (historicalScores != null)
+                            {
+                                if (historicalScores.ToList().Any())
+                                {
+                                    loResult.HistoricalScores = historicalScores.Select(hs => new HistoricalScoreDTO
+                                    {
+                                        Score = hs.Score,
+                                        MaxScore = hs.AssessmentLearningOutcome?.Score ?? 0,
+                                        Date = hs.CreatedDate ?? DateTime.Now
+                                    }).ToList();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException($"Warning: Failed to get historical scores for LO {assessmentLO.Id}");
+                        }
 
                         // Get student's score for this LO - we need to check if StudentAssessmentScore exists first
                         var studentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(studentId, assessment.Id);
@@ -549,10 +453,23 @@ namespace LOTA.Service.Service
                                 loResult.LOPassed = loResult.LOPercentage >= 50;
                                 loResult.NeedsRetake = !loResult.LOPassed;
                                 
-                                // Check if this LO has retake history
+                                // Check if this LO has retake history and populate retake data
                                 var allScoresForLO = await _unitOfWork.studentLOScoreRepository
                                     .GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
                                 var loScores = allScoresForLO.Where(s => s.AssessmentLearningOutcomeId == assessmentLO.Id);
+                                
+                                // Check for retake data
+                                var retakeScore = loScores.FirstOrDefault(s => s.IsRetake);
+                                if (retakeScore != null)
+                                {
+                                    loResult.IsRetake = true;
+                                    loResult.RetakeDate = retakeScore.RetakeDate;
+                                    // Calculate if retake passed (score >= 50% of max score)
+                                    var retakePercentage = (retakeScore.Score / assessmentLO.Score) * 100;
+                                    loResult.RetakePassed = retakePercentage >= 50;
+                                    loResult.RetakeFailed = retakePercentage < 50;
+                                }
+                                
                                 loResult.HasRetake = loScores.Count(s => !s.IsActive) > 0;
                             }
                             else
@@ -615,6 +532,149 @@ namespace LOTA.Service.Service
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Failed to get student result: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> UpdateRetakeScoresAsync(RetakeRequestDTO retakeRequest)
+        {
+            try
+            {
+                // Validate that all scores are within valid range (0 to max score)
+                foreach (var retakeScore in retakeRequest.RetakeScores)
+                {
+                    if (retakeScore.NewScore < 0)
+                    {
+                        throw new InvalidOperationException($"Score for assessment {retakeScore.AssessmentId} cannot be negative");
+                    }
+                    if (retakeScore.NewScore > retakeScore.MaxScore)
+                    {
+                        throw new InvalidOperationException($"Score for assessment {retakeScore.AssessmentId} cannot exceed maximum score");
+                    }
+                }
+
+                // Get all failed assessments for this LO
+                var failedAssessments = await GetFailedAssessmentsForRetakeAsync(
+                    retakeRequest.StudentId, 
+                    retakeRequest.CourseOfferingId, 
+                    retakeRequest.LearningOutcomeName);
+
+                if (!failedAssessments.Any())
+                {
+                    throw new InvalidOperationException("No failed assessments found for this learning outcome");
+                }
+
+                // Deactivate old scores and create new retake scores
+                foreach (var retakeScore in retakeRequest.RetakeScores)
+                {
+                    // Find the corresponding failed assessment
+                    var failedAssessment = failedAssessments.FirstOrDefault(fa => fa.AssessmentId == retakeScore.AssessmentId);
+                    if (failedAssessment == null)
+                    {
+                        throw new InvalidOperationException($"Assessment {retakeScore.AssessmentId} not found in failed assessments");
+                    }
+
+                    // Get the student assessment score record
+                    var studentAssessmentScore = await _unitOfWork.studentScoreRepository
+                        .GetStudentScoreByStudentAssessmentAsync(retakeRequest.StudentId, retakeScore.AssessmentId);
+                    
+                    if (studentAssessmentScore == null)
+                    {
+                        throw new InvalidOperationException($"Student assessment score not found");
+                    }
+
+                    // Get the original LO score record
+                    var originalLOScore = await _unitOfWork.studentLOScoreRepository
+                        .GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
+                    
+                    var loScore = originalLOScore.FirstOrDefault(sls => 
+                        sls.AssessmentLearningOutcome.LearningOutcome.LOName == retakeRequest.LearningOutcomeName);
+                    
+                    if (loScore == null)
+                    {
+                        throw new InvalidOperationException($"Learning outcome score not found");
+                    }
+
+                    // Deactivate old score
+                    loScore.IsActive = false;
+                    _unitOfWork.studentLOScoreRepository.Update(loScore);
+
+                    // Create new retake score
+                    var newRetakeScore = new StudentLOScore
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        StudentAssessmentScoreId = studentAssessmentScore.Id,
+                        AssessmentLearningOutcomeId = loScore.AssessmentLearningOutcomeId,
+                        Score = retakeScore.NewScore,
+                        IsActive = true,
+                        IsRetake = true,
+                        CreatedDate = DateTime.UtcNow,
+                        RetakeDate = DateTime.UtcNow
+                    };
+
+                    await _unitOfWork.studentLOScoreRepository.AddAsync(newRetakeScore);
+                }
+
+                await _unitOfWork.SaveAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to update retake scores: {ex.Message}");
+            }
+        }
+
+        public async Task<List<FailedAssessmentForRetakeDTO>> GetFailedAssessmentsForRetakeAsync(string studentId, string courseOfferingId, string loName)
+        {
+            try
+            {
+                var result = new List<FailedAssessmentForRetakeDTO>();
+                
+                // Get all assessments for this course offering
+                var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOfferingId);
+                
+                foreach (var assessment in assessments)
+                {
+                    // Get the LO for this assessment
+                    var assessmentLOs = await _unitOfWork.assessmentRepository.GetLOListByAssessmentId(assessment.Id);
+                    
+                    var lo = assessmentLOs.FirstOrDefault(alo => 
+                        alo.LearningOutcome.LOName == loName);
+                    
+                    if (lo != null)
+                    {
+                        // Get student's score for this assessment
+                        var studentAssessmentScore = await _unitOfWork.studentScoreRepository
+                            .GetStudentScoreByStudentAssessmentAsync(studentId, assessment.Id);
+                        
+                        if (studentAssessmentScore != null)
+                        {
+                            // Get LO score for this student
+                            var studentLOScores = await _unitOfWork.studentLOScoreRepository
+                                .GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
+                            
+                            var loScore = studentLOScores.FirstOrDefault(sls => 
+                                sls.AssessmentLearningOutcomeId == lo.Id);
+                            
+                            if (loScore != null && (loScore.Score / lo.Score) * 100 < 50)
+                            {
+                                result.Add(new FailedAssessmentForRetakeDTO
+                                {
+                                    AssessmentId = assessment.Id,
+                                    AssessmentName = assessment.AssessmentName,
+                                    LOScore = loScore.Score,
+                                    MaxLOScore = lo.Score,
+                                    LOPercentage = (loScore.Score / lo.Score) * 100
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to get failed assessments for retake: {ex.Message}");
             }
         }
     }
