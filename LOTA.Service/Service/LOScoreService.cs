@@ -188,7 +188,7 @@ namespace LOTA.Service.Service
 
 
 
-        public async Task<bool> ValidateLOScoresAsync(string assessmentId, List<LOScoreCreateDTO> loScores)
+        private async Task<bool> ValidateLOScoresAsync(string assessmentId, List<LOScoreCreateDTO> loScores)
         {
             try
             {

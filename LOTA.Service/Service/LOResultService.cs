@@ -19,74 +19,6 @@ namespace LOTA.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<LOResultDTO>> GetLOResultsByQualificationAsync()
-        {
-            try
-            {
-                // Get the latest trimester first
-                var latestTrimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
-                if (latestTrimester == null)
-                {
-                    throw new InvalidOperationException("No trimester information found");
-                }
-
-                var qualifications = await _unitOfWork.qualificationRepository.GetAllAsync();
-                var result = new List<LOResultDTO>();
-
-                foreach (var qualification in qualifications)
-                {
-                    var qualificationResult = new LOResultDTO
-                    {
-                        QualificationId = qualification.Id,
-                        QualificationName = qualification.QualificationName,
-                        CourseOfferings = new List<CourseOfferingResultDTO>()
-                    };
-
-                    // Get course offerings for this qualification in the latest trimester only
-                    var courseOfferings = await _unitOfWork.trimesterCourseRepository.GetTrimesterCoursesByTrimesterAsync(latestTrimester.Id);
-                    var filteredCourseOfferings = courseOfferings.Where(tc => tc.Course.QualificationId == qualification.Id);
-
-                    foreach (var courseOffering in filteredCourseOfferings)
-                    {
-                        var courseOfferingResult = new CourseOfferingResultDTO
-                        {
-                            CourseOfferingId = courseOffering.Id,
-                            CourseName = courseOffering.Course.CourseName,
-                            CourseCode = courseOffering.Course.CourseCode,
-                            TrimesterName = $"Trimester {courseOffering.Trimester.TrimesterNumber} {courseOffering.Trimester.AcademicYear}",
-                            Students = new List<StudentResultDTO>()
-                        };
-
-                        // Get students enrolled in this course offering using existing repository method
-                        var enrolledStudents = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
-
-                        foreach (var studentCourse in enrolledStudents)
-                        {
-                            var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
-                            if (studentResult != null)
-                            {
-                                courseOfferingResult.Students.Add(studentResult);
-                            }
-                        }
-
-                        qualificationResult.CourseOfferings.Add(courseOfferingResult);
-                    }
-
-                    // Only add qualifications that have course offerings
-                    if (qualificationResult.CourseOfferings.Any())
-                    {
-                        result.Add(qualificationResult);
-                    }
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to get LO results: {ex.Message}");
-            }
-        }
-
         public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()
         {
             try
@@ -168,65 +100,6 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException($"Failed to get LO results by course offering: {ex.Message}");
             }
         }
-
-        public async Task<StudentResultDTO> GetStudentLOResultAsync(string studentId, string courseOfferingId)
-        {
-            try
-            {
-                return await GetStudentResultAsync(studentId, courseOfferingId);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to get student LO result: {ex.Message}");
-            }
-        }
-
-        public async Task<bool> UpdateStudentLOScoreAsync(string studentId, string assessmentId, string learningOutcomeId, decimal score)
-        {
-            try
-            {
-                // First check if StudentAssessmentScore exists
-                var studentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(studentId, assessmentId);
-                if (studentAssessmentScore == null)
-                {
-                    throw new InvalidOperationException("Student assessment score not found");
-                }
-
-                // Get existing LO score if it exists
-                var studentLOScores = await _unitOfWork.studentLOScoreRepository.GetStudentLOScoresByStudentAssessmentScoreAsync(studentAssessmentScore.Id);
-                var existingScore = studentLOScores.FirstOrDefault(sls => sls.AssessmentLearningOutcomeId == learningOutcomeId);
-
-                if (existingScore != null)
-                {
-                    existingScore.Score = score;
-                    existingScore.UpdatedDate = DateTime.UtcNow;
-                    _unitOfWork.studentLOScoreRepository.Update(existingScore);
-                }
-                else
-                {
-                    // Create new score if doesn't exist
-                    var newScore = new StudentLOScore
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        StudentAssessmentScoreId = studentAssessmentScore.Id,
-                        AssessmentLearningOutcomeId = learningOutcomeId,
-                        Score = score,
-                        IsActive = true,
-                        CreatedDate = DateTime.UtcNow
-                    };
-
-                    await _unitOfWork.studentLOScoreRepository.AddAsync(newScore);
-                }
-
-                await _unitOfWork.SaveAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to update student LO score: {ex.Message}");
-            }
-        }
-
 
         
         public async Task<List<RetakeHistoryDTO>> GetRetakeHistoryAsync(string studentId, string learningOutcomeName)
@@ -434,7 +307,7 @@ namespace LOTA.Service.Service
                         }
                         catch (Exception ex)
                         {
-                            throw new InvalidOperationException($"Warning: Failed to get historical scores for LO {assessmentLO.Id}");
+                            throw new InvalidOperationException($"Warning: Failed to get historical scores for LO");
                         }
 
                         // Get student's score for this LO - we need to check if StudentAssessmentScore exists first
@@ -535,7 +408,7 @@ namespace LOTA.Service.Service
             }
         }
 
-        public async Task<bool> UpdateRetakeScoresAsync(RetakeRequestDTO retakeRequest)
+        public async Task UpdateRetakeScoresAsync(RetakeRequestDTO retakeRequest)
         {
             try
             {
@@ -544,11 +417,11 @@ namespace LOTA.Service.Service
                 {
                     if (retakeScore.NewScore < 0)
                     {
-                        throw new InvalidOperationException($"Score for assessment {retakeScore.AssessmentId} cannot be negative");
+                        throw new InvalidOperationException($"Score for assessment  cannot be negative");
                     }
                     if (retakeScore.NewScore > retakeScore.MaxScore)
                     {
-                        throw new InvalidOperationException($"Score for assessment {retakeScore.AssessmentId} cannot exceed maximum score");
+                        throw new InvalidOperationException($"Score for assessment cannot exceed maximum score");
                     }
                 }
 
@@ -570,7 +443,7 @@ namespace LOTA.Service.Service
                     var failedAssessment = failedAssessments.FirstOrDefault(fa => fa.AssessmentId == retakeScore.AssessmentId);
                     if (failedAssessment == null)
                     {
-                        throw new InvalidOperationException($"Assessment {retakeScore.AssessmentId} not found in failed assessments");
+                        throw new InvalidOperationException($"Assessment not found in failed assessments");
                     }
 
                     // Get the student assessment score record
@@ -615,11 +488,10 @@ namespace LOTA.Service.Service
                 }
 
                 await _unitOfWork.SaveAsync();
-                return true;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to update retake scores: {ex.Message}");
+                throw new InvalidOperationException($"Failed to update retake scores");
             }
         }
 
@@ -674,7 +546,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get failed assessments for retake: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get failed assessments for retake");
             }
         }
     }

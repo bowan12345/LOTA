@@ -27,7 +27,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error loading course offerings: {ex.Message}";
+                TempData["Error"] = $"Error loading course offerings";
                 return View();
             }
         }
@@ -37,18 +37,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                // Add debug logging
-                System.Diagnostics.Debug.WriteLine($"Getting LO results for course offering: {courseOfferingId}");
-                
                 var result = await _loResultService.GetLOResultsByCourseOfferingAsync(courseOfferingId);
                 return Json(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                // Add detailed error logging
-                System.Diagnostics.Debug.WriteLine($"Error in GetLOResultsByCourseOffering: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Get LOResults Failed" });
             }
         }
 
@@ -57,12 +51,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                var result = await _loResultService.UpdateRetakeScoresAsync(retakeRequest);
+                await _loResultService.UpdateRetakeScoresAsync(retakeRequest);
                 return Json(new { success = true, message = "Retake scores updated successfully" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Retake scores updated failed" });
             }
         }
 
@@ -85,36 +79,5 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> DebugCourseData(string courseOfferingId)
-        {
-            try
-            {
-                // Debug method to check course and qualification data
-                var courseOffering = await _loResultService.GetLatestTrimesterCourseOfferingsAsync();
-                var targetCourse = courseOffering.FirstOrDefault(c => c.Id == courseOfferingId);
-                
-                if (targetCourse != null)
-                {
-                    return Json(new { 
-                        success = true, 
-                        courseId = targetCourse.CourseId,
-                        courseName = targetCourse.Course?.CourseName,
-                        courseCode = targetCourse.Course?.CourseCode,
-                        qualificationId = targetCourse.Course?.QualificationId,
-                        qualificationName = targetCourse.Course?.Qualification?.QualificationName,
-                        hasQualification = targetCourse.Course?.Qualification != null
-                    });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Course offering not found" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
     }
 }
