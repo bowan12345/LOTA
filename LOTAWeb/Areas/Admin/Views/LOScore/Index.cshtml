@@ -48,13 +48,25 @@
                 </div>
                 <div class="col-lg-6 col-md-12">
                     <div class="d-flex justify-content-lg-end justify-content-start gap-2">
-                        <div class="input-group input-group-sm" style="max-width: 300px;">
-                            <span class="input-group-text bg-light border-end-0">
-                                <i class="fas fa-search text-muted"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0" id="searchInput" 
-                                   placeholder="Search qualification, course name or code...">
-                        </div>
+                        <form method="get" action="@Url.Action("Index", "LOScore", new { area = "Admin" })" class="d-flex" style="max-width: 300px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" name="searchTerm" id="searchInput" 
+                                       placeholder="course name or code..." value="@ViewBag.SearchTerm">
+                                <button type="submit" class="btn btn-outline-secondary border-start-0" title="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                {
+                                    <a href="@Url.Action("Index", "LOScore", new { area = "Admin" })" 
+                                       class="btn btn-outline-danger border-start-0" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                }
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

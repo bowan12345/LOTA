@@ -208,18 +208,18 @@ namespace LOTA.Service.Service
                     var assessmentLO = assessmentLearningOutcomes.FirstOrDefault(alo => alo.Id == loScore.AssessmentLearningOutcomeId);
                     if (assessmentLO == null)
                     {
-                        throw new InvalidOperationException($"Assessment Learning Outcome {loScore.AssessmentLearningOutcomeId} not found for Assessment {assessmentId}");
+                        throw new InvalidOperationException($"Assessment Learning Outcome not found for Assessment");
                     }
 
                     // Validate score range
                     if (loScore.Score < 0)
                     {
-                        throw new InvalidOperationException($"Score cannot be negative. Assessment Learning Outcome: {assessmentLO.Id}, Score: {loScore.Score}");
+                        throw new InvalidOperationException($"Score cannot be negative.");
                     }
 
                     if (loScore.Score > assessmentLO.Score)
                     {
-                        throw new InvalidOperationException($"Score cannot exceed maximum LO score. Assessment Learning Outcome: {assessmentLO.Id}, Maximum: {assessmentLO.Score}, Current: {loScore.Score}");
+                        throw new InvalidOperationException($"Score cannot exceed maximum LO score.");
                     }
                 }
 
@@ -227,7 +227,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"LO Score validation failed: {ex.Message}");
+                throw new InvalidOperationException($"LO Score validation failed");
             }
         }
 
