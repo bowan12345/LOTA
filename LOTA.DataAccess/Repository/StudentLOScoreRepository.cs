@@ -45,5 +45,19 @@ namespace LOTA.DataAccess.Repository
         {
             return await _db.StudentLOScore.Where(s => s.StudentAssessmentScoreId == assessmentScoreId).ToListAsync();
         }
+
+        public async Task<IEnumerable<StudentLOScore>> GetByStudentAndLearningOutcomeAsync(string studentId, string learningOutcomeName)
+        {
+            return await _db.StudentLOScore
+                .Include(s => s.StudentAssessmentScore)
+                .Include(s => s.StudentAssessmentScore.Assessment)
+                .Include(s => s.StudentAssessmentScore.Assessment.AssessmentLearningOutcomes)
+                .Include(s => s.StudentAssessmentScore.Assessment.AssessmentLearningOutcomes)
+                .ThenInclude(alo => alo.LearningOutcome)
+                .Where(s => s.StudentAssessmentScore.StudentId == studentId && 
+                           s.StudentAssessmentScore.Assessment.AssessmentLearningOutcomes
+                               .Any(alo => alo.LearningOutcome.LOName == learningOutcomeName))
+                .ToListAsync();
+        }
     }
 }

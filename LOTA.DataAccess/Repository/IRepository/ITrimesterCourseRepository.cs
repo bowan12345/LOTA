@@ -15,5 +15,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTrimesterAndCourseAsync(string trimesterId, string courseId);
         Task<bool> IsTrimesterCourseExistsAsync(string trimesterId, string courseId);
         Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync();
+        Task<TrimesterCourse> GetTrimesterCourseWithDetailsAsync(string id);
     }
 }

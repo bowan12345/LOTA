@@ -31,6 +31,18 @@ namespace LOTA.DataAccess.Repository
             return await _context.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
+                .Include(tc => tc.Course.Qualification)
+                .Include(tc => tc.Course.LearningOutcomes)
+                .Include(tc => tc.Tutor)
+                .FirstOrDefaultAsync(tc => tc.Id == id);
+        }
+
+        public async Task<TrimesterCourse> GetTrimesterCourseWithDetailsAsync(string id)
+        {
+            return await _context.TrimesterCourse
+                .Include(tc => tc.Trimester)
+                .Include(tc => tc.Course)
+                .Include(tc => tc.Course.Qualification)
                 .Include(tc => tc.Course.LearningOutcomes)
                 .Include(tc => tc.Tutor)
                 .FirstOrDefaultAsync(tc => tc.Id == id);
