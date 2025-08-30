@@ -27,7 +27,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get latest trimester course offerings: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get latest trimester course offerings");
             }
         }
 
@@ -35,6 +35,7 @@ namespace LOTA.Service.Service
         {
             try
             {
+
                 // Get the course offering with related data
                 var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseWithDetailsAsync(courseOfferingId);
                 if (courseOffering == null)
@@ -60,7 +61,7 @@ namespace LOTA.Service.Service
                     
                     if (qualification == null)
                     {
-                        throw new InvalidOperationException($"Qualification information not found for course {courseOffering.Course.CourseCode}. CourseId: {courseOffering.CourseId}, QualificationId: {courseOffering.Course.QualificationId}");
+                        throw new InvalidOperationException($"Qualification information not found for course ");
                     }
                 }
                 
@@ -97,7 +98,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get LO results by course offering: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get LO results by course offering");
             }
         }
 
@@ -152,7 +153,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get retake history: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get retake history");
             }
         }
         
@@ -229,7 +230,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get retake data by assessment IDs: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get retake data ");
             }
         }
 
@@ -404,7 +405,7 @@ namespace LOTA.Service.Service
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to get student result: {ex.Message}");
+                throw new InvalidOperationException($"Failed to get student result");
             }
         }
 
@@ -499,6 +500,7 @@ namespace LOTA.Service.Service
         {
             try
             {
+                
                 var result = new List<FailedAssessmentForRetakeDTO>();
                 
                 // Get all assessments for this course offering

@@ -50,6 +50,7 @@ namespace LOTA.Service.Service
 
         public async Task<CourseOfferingAssessmentDTO> GetCourseOfferingWithAssessmentsAsync(string courseOfferingId)
         {
+
             var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseByIdAsync(courseOfferingId);
             if (courseOffering == null)
             {
@@ -109,6 +110,7 @@ namespace LOTA.Service.Service
         /// </summary>
         public async Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores)
         {
+           
             // Validate LO scores before saving
             await ValidateLOScoresAsync(assessmentId, loScores);
             
