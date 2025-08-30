@@ -252,8 +252,16 @@ namespace LOTA.Service.Service
             await _unitOfWork.SaveAsync();
         }
 
-
-
-
+        public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()
+        {
+            try
+            {
+                return await _unitOfWork.trimesterCourseRepository.GetLatestTrimesterCourseOfferingsAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to get latest trimester course offerings");
+            }
+        }
     }
 }
