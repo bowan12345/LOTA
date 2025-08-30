@@ -15,39 +15,6 @@ namespace LOTA.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<CourseOfferingAssessmentDTO>> GetCourseOfferingsWithAssessmentsAsync()
-        {
-            // Get the latest trimester
-            var latestTrimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
-            if (latestTrimester == null)
-            {
-                throw new InvalidOperationException("No trimester information found");
-            }
-
-            // Get all course offerings in this trimester
-            var courseOfferings = await _unitOfWork.trimesterCourseRepository.GetTrimesterCoursesByTrimesterAsync(latestTrimester.Id);
-
-            var result = new List<CourseOfferingAssessmentDTO>();
-
-            foreach (var courseOffering in courseOfferings)
-            {
-                // Get assessments for this course offering
-                var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOffering.Id);
-                
-                // Get students enrolled in this course offering
-                var students = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
-                
-                result.Add(new CourseOfferingAssessmentDTO
-                {
-                    TrimesterCourse = courseOffering,
-                    Assessments = assessments.ToList(),
-                    Students = students.ToList()
-                });
-            }
-
-            return result;
-        }
-
         public async Task<CourseOfferingAssessmentDTO> GetCourseOfferingWithAssessmentsAsync(string courseOfferingId)
         {
 
@@ -192,8 +159,6 @@ namespace LOTA.Service.Service
 
         private async Task<bool> ValidateLOScoresAsync(string assessmentId, List<LOScoreCreateDTO> loScores)
         {
-            try
-            {
                 // Get the assessment with its learning outcomes
                 var assessment = await _unitOfWork.assessmentRepository.GetByIdAsync(assessmentId);
                 if (assessment == null)
@@ -226,12 +191,8 @@ namespace LOTA.Service.Service
                 }
 
                 return true;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"LO Score validation failed");
-            }
         }
+
 
         public async Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
         {
@@ -250,6 +211,61 @@ namespace LOTA.Service.Service
             }
 
             await _unitOfWork.SaveAsync();
+        }
+
+        public async Task<CourseOfferingDetailsDTO> GetCourseOfferingDetailsByCourseOfferingId(string courseOfferingId)
+        {
+            // Get only necessary information: Course Offering, Trimester, Assessments
+            var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseByIdAsync(courseOfferingId);
+            if (courseOffering == null)
+            {
+                throw new InvalidOperationException("Course offering not found");
+            }
+
+            // Get assessments for this course offering
+            var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOfferingId);
+            
+            // Create a simplified DTO with only necessary information
+            var courseOfferingDto = new CourseOfferingDetailsDTO
+            {
+                TrimesterCourse = new TrimesterCourseInfo
+                {
+                    Id = courseOffering.Id,
+                    Course = new CourseInfoDTO
+                    {
+                        Id = courseOffering.Course?.Id,
+                        CourseName = courseOffering.Course?.CourseName,
+                        CourseCode = courseOffering.Course?.CourseCode,
+                        Description = courseOffering.Course?.Description,
+                        Credits = 0 // Credits property doesn't exist in Course entity
+                    },
+                    Trimester = new TrimesterInfoDTO
+                    {
+                        Id = courseOffering.Trimester?.Id,
+                        TrimesterNumber = courseOffering.Trimester?.TrimesterNumber ?? 0,
+                        AcademicYear = courseOffering.Trimester?.AcademicYear ?? 0,
+                        StartDate = courseOffering.Trimester?.CreatedDate ?? DateTime.MinValue, 
+                        EndDate = courseOffering.Trimester?.UpdatedDate ?? DateTime.MinValue 
+                    }
+                },
+                Assessments = assessments?.Select(a => new AssessmentInfoDTO
+                {
+                    Id = a.Id,
+                    AssessmentName = a.AssessmentName,
+                    Description = a.AssessmentName, 
+                    Weight = a.Weight,
+                    Score = a.Score,
+                    DueDate = a.CreatedDate ?? DateTime.MinValue, 
+                    AssessmentType = new AssessmentTypeInfoDTO
+                    {
+                        Id = a.AssessmentType?.Id,
+                        AssessmentTypeName = a.AssessmentType?.AssessmentTypeName,
+                        Description = a.AssessmentType?.AssessmentTypeName 
+                    }
+                }).ToList() ?? new List<AssessmentInfoDTO>()
+            };
+            
+            return courseOfferingDto;
         }
 
         public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()

@@ -3,6 +3,7 @@ using LOTA.Service.Service.IService;
 using LOTA.Model.DTO.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using LOTA.Model;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -23,13 +24,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                var courseOfferings = await _loScoreService.GetCourseOfferingsWithAssessmentsAsync();
-                return View(courseOfferings);
+                var courseOfferings = await _loScoreService.GetLatestTrimesterCourseOfferingsAsync();
+                _logger.LogInformation($"Loaded {courseOfferings?.Count() ?? 0} course offerings");
+                ViewBag.CourseOfferings = courseOfferings;
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
-                return View(new List<CourseOfferingAssessmentDTO>());
+                TempData["Error"] = "Error loading course offerings";
+                ViewBag.CourseOfferings = new List<TrimesterCourse>();
+                return View();
             }
         }
 
@@ -44,6 +48,36 @@ namespace LOTAWeb.Areas.Admin.Controllers
             {
                 TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCourseOfferingDetailsByCourseOfferingId(string courseOfferingId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(courseOfferingId))
+                {
+                    return Json(new { success = false, message = "Course offering ID is required" });
+                }
+
+                _logger.LogInformation($"Getting course offering details for ID: {courseOfferingId}");
+
+                var courseOfferingDetails = await _loScoreService.GetCourseOfferingDetailsByCourseOfferingId(courseOfferingId);
+                
+                if (courseOfferingDetails == null)
+                {
+                    _logger.LogWarning($"Course offering not found for ID: {courseOfferingId}");
+                    return Json(new { success = false, message = "Course offering not found" });
+                }
+
+                _logger.LogInformation($"Successfully retrieved course offering details for ID: {courseOfferingId}");
+                return Json(new { success = true, data = courseOfferingDetails });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting course offering details for ID: {courseOfferingId}");
+                return Json(new { success = false, message = "Error loading course offering details" });
             }
         }
 

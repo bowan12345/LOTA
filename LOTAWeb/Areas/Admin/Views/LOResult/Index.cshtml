@@ -2101,9 +2101,9 @@
         // Store the selected course offering ID and text for persistence
         if (value) {
             currentCourseOfferingId = value;
-            // Store in sessionStorage for persistence across page interactions
-            sessionStorage.setItem('selectedCourseOfferingId', value);
-            sessionStorage.setItem('selectedCourseOfferingText', text);
+            // Store in sessionStorage for persistence across page interactions (LO Results specific)
+            sessionStorage.setItem('loresults_selectedCourseOfferingId', value);
+            sessionStorage.setItem('loresults_selectedCourseOfferingText', text);
             loadLOResults(value);
         }
     }
@@ -2120,9 +2120,9 @@
             removeOverlay();
         }, 1500);
         
-        // Restore previously selected course offering if available
-        const savedCourseOfferingId = sessionStorage.getItem('selectedCourseOfferingId');
-        const savedCourseOfferingText = sessionStorage.getItem('selectedCourseOfferingText');
+        // Restore previously selected course offering if available (LO Results specific)
+        const savedCourseOfferingId = sessionStorage.getItem('loresults_selectedCourseOfferingId');
+        const savedCourseOfferingText = sessionStorage.getItem('loresults_selectedCourseOfferingText');
         
         if (savedCourseOfferingId && savedCourseOfferingText) {
             // Restore the selected course offering
