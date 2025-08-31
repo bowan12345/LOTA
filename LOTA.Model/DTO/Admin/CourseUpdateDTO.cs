@@ -13,7 +13,7 @@ namespace LOTA.Model.DTO.Admin
         public string Id { get; set; }
 
         [Required(ErrorMessage = "Course name is required")]
-        [StringLength(50, ErrorMessage = "Course name cannot exceed 50 characters")]
+        [StringLength(100, ErrorMessage = "Course name cannot exceed 100 characters")]
         public string CourseName { get; set; }
 
         [Required(ErrorMessage = "Course code is required")]

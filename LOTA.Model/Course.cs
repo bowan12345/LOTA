@@ -8,7 +8,7 @@ namespace LOTA.Model
         [Key]
         public string Id { get; set; }
 
-        [Required, MaxLength(50)]
+        [Required, MaxLength(100)]
         public string CourseName { get; set; }
 
         [Required, MaxLength(50)]
