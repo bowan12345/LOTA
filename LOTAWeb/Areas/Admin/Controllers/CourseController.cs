@@ -442,17 +442,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> AddStudentsToCourseOffering([FromBody] AddStudentsToCourseOfferingDTO request)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation failed" + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation failed", errors });
-                }
-
                 await _courseService.AddStudentsToCourseOfferingAsync(request.CourseOfferingId, request.StudentIds, request.TrimesterId);
                 return Json(new { success = true, message = "Students added to course successfully" });
             }
@@ -528,17 +527,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveStudentFromCourseOffering([FromBody] RemoveStudentFromCourseDTO request)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation failed" + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation failed", errors });
-                }
-
                 await _courseService.RemoveStudentFromCourseOfferingAsync(request.CourseOfferingId, request.StudentId);
                 return Json(new { success = true, message = "Student removed from course successfully" });
             }
@@ -581,17 +579,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCourseOffering([FromBody] TrimesterCourseCreateDTO offering)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation failed" + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation failed", errors });
-                }
-
                 var result = await _trimesterCourseService.CreateTrimesterCourseAsync(offering);
                 return Json(new { success = true, data = result, message = "Course offering created successfully" });
             }
@@ -613,17 +610,18 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateCourseOffering([FromBody] TrimesterCourseUpdateDTO offering)
         {
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation failed" + string.Join(", ", errors) });
+            }
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation failed", errors });
-                }
-
                 var result = await _trimesterCourseService.UpdateTrimesterCourseAsync(offering);
                 return Json(new { success = true, data = result, message = "Course offering updated successfully" });
             }
@@ -685,17 +683,16 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateMultipleCourseOfferings([FromBody] List<TrimesterCourseCreateDTO> courseOfferings)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = "Validation failed" + string.Join(", ", errors) });
+            }
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = "Validation failed", errors });
-                }
-
                 if (courseOfferings == null || !courseOfferings.Any())
                 {
                     return Json(new { success = false, message = "No course offerings provided" });
