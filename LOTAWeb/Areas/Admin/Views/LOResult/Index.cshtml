@@ -147,6 +147,14 @@
         </div>
     </div>
 
+         <!-- Initial Message -->
+     <div id="initialMessage" class="card border-0 shadow-sm">
+         <div class="card-body text-center text-muted py-5">
+            <i class="fas fa-chart-line fa-2x mb-3 text-muted"></i>
+            <p class="mb-3">Please select a course offering from the dropdown above to view learning outcome results.</p>
+         </div>
+     </div>
+
          <!-- No Results Message -->
      <div id="noResultsMessage" class="card border-0 shadow-sm" style="display: none;">
          <div class="card-body text-center text-muted py-3">
@@ -1081,7 +1089,7 @@
         border: 1px solid #dee2e6;
         border-radius: 0.375rem;
         padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
+        font-size: 1rem;
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         cursor: pointer;
     }
@@ -1184,11 +1192,11 @@
                 displayResults(result.data);
             } else {
                 showErrorMessage(result.message || 'Failed to load LO results');
-                hideResults();
+                showNoResults();
             }
         } catch (error) {
             showErrorMessage('Error loading LO results: ' + error.message);
-            hideResults();
+            showNoResults();
         } finally {
             setTimeout(() => {
                 hideLoading();
@@ -1203,7 +1211,7 @@
             const courseOfferings = data.courseOfferings || data.CourseOfferings;
             
             if (!data || !courseOfferings || courseOfferings.length === 0) {
-                hideResults();
+                showNoResults();
                 hideLoading();
                 return;
             }
@@ -1212,9 +1220,15 @@
             const students = courseOffering.Students || courseOffering.students;
             
             if (!students || students.length === 0) {
-                hideResults();
+                showNoResults();
                 hideLoading();
                 return;
+            }
+            
+            // Hide initial message and show results
+            const initialMessage = document.getElementById('initialMessage');
+            if (initialMessage) {
+                initialMessage.style.display = 'none';
             }
             
             // Update course info
@@ -1222,14 +1236,14 @@
             document.getElementById('courseName').textContent = courseName;
             document.getElementById('studentCount').textContent = `${students.length} Students`;
             
-                    // Generate assessment columns and weight distribution
-        const assessments = students[0].Assessments || students[0].assessments;
-        
-        if (!assessments || assessments.length === 0) {
-            hideResults();
-            hideLoading();
-            return;
-        }
+            // Generate assessment columns and weight distribution
+            const assessments = students[0].Assessments || students[0].assessments;
+            
+            if (!assessments || assessments.length === 0) {
+                showNoResults();
+                hideLoading();
+                return;
+            }
         
         generateAssessmentColumns(assessments);
         generateWeightDistribution(assessments);
@@ -1998,10 +2012,26 @@
     function showResults() {
         document.getElementById('resultsContainer').style.display = 'block';
         document.getElementById('noResultsMessage').style.display = 'none';
+        // Hide initial message when showing results
+        const initialMessage = document.getElementById('initialMessage');
+        if (initialMessage) {
+            initialMessage.style.display = 'none';
+        }
     }
 
     function hideResults() {
         document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('noResultsMessage').style.display = 'none';
+        // Show initial message when hiding results
+        const initialMessage = document.getElementById('initialMessage');
+        if (initialMessage) {
+            initialMessage.style.display = 'block';
+        }
+    }
+
+    function showNoResults() {
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('initialMessage').style.display = 'none';
         document.getElementById('noResultsMessage').style.display = 'block';
     }
 
@@ -2120,20 +2150,10 @@
             removeOverlay();
         }, 1500);
         
-        // Restore previously selected course offering if available (LO Results specific)
-        const savedCourseOfferingId = sessionStorage.getItem('loresults_selectedCourseOfferingId');
-        const savedCourseOfferingText = sessionStorage.getItem('loresults_selectedCourseOfferingText');
-        
-        if (savedCourseOfferingId && savedCourseOfferingText) {
-            // Restore the selected course offering
-            currentCourseOfferingId = savedCourseOfferingId;
-            const searchInput = document.getElementById('courseSearchInput');
-            if (searchInput) {
-                searchInput.value = savedCourseOfferingText;
-            }
-            // Load the results for the restored course offering
-            loadLOResults(savedCourseOfferingId);
-        }
+        // Clear any previously selected course offering from session storage
+        // This ensures the page starts fresh without auto-loading previous selections
+        sessionStorage.removeItem('loresults_selectedCourseOfferingId');
+        sessionStorage.removeItem('loresults_selectedCourseOfferingText');
         
         // Initialize dropdown search functionality
         const searchInput = document.getElementById('courseSearchInput');
