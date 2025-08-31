@@ -48,6 +48,16 @@ namespace LOTA.DataAccess.Repository
             _assessmentLearningOutcomesDb.Where(e => e.AssessmentId == assessmentId).ExecuteDelete();
         }
 
+        public void RemoveLearningOutcomeById(string? learningOutcomeId)
+        {
+            _assessmentLearningOutcomesDb.Where(e => e.Id == learningOutcomeId).ExecuteDelete();
+        }
+
+        public void UpdateAssessmentLearningOutcome(AssessmentLearningOutcome learningOutcome)
+        {
+            _assessmentLearningOutcomesDb.Update(learningOutcome);
+        }
+
         // Use JOIN query to retrieve assessments with learning outcomes
         public async Task<IEnumerable<AssessmentWithLOsDTO>> GetAssessmentsWithLOsByCourseOfferingId(string courseOfferingId)
         {

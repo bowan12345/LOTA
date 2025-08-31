@@ -14,6 +14,8 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<Assessment>> GetAssessmentsByCourseOfferingId(string? courseOfferingId);
         Task<IEnumerable<AssessmentLearningOutcome>> GetLOListByAssessmentId(string? assessmentId, string? includeProperties = null);
         void RemoveLearningOutcomesByAssessmentIdAsync(string? assessmentId);
+        void RemoveLearningOutcomeById(string? learningOutcomeId);
+        void UpdateAssessmentLearningOutcome(AssessmentLearningOutcome learningOutcome);
         Task<IEnumerable<AssessmentWithLOsDTO>> GetAssessmentsWithLOsByCourseOfferingId(string courseOfferingId);
     }
 }

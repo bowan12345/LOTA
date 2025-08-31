@@ -136,27 +136,81 @@ namespace LOTA.Service.Service
             {
                 throw new NotImplementedException("Assessment is not found");
             }
-            // Update assessment
+            
+            // Update assessment basic information
             assessmentDb.AssessmentName = assessmentDTO.AssessmentName;
             assessmentDb.AssessmentTypeId = assessmentDTO.AssessmentTypeId;
             assessmentDb.Weight = assessmentDTO.Weight;
             assessmentDb.Score = assessmentDTO.Score;
             assessmentDb.UpdatedDate = DateTime.UtcNow;
 
-            //remove old LOs of the assessment
-            _unitOfWork.assessmentRepository.RemoveLearningOutcomesByAssessmentIdAsync(assessmentDb.Id);
-            //add new LOs of the assessment
-            var LOList = assessmentDTO.LearningOutcomes.Select(lo => new AssessmentLearningOutcome
-            {
-                Id = Guid.NewGuid().ToString(),
-                AssessmentId = assessmentDTO.Id,
-                LOId = lo.LOId,
-                Score = lo.Score
-            }).ToList();
-            await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(LOList);
+            // update learning outcomes to preserve data integrity
+            await UpdateAssessmentLearningOutcomes(assessmentDb.Id, assessmentDTO.LearningOutcomes);
+            
             //save to database
             await _unitOfWork.SaveAsync();
+        }
 
+        /// <summary>
+        ///  update assessment learning outcomes to preserve data integrity
+        /// </summary>
+        private async Task UpdateAssessmentLearningOutcomes(string assessmentId, List<AssessmentLearningOutcomeCreateDTO> newLOs)
+        {
+            try
+            {
+                // Get existing learning outcomes for this assessment
+                var existingLOs = await _unitOfWork.assessmentRepository.GetLOListByAssessmentId(assessmentId);
+                
+                // Process each new learning outcome
+                foreach (var newLO in newLOs)
+                {
+                    var existingLO = existingLOs.FirstOrDefault(e => e.LOId == newLO.LOId);
+                    
+                    if (existingLO != null)
+                     {
+                         // Update existing record - preserve the ID to maintain data relationships
+                         existingLO.Score = newLO.Score;
+                         _unitOfWork.assessmentRepository.UpdateAssessmentLearningOutcome(existingLO);
+                     }
+                    else
+                    {
+                        // Add new record for newly added learning outcome
+                        var newAssessmentLO = new AssessmentLearningOutcome
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            AssessmentId = assessmentId,
+                            LOId = newLO.LOId,
+                            Score = newLO.Score
+                        };
+                        await _unitOfWork.assessmentRepository.AddLearningOutcomesAsync(new List<AssessmentLearningOutcome> { newAssessmentLO });
+                    }
+                }
+                
+                // Remove learning outcomes that are no longer needed
+                var loIdsToKeep = newLOs.Select(lo => lo.LOId).ToList();
+                var loIdsToRemove = existingLOs.Where(e => !loIdsToKeep.Contains(e.LOId)).Select(e => e.Id).ToList();
+                
+                foreach (var loId in loIdsToRemove)
+                {
+                    // Check if there are any related score records before removing
+                    var hasScores = await _unitOfWork.studentLOScoreRepository.GetAllAsync(s => s.AssessmentLearningOutcomeId == loId);
+                    
+                    if (!hasScores.Any())
+                    {
+                        // Only remove if no related scores exist
+                        _unitOfWork.assessmentRepository.RemoveLearningOutcomeById(loId);
+                    }
+                    else
+                    {
+                        // Log warning if trying to remove LO with existing scores
+                        Console.WriteLine($"Warning: Cannot remove learning outcome {loId} as it has {hasScores.Count()} related score records");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to update assessment learning outcomes");
+            }
         }
 
         public async Task DeleteAssessmentAsync(string id)
