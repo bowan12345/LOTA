@@ -33,28 +33,65 @@ namespace LOTA.Test
         }
 
         [Fact]
-        public async Task GetCourseOfferingsWithAssessmentsAsync_ShouldReturnResult()
+        public async Task GetCourseOfferingDetailsByCourseOfferingId_ReturnsCourseOfferingDetailsDTO()
         {
             // Arrange
-            var trimester = new Trimester { Id = "t1" };
-            var courseOffering = new TrimesterCourse { Id = "c1" };
-            _mockUnitOfWork.Setup(u => u.trimesterRepository.GetLatestTrimestersAsync())
-                .ReturnsAsync(trimester);
-            _mockUnitOfWork.Setup(u => u.trimesterCourseRepository.GetTrimesterCoursesByTrimesterAsync("t1"))
-                .ReturnsAsync(new List<TrimesterCourse> { courseOffering });
-            _mockUnitOfWork.Setup(u => u.assessmentRepository.GetAssessmentsByCourseOfferingId("c1"))
-                .ReturnsAsync(new List<Assessment>());
-            _mockUnitOfWork.Setup(u => u.studentCourseRepository.GetByCourseOfferingIdAsync("c1"))
-                .ReturnsAsync(new List<StudentCourse>());
+            var courseOfferingId = "courseOffering1";
+            // Mock TrimesterCourse
+            var mockCourse = new Course
+            {
+                Id = "course1",
+                CourseName = "Software Engineering",
+                CourseCode = "SE101",
+                Description = "Intro to Software Engineering"
+            };
+            var mockTrimester = new Trimester
+            {
+                Id = "trimester1",
+                TrimesterNumber = 1,
+                AcademicYear = 2025,
+                CreatedDate = new DateTime(2025, 1, 1),
+                UpdatedDate = new DateTime(2025, 6, 30)
+            };
+            var mockTrimesterCourse = new TrimesterCourse
+            {
+                Id = courseOfferingId,
+                Course = mockCourse,
+                Trimester = mockTrimester
+            };
+
+            // Mock Assessments
+            var mockAssessments = new List<Assessment>
+            {
+                new Assessment
+                {
+                    Id = "a1",
+                    AssessmentName = "Assignment 1",
+                    Weight = 0.3m,
+                    Score = 85m,
+                    CreatedDate = new DateTime(2025, 3, 1),
+                    AssessmentType = new AssessmentType
+                    {
+                        Id = "type1",
+                        AssessmentTypeName = "Assignment"
+                    }
+                }
+            };
+            // Setup mock repositories using class-level _mockUnitOfWork
+            _mockUnitOfWork.Setup(u => u.trimesterCourseRepository.GetTrimesterCourseByIdAsync(courseOfferingId))
+                .ReturnsAsync(mockTrimesterCourse);
+            
+            _mockUnitOfWork.Setup(u => u.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOfferingId))
+                .ReturnsAsync(mockAssessments);
 
             // Act
-            //var result = await _service.GetCourseOfferingsWithAssessmentsAsync();
+            var result = await _service.GetCourseOfferingDetailsByCourseOfferingId(courseOfferingId);
 
             // Assert
-           /* Assert.Single(result);
-            Assert.Equal(courseOffering.Id, result.First().TrimesterCourse.Id);
-            Assert.Empty(result.First().Assessments);
-            Assert.Empty(result.First().Students);*/
+            Assert.NotNull(result);
+            Assert.Equal(courseOfferingId, result.TrimesterCourse.Id);
+            Assert.Equal("Software Engineering", result.TrimesterCourse.Course.CourseName);
+            Assert.Equal("SE101", result.TrimesterCourse.Course.CourseCode);
         }
 
         [Fact]
