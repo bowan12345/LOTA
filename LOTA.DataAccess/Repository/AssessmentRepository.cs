@@ -1,6 +1,7 @@
 ﻿using LOTA.DataAccess.Data;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
+using LOTA.Model.DTO.Admin;
 using Microsoft.EntityFrameworkCore;
 
 namespace LOTA.DataAccess.Repository
@@ -45,6 +46,28 @@ namespace LOTA.DataAccess.Repository
         public void RemoveLearningOutcomesByAssessmentIdAsync(string? assessmentId)
         {
             _assessmentLearningOutcomesDb.Where(e => e.AssessmentId == assessmentId).ExecuteDelete();
+        }
+
+        // Use JOIN query to retrieve assessments with learning outcomes
+        public async Task<IEnumerable<AssessmentWithLOsDTO>> GetAssessmentsWithLOsByCourseOfferingId(string courseOfferingId)
+        {
+            return await _db.Assessment
+                .Where(a => a.CourseOfferingId == courseOfferingId)
+                .Select(a => new AssessmentWithLOsDTO
+                {
+                    AssessmentId = a.Id,
+                    AssessmentName = a.AssessmentName,
+                    MaxAssessmentScore = a.Score,
+                    Weight = a.Weight,
+                    AssessmentLearningOutcomes = a.AssessmentLearningOutcomes.Select(alo => new AssessmentLOWithScoreDTO
+                    {
+                        Id = alo.Id,
+                        LOId = alo.LOId,
+                        Score = alo.Score,
+                        LearningOutcome = alo.LearningOutcome
+                    }).ToList()
+                })
+                .ToListAsync();
         }
     }
 }

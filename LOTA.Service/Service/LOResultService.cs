@@ -13,6 +13,7 @@ namespace LOTA.Service.Service
     public class LOResultService : ILOResultService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly bool _enableBatchProcessing = true; // Configuration flag - can be moved to appsettings.json
 
         public LOResultService(IUnitOfWork unitOfWork)
         {
@@ -84,12 +85,40 @@ namespace LOTA.Service.Service
                 // Get students enrolled in this course offering
                 var enrolledStudents = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
 
-                foreach (var studentCourse in enrolledStudents)
+                if (_enableBatchProcessing)
                 {
-                    var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
-                    if (studentResult != null)
+                    // Try optimized batch processing first, fallback to original method if needed
+                    try
                     {
-                        courseOfferingResult.Students.Add(studentResult);
+                        var studentResults = await GetStudentResultsBatchAsync(enrolledStudents, courseOffering.Id);
+                        courseOfferingResult.Students.AddRange(studentResults);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but continue with original method to ensure functionality
+                        Console.WriteLine($"Batch processing failed, falling back to individual queries: {ex.Message}");
+                        
+                        // Fallback to original method
+                        foreach (var studentCourse in enrolledStudents)
+                        {
+                            var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
+                            if (studentResult != null)
+                            {
+                                courseOfferingResult.Students.Add(studentResult);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Use original individual query method
+                    foreach (var studentCourse in enrolledStudents)
+                    {
+                        var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
+                        if (studentResult != null)
+                        {
+                            courseOfferingResult.Students.Add(studentResult);
+                        }
                     }
                 }
 
@@ -406,6 +435,425 @@ namespace LOTA.Service.Service
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Failed to get student result");
+            }
+        }
+
+        // New optimized batch processing method
+        private async Task<List<StudentResultDTO>> GetStudentResultsBatchAsync(
+            IEnumerable<StudentCourse> enrolledStudents, 
+            string courseOfferingId)
+        {
+            try
+            {
+                var studentIds = enrolledStudents.Select(sc => sc.StudentId).ToList();
+                
+                // Batch retrieve all student basic information
+                var students = await _unitOfWork.studentRepository.GetByIdsAsync(studentIds);
+                
+                // Use JOIN query to retrieve all assessments and learning outcomes at once
+                var assessmentsWithLOs = await _unitOfWork.assessmentRepository.GetAssessmentsWithLOsByCourseOfferingId(courseOfferingId);
+                
+                // Validate that we have the required data
+                if (!assessmentsWithLOs.Any())
+                {
+                    throw new InvalidOperationException("No assessments found for this course offering");
+                }
+                
+                // Batch retrieve all student scores
+                var allStudentScores = await _unitOfWork.studentScoreRepository.GetStudentScoresByCourseOfferingAsync(courseOfferingId);
+                var allLOScores = await _unitOfWork.studentLOScoreRepository.GetLOScoresByCourseOfferingAsync(courseOfferingId);
+                
+                // Validate that we have student data
+                if (!students.Any())
+                {
+                    throw new InvalidOperationException("No students found for this course offering");
+                }
+
+                // Validate batch data integrity before processing
+                if (!ValidateBatchData(assessmentsWithLOs, allStudentScores, allLOScores))
+                {
+                    throw new InvalidOperationException("Batch data validation failed - data integrity issues detected");
+                }
+
+                var results = new List<StudentResultDTO>();
+
+                // Build student results - Process data in memory to avoid N+1 queries
+                foreach (var studentCourse in enrolledStudents)
+                {
+                    var student = students.FirstOrDefault(s => s.Id == studentCourse.StudentId);
+                    if (student != null)
+                    {
+                        var studentResult = BuildStudentResultFromBatchData(
+                            student, 
+                            courseOfferingId, 
+                            assessmentsWithLOs, 
+                            allStudentScores, 
+                            allLOScores);
+                        
+                        if (studentResult != null)
+                        {
+                            results.Add(studentResult);
+                        }
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Batch processing failed: {ex.Message}");
+            }
+        }
+
+        // Build student results using batch data to avoid N+1 queries
+        private StudentResultDTO BuildStudentResultFromBatchData(
+            ApplicationUser student, 
+            string courseOfferingId, 
+            IEnumerable<AssessmentWithLOsDTO> assessmentsWithLOs, 
+            IEnumerable<StudentAssessmentScore> allStudentScores, 
+            IEnumerable<StudentLOScore> allLOScores)
+        {
+            try
+            {
+                var studentResult = new StudentResultDTO
+                {
+                    StudentId = student.Id,
+                    StudentName = $"{student.FirstName} {student.LastName}",
+                    StudentNo = student.StudentNo,
+                    StudentEmail = student.Email,
+                    Assessments = new List<AssessmentResultDTO>(),
+                    TotalScore = 0,
+                    MaxTotalScore = 0
+                };
+
+                // Get ALL assessment scores for this student in this course offering
+                var studentAssessmentScores = allStudentScores.Where(s => s.StudentId == student.Id).ToList();
+                
+                if (studentAssessmentScores.Any())
+                {
+                    foreach (var assessment in assessmentsWithLOs)
+                    {
+                        var assessmentResult = new AssessmentResultDTO
+                        {
+                            AssessmentId = assessment.AssessmentId,
+                            AssessmentName = assessment.AssessmentName,
+                            MaxAssessmentScore = assessment.MaxAssessmentScore,
+                            Weight = assessment.Weight,
+                            LearningOutcomes = new List<LearningOutcomeResultDTO>()
+                        };
+
+                        // Find the specific assessment score for this assessment
+                        var studentAssessmentScore = studentAssessmentScores.FirstOrDefault(s => s.AssessmentId == assessment.AssessmentId);
+                        
+                        if (studentAssessmentScore != null)
+                        {
+                            // Get LO scores for this specific assessment
+                            var studentLOScores = allLOScores.Where(s => s.StudentAssessmentScoreId == studentAssessmentScore.Id).ToList();
+
+                            foreach (var assessmentLO in assessment.AssessmentLearningOutcomes)
+                            {
+                                var loResult = new LearningOutcomeResultDTO
+                                {
+                                    LearningOutcomeId = assessmentLO.LOId,
+                                    LearningOutcomeName = assessmentLO.LearningOutcome.LOName,
+                                    AssessmentLearningOutcomeId = assessmentLO.Id,
+                                    MaxLOScore = assessmentLO.Score
+                                };
+
+                                // Find student score for this specific LO
+                                // Get all score records for this LO, including retake scores
+                                var allScoresForLO = studentLOScores.Where(s => s.AssessmentLearningOutcomeId == assessmentLO.Id).ToList();
+                                
+                                if (allScoresForLO.Any())
+                                {
+                                                    // According to business rules: IsActive=true and IsRetake=true means new score after retake
+                // IsActive=true and IsRetake=false means old score
+                                    
+                                    // Prioritize new score after retake
+                                    var retakeScore = allScoresForLO
+                                        .Where(s => s.IsActive && s.IsRetake)
+                                        .OrderByDescending(s => s.CreatedDate)
+                                        .FirstOrDefault();
+                                    
+                                    // If no retake score exists, select the latest active score (old score)
+                                    var activeScore = allScoresForLO
+                                        .Where(s => s.IsActive && !s.IsRetake)
+                                        .OrderByDescending(s => s.CreatedDate)
+                                        .FirstOrDefault();
+                                    
+                                    // Determine the score to display: prioritize retake new score, then active old score
+                                    var displayScore = retakeScore ?? activeScore;
+                                    
+                                    if (displayScore != null)
+                                    {
+                                        loResult.LOScore = displayScore.Score;
+                                        loResult.LOPercentage = Math.Round((displayScore.Score / assessmentLO.Score) * 100, 2);
+                                        loResult.LOPassed = loResult.LOPercentage >= 50;
+                                        loResult.NeedsRetake = !loResult.LOPassed;
+                                        
+                                        // Set retake related information
+                                        if (retakeScore != null)
+                                        {
+                                            loResult.IsRetake = true;
+                                            loResult.RetakeDate = retakeScore.RetakeDate;
+                                            var retakePercentage = Math.Round((retakeScore.Score / assessmentLO.Score) * 100, 2);
+                                            
+                                                            // Each LO under each assessment is judged separately for retake status
+                // If the LO under this assessment passes retake, show "retake passed"; if fails, show "retake failed"
+                                            var currentAssessmentRetakePassed = retakePercentage >= 50;
+                                            loResult.RetakePassed = currentAssessmentRetakePassed;
+                                            loResult.RetakeFailed = !currentAssessmentRetakePassed;
+                                            
+                                                            // Note: The overall LO Overview retake status will be calculated elsewhere
+                // Only when all instances of the same LO across all assessments pass retake, the overall LO will show "retake passed"
+                                        }
+                                        else
+                                        {
+                                            loResult.IsRetake = false;
+                                            loResult.RetakeDate = null;
+                                            loResult.RetakePassed = false;
+                                            loResult.RetakeFailed = false;
+                                        }
+                                        
+                                        loResult.HasRetake = allScoresForLO.Any(s => s.IsRetake);
+                                        
+                                        // Add historical scores for this LO (other scores that are not the current display score)
+                                        try
+                                        {
+                                            var historicalScores = allScoresForLO
+                                                .Where(s => s.Id != displayScore.Id)
+                                                .OrderByDescending(s => s.CreatedDate);
+                                            
+                                            if (historicalScores.Any())
+                                            {
+                                                loResult.HistoricalScores = historicalScores.Select(hs => new HistoricalScoreDTO
+                                                {
+                                                    Score = hs.Score,
+                                                    MaxScore = assessmentLO.Score,
+                                                    Date = hs.CreatedDate ?? DateTime.Now
+                                                }).ToList();
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            // Log warning but don't fail the entire operation
+                                            Console.WriteLine($"Warning: Failed to get historical scores for LO: {ex.Message}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // No active scores found
+                                        loResult.LOScore = 0;
+                                        loResult.LOPercentage = 0;
+                                        loResult.LOPassed = false;
+                                        loResult.NeedsRetake = true;
+                                        loResult.HasRetake = false;
+                                        loResult.IsRetake = false;
+                                        loResult.RetakeDate = null;
+                                        loResult.RetakePassed = false;
+                                        loResult.RetakeFailed = false;
+                                    }
+                                }
+                                else
+                                {
+                                    loResult.LOScore = 0;
+                                    loResult.LOPercentage = 0;
+                                    loResult.LOPassed = false;
+                                    loResult.NeedsRetake = true;
+                                    loResult.HasRetake = false;
+                                    loResult.IsRetake = false;
+                                    loResult.RetakeDate = null;
+                                    loResult.RetakePassed = false;
+                                    loResult.RetakeFailed = false;
+                                }
+
+                                assessmentResult.LearningOutcomes.Add(loResult);
+                            }
+
+                            // Calculate assessment total score
+                            assessmentResult.AssessmentScore = Math.Round(assessmentResult.LearningOutcomes.Sum(lo => lo.LOScore), 2);
+                            assessmentResult.AssessmentPercentage = Math.Round((assessmentResult.AssessmentScore / assessmentResult.MaxAssessmentScore) * 100, 2);
+                            assessmentResult.AssessmentPassed = assessmentResult.AssessmentPercentage >= 50;
+                        }
+                        else
+                        {
+                            // Student has no score for this assessment, create empty result
+                            foreach (var assessmentLO in assessment.AssessmentLearningOutcomes)
+                            {
+                                var loResult = new LearningOutcomeResultDTO
+                                {
+                                    LearningOutcomeId = assessmentLO.LOId,
+                                    LearningOutcomeName = assessmentLO.LearningOutcome.LOName,
+                                    AssessmentLearningOutcomeId = assessmentLO.Id,
+                                    MaxLOScore = assessmentLO.Score,
+                                    LOScore = 0,
+                                    LOPercentage = 0,
+                                    LOPassed = false,
+                                    NeedsRetake = true,
+                                    HasRetake = false,
+                                    IsRetake = false,
+                                    HasFailed = true
+                                };
+
+                                // Add to failed assessments
+                                loResult.FailedAssessments.Add(new FailedAssessmentDTO
+                                {
+                                    AssessmentId = assessment.AssessmentId,
+                                    AssessmentName = assessment.AssessmentName,
+                                    LOScore = 0,
+                                    MaxLOScore = assessmentLO.Score,
+                                    LOPercentage = 0
+                                });
+
+                                assessmentResult.LearningOutcomes.Add(loResult);
+                            }
+
+                            assessmentResult.AssessmentScore = 0;
+                            assessmentResult.AssessmentPercentage = 0;
+                            assessmentResult.AssessmentPassed = false;
+                        }
+
+                        studentResult.Assessments.Add(assessmentResult);
+                    }
+
+                    // Set failure status and failed assessments
+                    foreach (var assessment in studentResult.Assessments)
+                    {
+                        foreach (var lo in assessment.LearningOutcomes)
+                        {
+                            if (!lo.LOPassed)
+                            {
+                                lo.HasFailed = true;
+                                lo.FailedAssessments.Add(new FailedAssessmentDTO
+                                {
+                                    AssessmentId = assessment.AssessmentId,
+                                    AssessmentName = assessment.AssessmentName,
+                                    LOScore = lo.LOScore,
+                                    MaxLOScore = lo.MaxLOScore,
+                                    LOPercentage = lo.LOPercentage
+                                });
+                            }
+                        }
+                    }
+
+                    // Calculate overall scores
+                    studentResult.MaxTotalScore = Math.Round(studentResult.Assessments.Sum(a => a.MaxAssessmentScore), 2);
+                    studentResult.TotalScore = Math.Round(studentResult.Assessments.Sum(a => a.AssessmentScore), 2);
+                    studentResult.TotalPercentage = Math.Round((studentResult.TotalScore / studentResult.MaxTotalScore) * 100, 2);
+                    studentResult.OverallPassed = studentResult.TotalPercentage >= 50;
+                    studentResult.NeedsResit = !studentResult.OverallPassed;
+                }
+                else
+                {
+                    // Handle case where student has no assessment scores
+                    // Create empty assessment results for all assessments
+                    foreach (var assessment in assessmentsWithLOs)
+                    {
+                        var assessmentResult = new AssessmentResultDTO
+                        {
+                            AssessmentId = assessment.AssessmentId,
+                            AssessmentName = assessment.AssessmentName,
+                            MaxAssessmentScore = assessment.MaxAssessmentScore,
+                            Weight = assessment.Weight,
+                            AssessmentScore = 0,
+                            AssessmentPercentage = 0,
+                            AssessmentPassed = false,
+                            LearningOutcomes = new List<LearningOutcomeResultDTO>()
+                        };
+
+                        foreach (var assessmentLO in assessment.AssessmentLearningOutcomes)
+                        {
+                            var loResult = new LearningOutcomeResultDTO
+                            {
+                                LearningOutcomeId = assessmentLO.LOId,
+                                LearningOutcomeName = assessmentLO.LearningOutcome.LOName,
+                                AssessmentLearningOutcomeId = assessmentLO.Id,
+                                MaxLOScore = assessmentLO.Score,
+                                LOScore = 0,
+                                LOPercentage = 0,
+                                LOPassed = false,
+                                NeedsRetake = true,
+                                HasRetake = false,
+                                IsRetake = false,
+                                HasFailed = true
+                            };
+
+                            // Add to failed assessments
+                            loResult.FailedAssessments.Add(new FailedAssessmentDTO
+                            {
+                                AssessmentId = assessment.AssessmentId,
+                                AssessmentName = assessment.AssessmentName,
+                                LOScore = 0,
+                                MaxLOScore = assessmentLO.Score,
+                                LOPercentage = 0
+                            });
+
+                            assessmentResult.LearningOutcomes.Add(loResult);
+                        }
+
+                        studentResult.Assessments.Add(assessmentResult);
+                    }
+
+                    // Set overall scores for student with no scores
+                    studentResult.MaxTotalScore = studentResult.Assessments.Sum(a => a.MaxAssessmentScore);
+                    studentResult.TotalScore = 0;
+                    studentResult.TotalPercentage = 0;
+                    studentResult.OverallPassed = false;
+                    studentResult.NeedsResit = true;
+                }
+
+                return studentResult;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to build student result from batch data: {ex.Message}");
+            }
+        }
+
+        // Validate batch data integrity
+        private bool ValidateBatchData(
+            IEnumerable<AssessmentWithLOsDTO> assessmentsWithLOs,
+            IEnumerable<StudentAssessmentScore> allStudentScores,
+            IEnumerable<StudentLOScore> allLOScores)
+        {
+            try
+            {
+                // Check if assessments have learning outcomes
+                foreach (var assessment in assessmentsWithLOs)
+                {
+                    if (!assessment.AssessmentLearningOutcomes.Any())
+                    {
+                        Console.WriteLine($"Warning: Assessment {assessment.AssessmentId} has no learning outcomes");
+                        return false;
+                    }
+                }
+
+                // Check if student scores are properly linked
+                foreach (var studentScore in allStudentScores)
+                {
+                    if (string.IsNullOrEmpty(studentScore.StudentId))
+                    {
+                        Console.WriteLine($"Warning: Student score {studentScore.Id} has no student ID");
+                        return false;
+                    }
+                }
+
+                // Check if LO scores are properly linked
+                foreach (var loScore in allLOScores)
+                {
+                    if (string.IsNullOrEmpty(loScore.AssessmentLearningOutcomeId))
+                    {
+                        Console.WriteLine($"Warning: LO score {loScore.Id} has no assessment learning outcome ID");
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error validating batch data: {ex.Message}");
+                return false;
             }
         }
 

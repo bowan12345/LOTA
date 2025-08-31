@@ -59,5 +59,18 @@ namespace LOTA.DataAccess.Repository
                                .Any(alo => alo.LearningOutcome.LOName == learningOutcomeName))
                 .ToListAsync();
         }
+
+        // Batch retrieve all LO scores for a course offering
+        public async Task<IEnumerable<StudentLOScore>> GetLOScoresByCourseOfferingAsync(string courseOfferingId)
+        {
+            return await _db.StudentLOScore
+                .Include(s => s.StudentAssessmentScore)
+                .Include(s => s.StudentAssessmentScore.Student)
+                .Include(s => s.AssessmentLearningOutcome)
+                .Include(s => s.AssessmentLearningOutcome.LearningOutcome)
+                .Where(s => s.StudentAssessmentScore.Assessment.CourseOfferingId == courseOfferingId)
+                .OrderByDescending(s => s.CreatedDate)  // Order by creation date to ensure latest scores come first
+                .ToListAsync();
+        }
     }
 }

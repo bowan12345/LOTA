@@ -10,5 +10,11 @@ namespace LOTA.DataAccess.Repository
         public StudentRepository(ApplicationDbContext db) : base(db)
         {
         }
+
+        // Batch retrieve student information by IDs
+        public async Task<IEnumerable<ApplicationUser>> GetByIdsAsync(List<string> studentIds)
+        {
+            return await GetAllAsync(s=> studentIds.Contains(s.Id));
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using LOTA.Model;
+using LOTA.Model.DTO.Admin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<Assessment>> GetAssessmentsByCourseOfferingId(string? courseOfferingId);
         Task<IEnumerable<AssessmentLearningOutcome>> GetLOListByAssessmentId(string? assessmentId, string? includeProperties = null);
         void RemoveLearningOutcomesByAssessmentIdAsync(string? assessmentId);
+        Task<IEnumerable<AssessmentWithLOsDTO>> GetAssessmentsWithLOsByCourseOfferingId(string courseOfferingId);
     }
 }
