@@ -1920,10 +1920,11 @@
                 }
             }
             
-            // Update qualification display
+            // Update qualification display and level
             if (updatedData.qualificationId) {
                 const qualificationCell = courseRow.cells[4];
-                if (qualificationCell) {
+                const levelCell = courseRow.cells[3];
+                if (qualificationCell && levelCell) {
                     // Fetch updated qualification information
                     fetch(`/Admin/Qualification/GetQualification/${updatedData.qualificationId}`)
                         .then(response => {
@@ -1935,26 +1936,35 @@
                         .then(result => {
                             if (result.success && result.data) {
                                 const qualification = result.data;
+                                // Update qualification display
                                 qualificationCell.innerHTML = `
                                     <div>
                                         <div class="fw-semibold">${qualification.qualificationName || 'N/A'}</div>
                                         <small class="text-muted">${qualification.qualificationType || 'N/A'}</small>
                                     </div>
                                 `;
+                                // Update level display
+                                levelCell.innerHTML = `<span class="badge bg-info">${qualification.level || 'N/A'}</span>`;
                             } else {
                                 qualificationCell.innerHTML = '<span class="text-muted">No qualification</span>';
+                                levelCell.innerHTML = '<span class="badge bg-info">N/A</span>';
                             }
                         })
                         .catch(error => {
                             console.error('Error fetching qualification:', error);
                             qualificationCell.innerHTML = '<span class="text-muted">Error loading qualification</span>';
+                            levelCell.innerHTML = '<span class="badge bg-info">N/A</span>';
                         });
                 }
             } else {
-                // If no qualification ID, clear the qualification display
+                // If no qualification ID, clear both qualification and level displays
                 const qualificationCell = courseRow.cells[4];
+                const levelCell = courseRow.cells[3];
                 if (qualificationCell) {
                     qualificationCell.innerHTML = '<span class="text-muted">No qualification</span>';
+                }
+                if (levelCell) {
+                    levelCell.innerHTML = '<span class="badge bg-info">N/A</span>';
                 }
             }
             
@@ -1987,16 +1997,20 @@
                             if (result.success && result.data) {
                                 const qualification = result.data;
                                 allCourses[courseIndex].qualification = `${qualification.qualificationName} (${qualification.qualificationType || 'N/A'})`;
+                                allCourses[courseIndex].level = qualification.level || 0;
                             } else {
                                 allCourses[courseIndex].qualification = 'No qualification';
+                                allCourses[courseIndex].level = 0;
                             }
                         })
                         .catch(error => {
                             console.error('Error updating qualification in allCourses:', error);
                             allCourses[courseIndex].qualification = 'Error loading qualification';
+                            allCourses[courseIndex].level = 0;
                         });
                 } else {
                     allCourses[courseIndex].qualification = 'No qualification';
+                    allCourses[courseIndex].level = 0;
                 }
                 if (updatedData.learningOutcomes) {
                     allCourses[courseIndex].learningOutcomes = updatedData.learningOutcomes.map(lo => lo.LOName || lo.name).join(', ');
