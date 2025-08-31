@@ -13,7 +13,6 @@ namespace LOTA.Service.Service
     public class LOResultService : ILOResultService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly bool _enableBatchProcessing = true; // Configuration flag - can be moved to appsettings.json
 
         public LOResultService(IUnitOfWork unitOfWork)
         {
@@ -85,41 +84,17 @@ namespace LOTA.Service.Service
                 // Get students enrolled in this course offering
                 var enrolledStudents = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
 
-                if (_enableBatchProcessing)
+                // Use optimized batch processing method
+                try
                 {
-                    // Try optimized batch processing first, fallback to original method if needed
-                    try
-                    {
-                        var studentResults = await GetStudentResultsBatchAsync(enrolledStudents, courseOffering.Id);
-                        courseOfferingResult.Students.AddRange(studentResults);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error but continue with original method to ensure functionality
-                        Console.WriteLine($"Batch processing failed, falling back to individual queries: {ex.Message}");
-                        
-                        // Fallback to original method
-                        foreach (var studentCourse in enrolledStudents)
-                        {
-                            var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
-                            if (studentResult != null)
-                            {
-                                courseOfferingResult.Students.Add(studentResult);
-                            }
-                        }
-                    }
+                    var studentResults = await GetStudentResultsBatchAsync(enrolledStudents, courseOffering.Id);
+                    courseOfferingResult.Students.AddRange(studentResults);
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Use original individual query method
-                    foreach (var studentCourse in enrolledStudents)
-                    {
-                        var studentResult = await GetStudentResultAsync(studentCourse.StudentId, courseOffering.Id);
-                        if (studentResult != null)
-                        {
-                            courseOfferingResult.Students.Add(studentResult);
-                        }
-                    }
+                    // Log the error and throw with detailed message
+                    Console.WriteLine($"Batch processing failed: {ex.Message}");
+                    throw new InvalidOperationException($"Failed to retrieve student results using batch processing");
                 }
 
                 qualificationResult.CourseOfferings.Add(courseOfferingResult);
