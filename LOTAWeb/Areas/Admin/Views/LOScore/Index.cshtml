@@ -106,7 +106,13 @@
                             <i class="fas fa-chevron-down me-2" id="courseToggleIcon"></i>
                             <i class="fas fa-file-alt me-2"></i>
                             <div>
-                                <h4 class="card-title mb-1 fw-bold" id="courseTitle">Course Name</h4>
+                                <h4 class="card-title mb-1 fw-bold d-flex align-items-center">
+                                    <span id="courseTitle">Course Name</span>
+                                    <span class="bg-info rounded ms-1 px-2 py-1" style="font-size: 0.875rem; display: inline-block; margin-left: 8px !important;">
+                                        <span class="fw-bold text-white" id="assessmentCount">0</span>
+                                        <small class="text-white">Assessments</small>
+                                    </span>
+                                </h4>
                                 <div class="text-light opacity-75">
                                     <span id="courseCode">Course Code</span> - <span id="trimesterInfo">Trimester Info</span>
                                 </div>
@@ -114,14 +120,6 @@
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12 text-lg-end">
-                        <div class="row text-center">
-                            <div class="col-12">
-                                <div class="bg-info rounded p-2 d-inline-block" style="font-size: 0.875rem;">
-                                    <div class="fw-bold" id="assessmentCount">0</div>
-                                    <small>Assessments</small>
-                                </div>
-                            </div>
-                        </div>
                         <div class="mt-2">
                             <a href="#" id="manageScoresBtn" class="btn btn-light btn-sm">
                                 <i class="fas fa-edit me-1"></i>
@@ -131,6 +129,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 
         <!-- Assessments Section -->
         <div class="card border-0 shadow-sm">
@@ -202,6 +201,24 @@
         font-size: 0.875rem;
     }
 
+    /* Course title with assessment count styling */
+    .card-title.d-flex {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .card-title .bg-info {
+        white-space: nowrap;
+        line-height: 1.2;
+        margin-left: 8px !important;
+    }
+    
+    .card-title .bg-info small {
+        display: block;
+        line-height: 1;
+    }
+
     .assessment-info {
         color: #6c757d;
         font-size: 0.875rem;
@@ -258,6 +275,12 @@
     function filterCourseOptions() {
         const searchInput = document.getElementById('courseSearchInput');
         const dropdown = document.getElementById('courseDropdown');
+        
+        if (!searchInput || !dropdown) {
+            console.error('Required elements not found for filtering');
+            return;
+        }
+        
         const searchTerm = searchInput.value.toLowerCase();
         const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
         
@@ -291,13 +314,13 @@
         const searchInput = document.getElementById('courseSearchInput');
         const dropdown = document.getElementById('courseDropdown');
         
-        if (searchInput) {
-            searchInput.value = text;
+        if (!searchInput || !dropdown) {
+            console.error('Required elements not found for course selection');
+            return;
         }
         
-        if (dropdown) {
-            dropdown.style.display = 'none';
-        }
+        searchInput.value = text;
+        dropdown.style.display = 'none';
         
         // Ensure previous loading state is cleared
         hideLoading();
@@ -305,15 +328,15 @@
         // Store the selected course offering ID and text for persistence
         if (value) {
             currentCourseOfferingId = value;
-            // Store in sessionStorage for persistence across page interactions
-            sessionStorage.setItem('selectedCourseOfferingId', value);
-            sessionStorage.setItem('selectedCourseOfferingText', text);
+            // Store in sessionStorage for persistence across page interactions (LO Scores specific)
+            sessionStorage.setItem('loscores_selectedCourseOfferingId', value);
+            sessionStorage.setItem('loscores_selectedCourseOfferingText', text);
             loadCourseOfferingDetails(value);
         } else {
             // Clear selection
             currentCourseOfferingId = null;
-            sessionStorage.removeItem('selectedCourseOfferingId');
-            sessionStorage.removeItem('selectedCourseOfferingText');
+            sessionStorage.removeItem('loscores_selectedCourseOfferingId');
+            sessionStorage.removeItem('loscores_selectedCourseOfferingText');
             hideCourseDetails();
         }
     }
@@ -328,7 +351,7 @@
         try {
             showLoading();
             
-            const url = `@Url.Action("GetCourseOfferingDetailsByCourseOfferingId", "LOScore", new { area = "Admin" })?courseOfferingId=${courseOfferingId}`;
+            const url = `@Url.Action("GetCourseOfferingDetails", "LOScore", new { area = "Admin" })?courseOfferingId=${courseOfferingId}`;
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -373,41 +396,28 @@
             let academicYear = 0;
             let courseOfferingId = '';
 
-            // Try to get course information from different paths
-            if (data.trimesterCourse?.Course?.CourseName) {
-                courseName = data.trimesterCourse.Course.CourseName;
-                courseCode = data.trimesterCourse.Course.CourseCode || 'Unknown Code';
-                trimesterNumber = data.trimesterCourse.Trimester?.TrimesterNumber || 0;
-                academicYear = data.trimesterCourse.Trimester?.AcademicYear || 0;
-                courseOfferingId = data.trimesterCourse.Id || '';
-            } else if (data.trimesterCourse?.course?.courseName) {
-                // Handle lowercase property names
-                courseName = data.trimesterCourse.course.courseName;
-                courseCode = data.trimesterCourse.course.courseCode || 'Unknown Code';
-                trimesterNumber = data.trimesterCourse.trimester?.trimesterNumber || 0;
-                academicYear = data.trimesterCourse.trimester?.academicYear || 0;
-                courseOfferingId = data.trimesterCourse.id || '';
-            } else if (data.Course?.CourseName) {
-                courseName = data.Course.CourseName;
-                courseCode = data.Course.CourseCode || 'Unknown Code';
-                trimesterNumber = data.Trimester?.TrimesterNumber || 0;
-                academicYear = data.Trimester?.AcademicYear || 0;
-                courseOfferingId = data.Id || '';
-            } else if (data.courseName) {
-                courseName = data.courseName;
-                courseCode = data.courseCode || 'Unknown Code';
-                trimesterNumber = data.trimesterNumber || 0;
-                academicYear = data.academicYear || 0;
-                courseOfferingId = data.id || '';
+            // Get course information from the new DTO structure
+            if (data.TrimesterCourse?.Course?.CourseName) {
+                courseName = data.TrimesterCourse.Course.CourseName;
+                courseCode = data.TrimesterCourse.Course.CourseCode || 'Unknown Code';
+                trimesterNumber = data.TrimesterCourse.Trimester?.TrimesterNumber || 0;
+                academicYear = data.TrimesterCourse.Trimester?.AcademicYear || 0;
+                courseOfferingId = data.TrimesterCourse.Id || '';
             }
             
-            document.getElementById('courseTitle').textContent = courseName;
-            document.getElementById('courseCode').textContent = courseCode;
-            document.getElementById('trimesterInfo').textContent = `Trimester ${trimesterNumber} ${academicYear}`;
+            // Safely update course info elements
+            const courseTitleElement = document.getElementById('courseTitle');
+            const courseCodeElement = document.getElementById('courseCode');
+            const trimesterInfoElement = document.getElementById('trimesterInfo');
+            const assessmentCountElement = document.getElementById('assessmentCount');
+            
+            if (courseTitleElement) courseTitleElement.textContent = courseName;
+            if (courseCodeElement) courseCodeElement.textContent = courseCode;
+            if (trimesterInfoElement) trimesterInfoElement.textContent = `Trimester ${trimesterNumber} ${academicYear}`;
             
             // Update counts
-            const assessmentCount = data.assessments?.length || 0;
-            document.getElementById('assessmentCount').textContent = assessmentCount;
+            const assessmentCount = data.Assessments?.length || 0;
+            if (assessmentCountElement) assessmentCountElement.textContent = assessmentCount;
             
             // Safely hide student count display since we no longer fetch student information
             const studentCountElement = document.getElementById('studentCount');
@@ -418,12 +428,12 @@
             // Update Manage Scores button
             const manageScoresBtn = document.getElementById('manageScoresBtn');
             if (manageScoresBtn) {
-                const id = courseOfferingId || data.trimesterCourse?.Id || data.Id || data.id;
+                const id = courseOfferingId || data.TrimesterCourse?.Id || data.Id || data.id;
                 manageScoresBtn.href = `@Url.Action("Score", "LOScore", new { area = "Admin" })/${id}`;
             }
             
             // Generate assessments content
-            generateAssessmentsContent(data.assessments || []);
+            generateAssessmentsContent(data.Assessments || []);
             
             // Show course details
             showCourseDetails();
@@ -438,6 +448,11 @@
     function generateAssessmentsContent(assessments) {
         const container = document.getElementById('assessmentsContainer');
         
+        if (!container) {
+            console.error('Assessments container not found');
+            return;
+        }
+        
         if (!assessments || assessments.length === 0) {
             container.innerHTML = `
                 <div class="text-center text-muted py-3">
@@ -450,22 +465,13 @@
         
         const assessmentsHtml = assessments.map(assessment => {
             try {
-                // 尝试多种可能的属性名（大小写兼容）
-                const assessmentName = assessment.AssessmentName || assessment.assessmentName || assessment.name || 'Unknown Assessment';
-                const score = assessment.Score || assessment.score || 0;
-                const weight = assessment.Weight || assessment.weight || 0;
+                // Get assessment information from the new DTO structure
+                const assessmentName = assessment.AssessmentName || 'Unknown Assessment';
+                const weight = assessment.Weight || 0;
+                const score = assessment.Score || 0;
                 
-                // 处理 AssessmentType 的不同可能结构
-                let assessmentTypeName = 'Unknown Type';
-                if (assessment.AssessmentType?.AssessmentTypeName) {
-                    assessmentTypeName = assessment.AssessmentType.AssessmentTypeName;
-                } else if (assessment.assessmentType?.assessmentTypeName) {
-                    assessmentTypeName = assessment.assessmentType.assessmentTypeName;
-                } else if (assessment.assessmentTypeName) {
-                    assessmentTypeName = assessment.assessmentTypeName;
-                } else if (assessment.AssessmentTypeName) {
-                    assessmentTypeName = assessment.AssessmentTypeName;
-                }
+                // Get assessment type name
+                const assessmentTypeName = assessment.AssessmentType?.AssessmentTypeName || 'Unknown Type';
                 
                 return `
                     <div class="col-md-6 col-lg-4 mb-3">
@@ -476,7 +482,9 @@
                             </div>
                             <div class="assessment-info">
                                 <div><i class="fas fa-weight"></i>Weight: ${weight}%</div>
+                                <div><i class="fas fa-star"></i>Score: ${score}</div>
                                 <div><i class="fas fa-tag"></i>${assessmentTypeName}</div>
+                                <div><i class="fas fa-calendar"></i>Due: ${new Date(assessment.DueDate).toLocaleDateString()}</div>
                             </div>
                         </div>
                     </div>
@@ -504,14 +512,20 @@
 
     // Show course details
     function showCourseDetails() {
-        document.getElementById('courseDetailsContainer').style.display = 'block';
-        document.getElementById('noResultsMessage').style.display = 'none';
+        const courseDetailsContainer = document.getElementById('courseDetailsContainer');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        
+        if (courseDetailsContainer) courseDetailsContainer.style.display = 'block';
+        if (noResultsMessage) noResultsMessage.style.display = 'none';
     }
 
     // Hide course details
     function hideCourseDetails() {
-        document.getElementById('courseDetailsContainer').style.display = 'none';
-        document.getElementById('noResultsMessage').style.display = 'block';
+        const courseDetailsContainer = document.getElementById('courseDetailsContainer');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        
+        if (courseDetailsContainer) courseDetailsContainer.style.display = 'none';
+        if (noResultsMessage) noResultsMessage.style.display = 'block';
     }
 
     // Show loading
@@ -576,6 +590,11 @@
         const assessmentsSection = document.querySelector('#courseDetailsContainer .card:nth-child(2)');
         const toggleIcon = document.getElementById('courseToggleIcon');
         
+        if (!assessmentsSection || !toggleIcon) {
+            console.error('Required elements not found for toggle functionality');
+            return;
+        }
+        
         if (assessmentsSection.style.display === 'none') {
             // Show assessments section
             assessmentsSection.style.display = 'block';
@@ -589,8 +608,6 @@
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page initialized, checking for errors...');
-        
         // Ensure loading state is cleared after page loads
         hideLoading();
         
@@ -598,33 +615,30 @@
         const dropdown = document.getElementById('courseDropdown');
         if (dropdown) {
             const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
-            console.log('Found course offering items:', items.length);
             
             // Ensure dropdown is properly initialized
             if (items.length > 1) { // More than just the default "Select" option
-                console.log('Course offerings are available');
+                // Course offerings are available
             } else if (items.length === 1) {
                 // Only the default "Select" option exists
-                console.log('Only default option found, checking for actual course offerings...');
                 const courseItems = dropdown.querySelectorAll('.dropdown-item[data-value]:not([data-value=""])');
-                console.log('Actual course offering items:', courseItems.length);
                 
                 if (courseItems.length > 0) {
-                    console.log('Course offerings are available');
+                    // Course offerings are available
                 } else {
-                    console.log('No course offerings found in dropdown');
+                    // No course offerings found in dropdown
                 }
             } else {
-                console.log('No course offerings found in dropdown');
+                // No course offerings found in dropdown
             }
         } else {
             console.error('Dropdown element not found!');
         }
         
         // Show default state every time entering the page, don't auto-restore previous selection
-        // Clear previously saved selection state
-        sessionStorage.removeItem('selectedCourseOfferingId');
-        sessionStorage.removeItem('selectedCourseOfferingText');
+        // Clear previously saved selection state (LO Scores specific)
+        sessionStorage.removeItem('loscores_selectedCourseOfferingId');
+        sessionStorage.removeItem('loscores_selectedCourseOfferingText');
         
         // Ensure page displays default state
         hideCourseDetails();
@@ -650,19 +664,19 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const dropdown = document.getElementById('courseDropdown');
-                    const visibleItems = Array.from(dropdown.querySelectorAll('.dropdown-item[style*="display: block"], .dropdown-item:not([style*="display: none"])'));
-                    if (visibleItems.length > 0) {
-                        const firstItem = visibleItems[0];
-                        const value = firstItem.getAttribute('data-value');
-                        const text = firstItem.textContent;
-                        selectCourse(value, text);
+                    if (dropdown) {
+                        const visibleItems = Array.from(dropdown.querySelectorAll('.dropdown-item[style*="display: block"], .dropdown-item:not([style*="display: none"])'));
+                        if (visibleItems.length > 0) {
+                            const firstItem = visibleItems[0];
+                            const value = firstItem.getAttribute('data-value');
+                            const text = firstItem.textContent;
+                            selectCourse(value, text);
+                        }
                     }
                 }
             });
         } else {
             console.error('Search input element not found!');
         }
-        
-        console.log('Page initialization completed');
     });
 </script>

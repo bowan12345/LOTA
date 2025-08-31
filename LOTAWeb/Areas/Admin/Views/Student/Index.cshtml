@@ -110,7 +110,7 @@
                         {
                             foreach (var student in Model)
                             {
-                                <tr class="student-row">
+                                   <tr class="student-row" data-student-id="@student.Id">
                                     <td class="text-nowrap">
                                         <input type="checkbox" class="form-check-input student-checkbox" value="@student.Id" onchange="updateBatchActions()">
                                     </td>
@@ -385,9 +385,33 @@
 
         // Initialize when document is ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Restore pagination state from localStorage
+            restorePaginationState();
             initializePagination();
         });
 
+        // Save pagination state to localStorage
+        function savePaginationState() {
+            localStorage.setItem('student_currentPage', currentPage.toString());
+            localStorage.setItem('student_totalPages', totalPages.toString());
+        }
+        
+        // Restore pagination state from localStorage
+        function restorePaginationState() {
+            const savedPage = localStorage.getItem('student_currentPage');
+            const savedTotalPages = localStorage.getItem('student_totalPages');
+            
+            if (savedPage && savedTotalPages) {
+                const page = parseInt(savedPage);
+                const total = parseInt(savedTotalPages);
+                
+                // Only restore if the saved page is valid
+                if (page >= 1 && page <= total) {
+                    currentPage = page;
+                }
+            }
+        }
+        
         // Initialize pagination
         function initializePagination() {
             console.log('Initializing pagination...');
@@ -417,6 +441,9 @@
             // Calculate total pages
             totalPages = Math.ceil(allStudents.length / PAGE_SIZE);
             console.log('Total pages:', totalPages);
+            
+            // Save pagination state
+            savePaginationState();
             
             // Only show pagination if there are more than 12 students
             if (allStudents.length > 12) {
@@ -544,6 +571,8 @@
             if (page < 1 || page > totalPages) return;
             
             currentPage = page;
+            // Save current page to localStorage
+            localStorage.setItem('student_currentPage', currentPage.toString());
             displayCurrentPage();
             addPaginationControls();
             
@@ -617,7 +646,7 @@
                     // Refresh page after a short delay
                     setTimeout(() => {
                         location.reload();
-                    }, 2000);
+                    }, 500);
                 } else {
                     showError('Error: ' + data.message);
                 }
@@ -732,10 +761,8 @@
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
                     modal.hide();
                     
-                    // Refresh page after a short delay
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
+                    // Update the student data in the current view instead of refreshing
+                    updateStudentInView(studentId, requestData);
                 } else {
                     showError('Error: ' + data.message);
                 }
@@ -781,7 +808,7 @@
                     showSuccess('Student deleted successfully!');
                     setTimeout(() => {
                         location.reload();
-                    }, 2000);
+                    }, 500);
                 } else {
                     showError('Error: ' + data.message);
                 }
@@ -1018,6 +1045,42 @@
                 cb.checked = checkbox.checked;
             });
             updateBatchActions();
+        }
+        
+        // Update student data in the current view without refreshing
+        function updateStudentInView(studentId, updatedData) {
+            // Find the student row in the current view
+            const studentRow = document.querySelector(`.student-row[data-student-id="${studentId}"]`);
+            if (!studentRow) return;
+            
+            // Update the displayed data
+            if (updatedData.firstName) {
+                studentRow.cells[3].textContent = updatedData.firstName;
+            }
+            if (updatedData.lastName) {
+                studentRow.cells[2].textContent = updatedData.lastName;
+            }
+            if (updatedData.email) {
+                studentRow.cells[4].textContent = updatedData.email;
+            }
+            if (updatedData.studentNo) {
+                studentRow.cells[1].textContent = updatedData.studentNo;
+            }
+            
+            // Update the stored data in allStudents array
+            const studentIndex = allStudents.findIndex(s => s.id === studentId);
+            if (studentIndex !== -1) {
+                allStudents[studentIndex].firstName = updatedData.firstName;
+                allStudents[studentIndex].lastName = updatedData.lastName;
+                allStudents[studentIndex].email = updatedData.email;
+                allStudents[studentIndex].studentNo = updatedData.studentNo;
+            }
+            
+            // Show a subtle highlight effect
+            studentRow.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                studentRow.style.backgroundColor = '';
+            }, 2000);
         }
 
         function selectAllStudents() {

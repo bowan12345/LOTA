@@ -113,7 +113,7 @@
                                 {
                                     foreach (var course in Model)
                                     {
-                                        <tr class="course-row">
+                                        <tr class="course-row" data-course-id="@course.Id">
                                             <td class="text-nowrap">
                                                 <input type="checkbox" class="form-check-input course-checkbox" value="@course.Id" onchange="updateBatchActions()">
                                             </td>
@@ -704,10 +704,10 @@
                 // Reset form
                 document.getElementById('addCourseForm').reset();
                 
-                // Refresh page to show new course after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                                 // Refresh page to show new course after a short delay
+                 setTimeout(() => {
+                     location.reload();
+                 }, 500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -841,16 +841,14 @@
         .then(data => {
             if (data.success) {
                 // Show success message
-                showSuccess('Course updated successfully!');
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
-                modal.hide();
-                
-                // Refresh page to show updated course after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                  showSuccess('Course updated successfully!');
+                 
+                 // Close modal
+                 const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
+                 modal.hide();
+                 
+                 // Update the course data in the current view without refreshing
+                 updateCourseInView(courseId, requestData);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -897,11 +895,11 @@
             clearAllToasts();
             
             if (data.success) {
-                showSuccess('Course deleted successfully!');
-                // Reload the page after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                                 showSuccess('Course deleted successfully!');
+                 // Refresh the page to show updated data while maintaining current page
+                 setTimeout(() => {
+                     location.reload();
+                 }, 500);
             } else {
                 showError('Error: ' + data.message);
             }
@@ -1010,25 +1008,25 @@
                     <div class="alert alert-success py-2">
                         <strong>${successCount}</strong> courses have been imported to the system.
                     </div>
-                    <p class="text-muted mt-2 mb-0">
-                        <small>The page will refresh after you click OK.</small>
-                    </p>
-                </div>
-            `,
-            showConfirmButton: true,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#28a745',
-            width: '400px',
-            customClass: {
-                popup: 'swal-small',
-                title: 'text-success'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Refresh page after clicking OK
-                location.reload();
-            }
-        });
+                                         <p class="text-muted mt-2 mb-0">
+                         <small>The page will refresh after you click OK.</small>
+                     </p>
+                 </div>
+             `,
+             showConfirmButton: true,
+             confirmButtonText: 'OK',
+             confirmButtonColor: '#28a745',
+             width: '400px',
+             customClass: {
+                 popup: 'swal-small',
+                 title: 'text-success'
+             }
+         }).then((result) => {
+             if (result.isConfirmed) {
+                 // Refresh page after clicking OK while maintaining current page
+                 location.reload();
+             }
+         });
     }
 
     // Function to show upload result with errors using SweetAlert
@@ -1089,25 +1087,25 @@
                         </div>
                     </div>
                     
-                    <p class="text-muted mt-2 mb-0">
-                        <small>The page will refresh after you click OK.</small>
-                    </p>
-                </div>
-            `,
-            showConfirmButton: true,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#ffc107',
-            width: '450px',
-            customClass: {
-                popup: 'swal-small',
-                title: 'text-warning'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Refresh page after clicking OK
-                location.reload();
-            }
-        });
+                 <p class="text-muted mt-2 mb-0">
+                   <small>The page will refresh after you click OK.</small>
+                 </p>
+                 </div>
+             `,
+             showConfirmButton: true,
+             confirmButtonText: 'OK',
+             confirmButtonColor: '#ffc107',
+             width: '450px',
+             customClass: {
+                 popup: 'swal-small',
+                 title: 'text-warning'
+             }
+         }).then((result) => {
+             if (result.isConfirmed) {
+                 // Refresh page after clicking OK while maintaining current page
+                 location.reload();
+             }
+         });
     }
 
 
@@ -1229,12 +1227,12 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                showSuccess(`${selectedCourseIds.length} courses deleted successfully!`);
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            } else {
+                         if (data.success) {
+                 showSuccess(`${selectedCourseIds.length} courses deleted successfully!`);
+                 setTimeout(() => {
+                     location.reload();
+                 }, 500);
+             } else {
                 showError('Error: ' + data.message);
                 loadingToast.hide();
             }
@@ -1666,8 +1664,32 @@
         
         // Initialize when document is ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Restore pagination state from localStorage
+            restorePaginationState();
             initializePagination();
         });
+        
+        // Save pagination state to localStorage
+        function savePaginationState() {
+            localStorage.setItem('course_currentPage', currentPage.toString());
+            localStorage.setItem('course_totalPages', totalPages.toString());
+        }
+        
+        // Restore pagination state from localStorage
+        function restorePaginationState() {
+            const savedPage = localStorage.getItem('course_currentPage');
+            const savedTotalPages = localStorage.getItem('course_totalPages');
+            
+            if (savedPage && savedTotalPages) {
+                const page = parseInt(savedPage);
+                const total = parseInt(savedTotalPages);
+                
+                // Only restore if the saved page is valid
+                if (page >= 1 && page <= total) {
+                    currentPage = page;
+                }
+            }
+        }
         
         // Initialize pagination
         function initializePagination() {
@@ -1693,8 +1715,12 @@
             // Calculate total pages
             totalPages = Math.ceil(allCourses.length / PAGE_SIZE);
             
+            // Save pagination state
+            savePaginationState();
+            
             // Only show pagination if there are more than 12 courses
             if (allCourses.length > 12) {
+                document.getElementById('paginationContainer').style.display = 'flex';
                 document.getElementById('paginationContainer').style.display = 'flex';
                 document.getElementById('paginationContainer').classList.add('border-top');
                 displayCurrentPage();
@@ -1815,6 +1841,8 @@
             if (page < 1 || page > totalPages) return;
             
             currentPage = page;
+            // Save current page to localStorage
+            localStorage.setItem('course_currentPage', currentPage.toString());
             displayCurrentPage();
             addPaginationControls();
             
@@ -1859,6 +1887,127 @@
                 cb.checked = checkbox.checked;
             });
             updateBatchActions();
+        }
+        
+        // Update course data in the current view without refreshing (like Student/Tutor pages)
+        function updateCourseInView(courseId, updatedData) {
+            console.log('Updating course in view:', courseId, updatedData);
+            
+            // Find the course row in the current view
+            const courseRow = document.querySelector(`.course-row[data-course-id="${courseId}"]`);
+            if (!courseRow) {
+                console.error('Course row not found for ID:', courseId);
+                return;
+            }
+            
+            // Update the displayed data
+            if (updatedData.courseName) {
+                courseRow.cells[1].textContent = updatedData.courseName;
+            }
+            if (updatedData.courseCode) {
+                courseRow.cells[2].textContent = updatedData.courseCode;
+            }
+            
+            // Update description
+            if (updatedData.description) {
+                const descriptionCell = courseRow.cells[5];
+                if (descriptionCell) {
+                    if (updatedData.description.length > 50) {
+                        descriptionCell.innerHTML = `<span title="${updatedData.description}">${updatedData.description.substring(0, 50)}...</span>`;
+                    } else {
+                        descriptionCell.textContent = updatedData.description;
+                    }
+                }
+            }
+            
+            // Update qualification display
+            if (updatedData.qualificationId) {
+                const qualificationCell = courseRow.cells[4];
+                if (qualificationCell) {
+                    // Fetch updated qualification information
+                    fetch(`/Admin/Qualification/GetQualification/${updatedData.qualificationId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(result => {
+                            if (result.success && result.data) {
+                                const qualification = result.data;
+                                qualificationCell.innerHTML = `
+                                    <div>
+                                        <div class="fw-semibold">${qualification.qualificationName || 'N/A'}</div>
+                                        <small class="text-muted">${qualification.qualificationType || 'N/A'}</small>
+                                    </div>
+                                `;
+                            } else {
+                                qualificationCell.innerHTML = '<span class="text-muted">No qualification</span>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching qualification:', error);
+                            qualificationCell.innerHTML = '<span class="text-muted">Error loading qualification</span>';
+                        });
+                }
+            } else {
+                // If no qualification ID, clear the qualification display
+                const qualificationCell = courseRow.cells[4];
+                if (qualificationCell) {
+                    qualificationCell.innerHTML = '<span class="text-muted">No qualification</span>';
+                }
+            }
+            
+            // Update learning outcomes
+            if (updatedData.learningOutcomes && updatedData.learningOutcomes.length > 0) {
+                const loCell = courseRow.cells[6];
+                if (loCell) {
+                    const loNames = updatedData.learningOutcomes.map(lo => lo.LOName || lo.name).join(', ');
+                    if (loNames.length > 60) {
+                        loCell.innerHTML = `<span title="${loNames}">${loNames.substring(0, 60)}...</span>`;
+                    } else {
+                        loCell.textContent = loNames;
+                    }
+                }
+            }
+            
+            // Update the stored data in allCourses array
+            const courseIndex = allCourses.findIndex(c => c.id === courseId);
+            if (courseIndex !== -1) {
+                allCourses[courseIndex].courseName = updatedData.courseName;
+                allCourses[courseIndex].courseCode = updatedData.courseCode;
+                allCourses[courseIndex].description = updatedData.description;
+                
+                // Update other fields in the stored data
+                if (updatedData.qualificationId) {
+                    // Fetch qualification name for display
+                    fetch(`/Admin/Qualification/GetQualification/${updatedData.qualificationId}`)
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success && result.data) {
+                                const qualification = result.data;
+                                allCourses[courseIndex].qualification = `${qualification.qualificationName} (${qualification.qualificationType || 'N/A'})`;
+                            } else {
+                                allCourses[courseIndex].qualification = 'No qualification';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating qualification in allCourses:', error);
+                            allCourses[courseIndex].qualification = 'Error loading qualification';
+                        });
+                } else {
+                    allCourses[courseIndex].qualification = 'No qualification';
+                }
+                if (updatedData.learningOutcomes) {
+                    allCourses[courseIndex].learningOutcomes = updatedData.learningOutcomes.map(lo => lo.LOName || lo.name).join(', ');
+                }
+            }
+            
+            // Show a subtle highlight effect
+            courseRow.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                courseRow.style.backgroundColor = '';
+            }, 2000);
         }
     </script>
 }

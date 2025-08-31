@@ -110,7 +110,7 @@
                         {
                             foreach (var tutor in Model)
                             {
-                                <tr class="tutor-row">
+                                                                        <tr class="tutor-row" data-tutor-id="@tutor.Id">
                                     <td class="text-nowrap">
                                         <input type="checkbox" class="form-check-input tutor-checkbox" value="@tutor.Id" onchange="updateBatchActions()">
                                     </td>
@@ -476,7 +476,7 @@
                 // Refresh page to show new tutor after a short delay
                 setTimeout(() => {
                     location.reload();
-                }, 2000);
+                }, 500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -599,10 +599,8 @@
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editTutorModal'));
                 modal.hide();
                 
-                // Refresh page to show updated tutor after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                // Update the tutor data in the current view instead of refreshing
+                updateTutorInView(tutorId, requestData);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -654,7 +652,7 @@
                 // Reload the page after a short delay
                 setTimeout(() => {
                     location.reload();
-                }, 2000);
+                }, 500);
             } else {
                 showError('Error: ' + data.message);
             }
@@ -1340,47 +1338,74 @@
         
         // Initialize when document is ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Restore pagination state from localStorage
+            restorePaginationState();
             initializePagination();
         });
         
-                 // Initialize pagination
-         function initializePagination() {
-             // Get all tutor rows
-             const tutorRows = document.querySelectorAll('.tutor-row');
-             if (tutorRows.length === 0) return;
-             
-             // Store all tutors data
-             allTutors = Array.from(tutorRows).map(row => {
-                 return {
-                     element: row,
-                     id: row.querySelector('.tutor-checkbox').value,
-                     firstName: row.cells[1].textContent,
-                     lastName: row.cells[2].textContent,
-                     email: row.cells[3].textContent,
-                     status: row.cells[4].textContent,
-                     actions: row.cells[5].innerHTML
-                 };
-             });
-             
-             // Calculate total pages
-             totalPages = Math.ceil(allTutors.length / PAGE_SIZE);
-             
-             // Only show pagination if there are more than 12 tutors
-             if (allTutors.length > 12) {
-                 document.getElementById('paginationContainer').style.display = 'flex';
-                 document.getElementById('paginationContainer').classList.add('border-top');
-                 displayCurrentPage();
-                 addPaginationControls();
-             } else {
-                 // If 12 or fewer tutors, hide pagination and show all results
-                 document.getElementById('paginationContainer').style.display = 'none';
-                 document.getElementById('paginationContainer').classList.remove('border-top');
-                 // Show all rows
-                 allTutors.forEach(tutor => {
-                     tutor.element.style.display = '';
-                 });
-             }
-         }
+        // Save pagination state to localStorage
+        function savePaginationState() {
+            localStorage.setItem('tutor_currentPage', currentPage.toString());
+            localStorage.setItem('tutor_totalPages', totalPages.toString());
+        }
+        
+        // Restore pagination state from localStorage
+        function restorePaginationState() {
+            const savedPage = localStorage.getItem('tutor_currentPage');
+            const savedTotalPages = localStorage.getItem('tutor_totalPages');
+            
+            if (savedPage && savedTotalPages) {
+                const page = parseInt(savedPage);
+                const total = parseInt(savedTotalPages);
+                
+                // Only restore if the saved page is valid
+                if (page >= 1 && page <= total) {
+                    currentPage = page;
+                }
+            }
+        }
+        
+        // Initialize pagination
+        function initializePagination() {
+            // Get all tutor rows
+            const tutorRows = document.querySelectorAll('.tutor-row');
+            if (tutorRows.length === 0) return;
+            
+            // Store all tutors data
+            allTutors = Array.from(tutorRows).map(row => {
+                return {
+                    element: row,
+                    id: row.querySelector('.tutor-checkbox').value,
+                    firstName: row.cells[1].textContent,
+                    lastName: row.cells[2].textContent,
+                    email: row.cells[3].textContent,
+                    status: row.cells[4].textContent,
+                    actions: row.cells[5].innerHTML
+                };
+            });
+            
+            // Calculate total pages
+            totalPages = Math.ceil(allTutors.length / PAGE_SIZE);
+            
+            // Save pagination state
+            savePaginationState();
+            
+            // Only show pagination if there are more than 12 tutors
+            if (allTutors.length > 12) {
+                document.getElementById('paginationContainer').style.display = 'flex';
+                document.getElementById('paginationContainer').classList.add('border-top');
+                displayCurrentPage();
+                addPaginationControls();
+            } else {
+                // If 12 or fewer tutors, hide pagination and show all results
+                document.getElementById('paginationContainer').style.display = 'none';
+                document.getElementById('paginationContainer').classList.remove('border-top');
+                // Show all rows
+                allTutors.forEach(tutor => {
+                    tutor.element.style.display = '';
+                });
+            }
+        }
         
         // Display current page
         function displayCurrentPage() {
@@ -1487,6 +1512,8 @@
             if (page < 1 || page > totalPages) return;
             
             currentPage = page;
+            // Save current page to localStorage
+            localStorage.setItem('tutor_currentPage', currentPage.toString());
             displayCurrentPage();
             addPaginationControls();
             
@@ -1531,6 +1558,38 @@
                 cb.checked = checkbox.checked;
             });
             updateBatchActions();
+        }
+        
+        // Update tutor data in the current view without refreshing
+        function updateTutorInView(tutorId, updatedData) {
+            // Find the tutor row in the current view
+            const tutorRow = document.querySelector(`.tutor-row[data-tutor-id="${tutorId}"]`);
+            if (!tutorRow) return;
+            
+            // Update the displayed data
+            if (updatedData.firstName) {
+                tutorRow.cells[1].textContent = updatedData.firstName;
+            }
+            if (updatedData.lastName) {
+                tutorRow.cells[2].textContent = updatedData.lastName;
+            }
+            if (updatedData.email) {
+                tutorRow.cells[3].textContent = updatedData.email;
+            }
+            
+            // Update the stored data in allTutors array
+            const tutorIndex = allTutors.findIndex(t => t.id === tutorId);
+            if (tutorIndex !== -1) {
+                allTutors[tutorIndex].firstName = updatedData.firstName;
+                allTutors[tutorIndex].lastName = updatedData.lastName;
+                allTutors[tutorIndex].email = updatedData.email;
+            }
+            
+            // Show a subtle highlight effect
+            tutorRow.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                tutorRow.style.backgroundColor = '';
+            }, 2000);
         }
     </script>
 } 

@@ -906,7 +906,7 @@
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addAssessmentModal'));
                 modal.hide();
                 
-                                 // Reset form
+                  // Reset form
                  form.reset();
                  document.getElementById('learningOutcomesContainer').innerHTML = '';
                  
@@ -916,7 +916,7 @@
                  // Refresh the page after a short delay
                  setTimeout(() => {
                      location.reload();
-                 }, 1500);
+                 }, 500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -1330,7 +1330,7 @@
                 // Refresh the page after a short delay
                 setTimeout(() => {
                     location.reload();
-                }, 1500);
+                }, 500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
@@ -1377,7 +1377,7 @@
                 // Refresh the page after a short delay
                 setTimeout(() => {
                     location.reload();
-                }, 1500);
+                }, 500);
             } else {
                 // Show error message
                 showError('Error: ' + data.message);
