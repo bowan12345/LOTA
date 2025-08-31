@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "LO Scores";
+
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -13,10 +14,10 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-        <h2 class="fw-bold text-dark mb-0">
-            <i class="fas fa-star text-primary me-2"></i>
-            LO Scores 
-        </h2>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fas fa-star text-primary me-2"></i>
+                LO Scores
+            </h2>
             <p class="text-muted mb-0">
                 View and manage learning outcome scores for course offerings
             </p>
@@ -25,6 +26,7 @@
 
     <!-- Alert Messages -->
     @if (TempData["Error"] != null)
+
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>
@@ -34,6 +36,7 @@
     }
 
     @if (TempData["Success"] != null)
+
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i>
@@ -45,11 +48,11 @@
     <!-- Course Offering Selection -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-header bg-white border-0 py-2">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-filter text-primary me-2"></i>
+            <h5 class="card-title mb-0 fw-bold">
+                <i class="fas fa-filter text-primary me-2"></i>
                 Select Course Offering
-                    </h5>
-                </div>
+            </h5>
+        </div>
         <div class="card-body py-2">
             <div class="row">
                 <div class="col-md-6">
@@ -59,10 +62,13 @@
                         <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
                             <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
                             @if (ViewBag.CourseOfferings != null && ViewBag.CourseOfferings.Count > 0)
+
                             {
+
                                 foreach (var courseOffering in ViewBag.CourseOfferings)
+
                                 {
-                                    <div class="dropdown-item" 
+                                    <div class="dropdown-item"
                                          data-value="@courseOffering.Id"
                                          data-course-code="@courseOffering.Course?.CourseCode"
                                          data-course-name="@courseOffering.Course?.CourseName"
@@ -72,8 +78,11 @@
                                         @(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
                                     </div>
                                 }
+
                             }
+
                             else
+
                             {
                                 <div class="dropdown-item text-warning">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -91,10 +100,10 @@
     <div id="loadingSpinner" class="text-center py-3" style="display: none;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
-                        </div>
+        </div>
         <p class="mt-2 text-muted">Loading course offering details...</p>
-                </div>
-                
+    </div>
+
     <!-- Course Details Container -->
     <div id="courseDetailsContainer" style="display: none;">
         <!-- Course Overview Card -->
@@ -106,13 +115,7 @@
                             <i class="fas fa-chevron-down me-2" id="courseToggleIcon"></i>
                             <i class="fas fa-file-alt me-2"></i>
                             <div>
-                                <h4 class="card-title mb-1 fw-bold d-flex align-items-center">
-                                    <span id="courseTitle">Course Name</span>
-                                    <span class="bg-info rounded ms-1 px-2 py-1" style="font-size: 0.875rem; display: inline-block; margin-left: 8px !important;">
-                                        <span class="fw-bold text-white" id="assessmentCount">0</span>
-                                        <small class="text-white">Assessments</small>
-                                    </span>
-                                </h4>
+                                <h4 class="card-title mb-1 fw-bold" id="courseTitle">Course Name</h4>
                                 <div class="text-light opacity-75">
                                     <span id="courseCode">Course Code</span> - <span id="trimesterInfo">Trimester Info</span>
                                 </div>
@@ -120,6 +123,14 @@
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12 text-lg-end">
+                        <div class="row text-center">
+                            <div class="col-12">
+                                <div class="bg-info rounded p-2 d-inline-block" style="font-size: 0.875rem;">
+                                    <div class="fw-bold" id="assessmentCount">0</div>
+                                    <small>Assessments</small>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-2">
                             <a href="#" id="manageScoresBtn" class="btn btn-light btn-sm">
                                 <i class="fas fa-edit me-1"></i>
@@ -129,542 +140,518 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Assessments Section -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-clipboard-check text-primary me-2"></i>
+                        Assessments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="assessmentsContainer">
+                        <!-- Assessments will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Assessments Section -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <h5 class="card-title mb-0 fw-bold">
-                    <i class="fas fa-clipboard-check text-primary me-2"></i>
-                    Assessments
-                </h5>
-            </div>
-            <div class="card-body">
-                <div id="assessmentsContainer">
-                    <!-- Assessments will be dynamically loaded here -->
-                </div>
+        <!-- No Results Message -->
+        <div id="noResultsMessage" class="card border-0 shadow-sm" style="display: none;">
+            <div class="card-body text-center text-muted py-3">
+                <i class="fas fa-search fa-2x mb-2"></i>
+                <h5>No Course Offering Selected</h5>
+                <p>Please select a course offering from the dropdown above to view details.</p>
             </div>
         </div>
     </div>
 
-    <!-- No Results Message -->
-    <div id="noResultsMessage" class="card border-0 shadow-sm" style="display: none;">
-        <div class="card-body text-center text-muted py-3">
-            <i class="fas fa-search fa-2x mb-2"></i>
-            <h5>No Course Offering Selected</h5>
-            <p>Please select a course offering from the dropdown above to view details.</p>
-                    </div>
-                </div>
-</div>
-
-<style>
-    .dropdown-menu {
-        border: 1px solid #dee2e6;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-    
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        transition: background-color 0.15s ease-in-out;
-    }
-    
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .dropdown-item[data-value=""] {
-        color: #6c757d;
-        font-style: italic;
-    }
-    
-    .assessment-card {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1rem;
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-    
-    .assessment-card:hover {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transform: translateY(-2px);
-    }
-    
-    .assessment-score {
-        background: #212529;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.875rem;
-    }
-
-    /* Course title with assessment count styling */
-    .card-title.d-flex {
-        flex-wrap: nowrap;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .card-title .bg-info {
-        white-space: nowrap;
-        line-height: 1.2;
-        margin-left: 8px !important;
-    }
-    
-    .card-title .bg-info small {
-        display: block;
-        line-height: 1;
-    }
-
-    .assessment-info {
-        color: #6c757d;
-        font-size: 0.875rem;
-    }
-
-    .assessment-info i {
-        width: 16px;
-        text-align: center;
-        margin-right: 0.5rem;
-    }
-
-    /* Course header hover effect */
-    .card-header[onclick] {
-        transition: background-color 0.2s ease;
-    }
-    
-    .card-header[onclick]:hover {
-        background-color: #198754 !important;
-    }
-    
-    /* Assessment count badge styling */
-    .bg-info.rounded {
-        transition: transform 0.2s ease;
-    }
-    
-    .bg-info.rounded:hover {
-        transform: scale(1.05);
-    }
-</style>
-
-<script>
-    let currentCourseOfferingId = null;
-
-    // Show dropdown
-    function showDropdown() {
-        const dropdown = document.getElementById('courseDropdown');
-        if (dropdown) {
-            dropdown.style.display = 'block';
+    <style>
+        .dropdown-menu {
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
-    }
 
-    // Hide dropdown
-    function hideDropdown() {
-        // Delay hiding to allow click events to register
-        setTimeout(() => {
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+            .dropdown-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .dropdown-item[data-value=""] {
+                color: #6c757d;
+                font-style: italic;
+            }
+
+        .assessment-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+            .assessment-card:hover {
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                transform: translateY(-2px);
+            }
+
+        .assessment-score {
+            background: #212529;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .assessment-info {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+            .assessment-info i {
+                width: 16px;
+                text-align: center;
+                margin-right: 0.5rem;
+            }
+
+        /* Course header hover effect */
+        .card-header[onclick] {
+            transition: background-color 0.2s ease;
+        }
+
+            .card-header[onclick]:hover {
+                background-color: #198754 !important;
+            }
+
+        /* Assessment count badge styling */
+        .bg-info.rounded {
+            transition: transform 0.2s ease;
+        }
+
+            .bg-info.rounded:hover {
+                transform: scale(1.05);
+            }
+    </style>
+
+    <script>
+        let currentCourseOfferingId = null;
+
+        // Show dropdown
+        function showDropdown() {
             const dropdown = document.getElementById('courseDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'block';
+            }
+        }
+
+        // Hide dropdown
+        function hideDropdown() {
+            // Delay hiding to allow click events to register
+            setTimeout(() => {
+                const dropdown = document.getElementById('courseDropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+            }, 200);
+        }
+
+        // Filter course options
+        function filterCourseOptions() {
+            const searchInput = document.getElementById('courseSearchInput');
+            const dropdown = document.getElementById('courseDropdown');
+            const searchTerm = searchInput.value.toLowerCase();
+            const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
+
+            if (searchTerm === '') {
+                // Show all items if search is empty
+                items.forEach(item => {
+                    item.style.display = '';
+                });
+                return;
+            }
+
+            // Filter items based on course code or course name
+            items.forEach(item => {
+                const courseCode = item.getAttribute('data-course-code') || '';
+                const courseName = item.getAttribute('data-course-name') || '';
+                const trimester = item.getAttribute('data-trimester') || '';
+                const year = item.getAttribute('data-year') || '';
+
+                const searchText = `${courseCode} ${courseName} ${trimester} ${year}`.toLowerCase();
+
+                if (searchText.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Select a course from dropdown
+        function selectCourse(value, text) {
+            const searchInput = document.getElementById('courseSearchInput');
+            const dropdown = document.getElementById('courseDropdown');
+
+            if (searchInput) {
+                searchInput.value = text;
+            }
+
             if (dropdown) {
                 dropdown.style.display = 'none';
             }
-        }, 200);
-    }
 
-    // Filter course options
-    function filterCourseOptions() {
-        const searchInput = document.getElementById('courseSearchInput');
-        const dropdown = document.getElementById('courseDropdown');
-        
-        if (!searchInput || !dropdown) {
-            console.error('Required elements not found for filtering');
-            return;
-        }
-        
-        const searchTerm = searchInput.value.toLowerCase();
-        const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
-        
-        if (searchTerm === '') {
-            // Show all items if search is empty
-            items.forEach(item => {
-                item.style.display = '';
-            });
-            return;
-        }
-        
-        // Filter items based on course code or course name
-        items.forEach(item => {
-            const courseCode = item.getAttribute('data-course-code') || '';
-            const courseName = item.getAttribute('data-course-name') || '';
-            const trimester = item.getAttribute('data-trimester') || '';
-            const year = item.getAttribute('data-year') || '';
-            
-            const searchText = `${courseCode} ${courseName} ${trimester} ${year}`.toLowerCase();
-            
-            if (searchText.includes(searchTerm)) {
-                item.style.display = '';
+            // Ensure previous loading state is cleared
+            hideLoading();
+
+            // Store the selected course offering ID and text for persistence
+            if (value) {
+                currentCourseOfferingId = value;
+                // Store in sessionStorage for persistence across page interactions
+                sessionStorage.setItem('selectedCourseOfferingId', value);
+                sessionStorage.setItem('selectedCourseOfferingText', text);
+                loadCourseOfferingDetails(value);
             } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    // Select a course from dropdown
-    function selectCourse(value, text) {
-        const searchInput = document.getElementById('courseSearchInput');
-        const dropdown = document.getElementById('courseDropdown');
-        
-        if (!searchInput || !dropdown) {
-            console.error('Required elements not found for course selection');
-            return;
-        }
-        
-        searchInput.value = text;
-        dropdown.style.display = 'none';
-        
-        // Ensure previous loading state is cleared
-        hideLoading();
-        
-        // Store the selected course offering ID and text for persistence
-        if (value) {
-            currentCourseOfferingId = value;
-            // Store in sessionStorage for persistence across page interactions (LO Scores specific)
-            sessionStorage.setItem('loscores_selectedCourseOfferingId', value);
-            sessionStorage.setItem('loscores_selectedCourseOfferingText', text);
-            loadCourseOfferingDetails(value);
-        } else {
-            // Clear selection
-            currentCourseOfferingId = null;
-            sessionStorage.removeItem('loscores_selectedCourseOfferingId');
-            sessionStorage.removeItem('loscores_selectedCourseOfferingText');
-            hideCourseDetails();
-        }
-    }
-
-    // Load course offering details
-    async function loadCourseOfferingDetails(courseOfferingId) {
-        if (!courseOfferingId) {
-            hideCourseDetails();
-            return;
-        }
-
-        try {
-            showLoading();
-            
-            const url = `@Url.Action("GetCourseOfferingDetails", "LOScore", new { area = "Admin" })?courseOfferingId=${courseOfferingId}`;
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                displayCourseOfferingDetails(result.data);
-            } else {
-                showErrorMessage(result.message || 'Failed to load course offering details');
+                // Clear selection
+                currentCourseOfferingId = null;
+                sessionStorage.removeItem('selectedCourseOfferingId');
+                sessionStorage.removeItem('selectedCourseOfferingText');
                 hideCourseDetails();
             }
-        } catch (error) {
-            showErrorMessage('Error loading course offering details: ' + error.message);
-            hideCourseDetails();
-        } finally {
-            hideLoading();
         }
-    }
 
-    // Display course offering details
-    function displayCourseOfferingDetails(data) {
-        try {
-            if (!data) {
+        // Load course offering details
+        async function loadCourseOfferingDetails(courseOfferingId) {
+            if (!courseOfferingId) {
                 hideCourseDetails();
                 return;
             }
 
-            // Update course info - Try multiple possible data paths
-            let courseName = 'Unknown Course';
-            let courseCode = 'Unknown Code';
-            let trimesterNumber = 0;
-            let academicYear = 0;
-            let courseOfferingId = '';
-
-            // Get course information from the new DTO structure
-            if (data.TrimesterCourse?.Course?.CourseName) {
-                courseName = data.TrimesterCourse.Course.CourseName;
-                courseCode = data.TrimesterCourse.Course.CourseCode || 'Unknown Code';
-                trimesterNumber = data.TrimesterCourse.Trimester?.TrimesterNumber || 0;
-                academicYear = data.TrimesterCourse.Trimester?.AcademicYear || 0;
-                courseOfferingId = data.TrimesterCourse.Id || '';
-            }
-            
-            // Safely update course info elements
-            const courseTitleElement = document.getElementById('courseTitle');
-            const courseCodeElement = document.getElementById('courseCode');
-            const trimesterInfoElement = document.getElementById('trimesterInfo');
-            const assessmentCountElement = document.getElementById('assessmentCount');
-            
-            if (courseTitleElement) courseTitleElement.textContent = courseName;
-            if (courseCodeElement) courseCodeElement.textContent = courseCode;
-            if (trimesterInfoElement) trimesterInfoElement.textContent = `Trimester ${trimesterNumber} ${academicYear}`;
-            
-            // Update counts
-            const assessmentCount = data.Assessments?.length || 0;
-            if (assessmentCountElement) assessmentCountElement.textContent = assessmentCount;
-            
-            // Safely hide student count display since we no longer fetch student information
-            const studentCountElement = document.getElementById('studentCount');
-            if (studentCountElement && studentCountElement.parentElement) {
-                studentCountElement.parentElement.style.display = 'none';
-            }
-            
-            // Update Manage Scores button
-            const manageScoresBtn = document.getElementById('manageScoresBtn');
-            if (manageScoresBtn) {
-                const id = courseOfferingId || data.TrimesterCourse?.Id || data.Id || data.id;
-                manageScoresBtn.href = `@Url.Action("Score", "LOScore", new { area = "Admin" })/${id}`;
-            }
-            
-            // Generate assessments content
-            generateAssessmentsContent(data.Assessments || []);
-            
-            // Show course details
-            showCourseDetails();
-            
-        } catch (error) {
-            showErrorMessage('Error displaying course offering details');
-            hideCourseDetails();
-        }
-    }
-
-    // Generate assessments content
-    function generateAssessmentsContent(assessments) {
-        const container = document.getElementById('assessmentsContainer');
-        
-        if (!container) {
-            console.error('Assessments container not found');
-            return;
-        }
-        
-        if (!assessments || assessments.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-3">
-                    <i class="fas fa-info-circle fa-2x mb-2"></i>
-                    <p class="mb-0">No assessments found for this course offering.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const assessmentsHtml = assessments.map(assessment => {
             try {
-                // Get assessment information from the new DTO structure
-                const assessmentName = assessment.AssessmentName || 'Unknown Assessment';
-                const weight = assessment.Weight || 0;
-                const score = assessment.Score || 0;
-                
-                // Get assessment type name
-                const assessmentTypeName = assessment.AssessmentType?.AssessmentTypeName || 'Unknown Type';
-                
-                return `
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="assessment-card">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-1 text-truncate">${assessmentName}</h6>
-                                <span class="assessment-score">${score}</span>
-                            </div>
-                            <div class="assessment-info">
-                                <div><i class="fas fa-weight"></i>Weight: ${weight}%</div>
-                                <div><i class="fas fa-star"></i>Score: ${score}</div>
-                                <div><i class="fas fa-tag"></i>${assessmentTypeName}</div>
-                                <div><i class="fas fa-calendar"></i>Due: ${new Date(assessment.DueDate).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                return `
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="assessment-card">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <p class="mb-0">Error displaying assessment</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }).join('');
-        
-        container.innerHTML = `
-            <div class="row">
-                ${assessmentsHtml}
-            </div>
-        `;
-    }
+                showLoading();
 
-    // Show course details
-    function showCourseDetails() {
-        const courseDetailsContainer = document.getElementById('courseDetailsContainer');
-        const noResultsMessage = document.getElementById('noResultsMessage');
-        
-        if (courseDetailsContainer) courseDetailsContainer.style.display = 'block';
-        if (noResultsMessage) noResultsMessage.style.display = 'none';
-    }
+                const url = `@Url.Action("GetCourseOfferingDetailsByCourseOfferingId", "LOScore", new { area = "Admin" })?courseOfferingId=${courseOfferingId}`;
 
-    // Hide course details
-    function hideCourseDetails() {
-        const courseDetailsContainer = document.getElementById('courseDetailsContainer');
-        const noResultsMessage = document.getElementById('noResultsMessage');
-        
-        if (courseDetailsContainer) courseDetailsContainer.style.display = 'none';
-        if (noResultsMessage) noResultsMessage.style.display = 'block';
-    }
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-    // Show loading
-    function showLoading() {
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        if (loadingSpinner) {
-            loadingSpinner.style.display = 'block';
-        }
-    }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-    // Hide loading
-    function hideLoading() {
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        if (loadingSpinner) {
-            loadingSpinner.style.display = 'none';
-        }
-        
-        // 强制清除所有可能的 loading 状态
-        const allLoadingElements = document.querySelectorAll('[id*="loading"], [class*="loading"], [id*="spinner"], [class*="spinner"]');
-        
-        allLoadingElements.forEach(element => {
-            if (element.style.display !== 'none') {
-                element.style.display = 'none';
-            }
-        });
-        
-        // 清除 SweetAlert2 的 loading 状态和遮罩层
-        if (typeof Swal !== 'undefined') {
-            try {
-                Swal.close();
-            } catch (error) {
-                // Silent error handling
-            }
-        }
-        
-        // 清除 SweetAlert2 的遮罩层
-        const sweetAlertOverlays = document.querySelectorAll('.swal2-container, .swal2-backdrop-show, .swal2-backdrop');
-        sweetAlertOverlays.forEach(overlay => {
-            if (overlay.style.display !== 'none') {
-                overlay.style.display = 'none';
-                overlay.remove();
-            }
-        });
-        
-        // 清除任何可能的全局 loading 样式
-        document.body.classList.remove('loading', 'loading-overlay', 'swal2-shown');
-        
-        // 强制移除 body 上的 overflow 隐藏样式
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-    }
+                const result = await response.json();
 
-    // Show error message
-    function showErrorMessage(message) {
-        // You can implement a toast notification or alert here
-        console.error(message);
-        alert(message);
-    }
-
-    // Toggle course details section
-    function toggleCourseDetails() {
-        const assessmentsSection = document.querySelector('#courseDetailsContainer .card:nth-child(2)');
-        const toggleIcon = document.getElementById('courseToggleIcon');
-        
-        if (!assessmentsSection || !toggleIcon) {
-            console.error('Required elements not found for toggle functionality');
-            return;
-        }
-        
-        if (assessmentsSection.style.display === 'none') {
-            // Show assessments section
-            assessmentsSection.style.display = 'block';
-            toggleIcon.className = 'fas fa-chevron-down me-2';
-        } else {
-            // Hide assessments section
-            assessmentsSection.style.display = 'none';
-            toggleIcon.className = 'fas fa-chevron-right me-2';
-        }
-    }
-
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ensure loading state is cleared after page loads
-        hideLoading();
-        
-        // Check if ViewBag.CourseOfferings has data
-        const dropdown = document.getElementById('courseDropdown');
-        if (dropdown) {
-            const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
-            
-            // Ensure dropdown is properly initialized
-            if (items.length > 1) { // More than just the default "Select" option
-                // Course offerings are available
-            } else if (items.length === 1) {
-                // Only the default "Select" option exists
-                const courseItems = dropdown.querySelectorAll('.dropdown-item[data-value]:not([data-value=""])');
-                
-                if (courseItems.length > 0) {
-                    // Course offerings are available
+                if (result.success) {
+                    displayCourseOfferingDetails(result.data);
                 } else {
-                    // No course offerings found in dropdown
+                    showErrorMessage(result.message || 'Failed to load course offering details');
+                    hideCourseDetails();
+                }
+            } catch (error) {
+                showErrorMessage('Error loading course offering details: ' + error.message);
+                hideCourseDetails();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display course offering details
+        function displayCourseOfferingDetails(data) {
+            try {
+                if (!data) {
+                    hideCourseDetails();
+                    return;
+                }
+
+                // Update course info - Try multiple possible data paths
+                let courseName = 'Unknown Course';
+                let courseCode = 'Unknown Code';
+                let trimesterNumber = 0;
+                let academicYear = 0;
+                let courseOfferingId = '';
+
+                // Try to get course information from different paths
+                if (data.trimesterCourse?.Course?.CourseName) {
+                    courseName = data.trimesterCourse.Course.CourseName;
+                    courseCode = data.trimesterCourse.Course.CourseCode || 'Unknown Code';
+                    trimesterNumber = data.trimesterCourse.Trimester?.TrimesterNumber || 0;
+                    academicYear = data.trimesterCourse.Trimester?.AcademicYear || 0;
+                    courseOfferingId = data.trimesterCourse.Id || '';
+                } else if (data.trimesterCourse?.course?.courseName) {
+                    // Handle lowercase property names
+                    courseName = data.trimesterCourse.course.courseName;
+                    courseCode = data.trimesterCourse.course.courseCode || 'Unknown Code';
+                    trimesterNumber = data.trimesterCourse.trimester?.trimesterNumber || 0;
+                    academicYear = data.trimesterCourse.trimester?.academicYear || 0;
+                    courseOfferingId = data.trimesterCourse.id || '';
+                } else if (data.Course?.CourseName) {
+                    courseName = data.Course.CourseName;
+                    courseCode = data.Course.CourseCode || 'Unknown Code';
+                    trimesterNumber = data.Trimester?.TrimesterNumber || 0;
+                    academicYear = data.Trimester?.AcademicYear || 0;
+                    courseOfferingId = data.Id || '';
+                } else if (data.courseName) {
+                    courseName = data.courseName;
+                    courseCode = data.courseCode || 'Unknown Code';
+                    trimesterNumber = data.trimesterNumber || 0;
+                    academicYear = data.academicYear || 0;
+                    courseOfferingId = data.id || '';
+                }
+
+                document.getElementById('courseTitle').textContent = courseName;
+                document.getElementById('courseCode').textContent = courseCode;
+                document.getElementById('trimesterInfo').textContent = `Trimester ${trimesterNumber} ${academicYear}`;
+
+                // Update counts
+                const assessmentCount = data.assessments?.length || 0;
+                document.getElementById('assessmentCount').textContent = assessmentCount;
+
+                // Safely hide student count display since we no longer fetch student information
+                const studentCountElement = document.getElementById('studentCount');
+                if (studentCountElement && studentCountElement.parentElement) {
+                    studentCountElement.parentElement.style.display = 'none';
+                }
+
+                // Update Manage Scores button
+                const manageScoresBtn = document.getElementById('manageScoresBtn');
+                if (manageScoresBtn) {
+                    const id = courseOfferingId || data.trimesterCourse?.Id || data.Id || data.id;
+                    manageScoresBtn.href = `@Url.Action("Score", "LOScore", new { area = "Admin" })/${id}`;
+                }
+
+                // Generate assessments content
+                generateAssessmentsContent(data.assessments || []);
+
+                // Show course details
+                showCourseDetails();
+
+            } catch (error) {
+                showErrorMessage('Error displaying course offering details');
+                hideCourseDetails();
+            }
+        }
+
+        // Generate assessments content
+        function generateAssessmentsContent(assessments) {
+            const container = document.getElementById('assessmentsContainer');
+
+            if (!assessments || assessments.length === 0) {
+                container.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p class="mb-0">No assessments found for this course offering.</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            const assessmentsHtml = assessments.map(assessment => {
+                try {
+                    const assessmentName = assessment.AssessmentName || assessment.assessmentName || assessment.name || 'Unknown Assessment';
+                    const score = assessment.Score || assessment.score || 0;
+                    const weight = assessment.Weight || assessment.weight || 0;
+
+                    let assessmentTypeName = 'Unknown Type';
+                    if (assessment.AssessmentType?.AssessmentTypeName) {
+                        assessmentTypeName = assessment.AssessmentType.AssessmentTypeName;
+                    } else if (assessment.assessmentType?.assessmentTypeName) {
+                        assessmentTypeName = assessment.assessmentType.assessmentTypeName;
+                    } else if (assessment.assessmentTypeName) {
+                        assessmentTypeName = assessment.assessmentTypeName;
+                    } else if (assessment.AssessmentTypeName) {
+                        assessmentTypeName = assessment.AssessmentTypeName;
+                    }
+
+                    return `
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="assessment-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-1 text-truncate">${assessmentName}</h6>
+                                        <span class="assessment-score">${score}</span>
+                                    </div>
+                                    <div class="assessment-info">
+                                        <div><i class="fas fa-weight"></i>Weight: ${weight}%</div>
+                                        <div><i class="fas fa-tag"></i>${assessmentTypeName}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                } catch (error) {
+                    return `
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="assessment-card">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p class="mb-0">Error displaying assessment</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                }
+            }).join('');
+
+            container.innerHTML = `
+                    <div class="row">
+                        ${assessmentsHtml}
+                    </div>
+                `;
+        }
+
+        // Show course details
+        function showCourseDetails() {
+            document.getElementById('courseDetailsContainer').style.display = 'block';
+            document.getElementById('noResultsMessage').style.display = 'none';
+        }
+
+        // Hide course details
+        function hideCourseDetails() {
+            document.getElementById('courseDetailsContainer').style.display = 'none';
+            document.getElementById('noResultsMessage').style.display = 'block';
+        }
+
+        // Show loading
+        function showLoading() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
+        }
+
+        // Hide loading
+        function hideLoading() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+            }
+
+            const allLoadingElements = document.querySelectorAll('[id*="loading"], [class*="loading"], [id*="spinner"], [class*="spinner"]');
+
+            allLoadingElements.forEach(element => {
+                if (element.style.display !== 'none') {
+                    element.style.display = 'none';
+                }
+            });
+
+            if (typeof Swal !== 'undefined') {
+                try {
+                    Swal.close();
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+
+            const sweetAlertOverlays = document.querySelectorAll('.swal2-container, .swal2-backdrop-show, .swal2-backdrop');
+            sweetAlertOverlays.forEach(overlay => {
+                if (overlay.style.display !== 'none') {
+                    overlay.style.display = 'none';
+                    overlay.remove();
+                }
+            });
+
+            document.body.classList.remove('loading', 'loading-overlay', 'swal2-shown');
+
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            // You can implement a toast notification or alert here
+            console.error(message);
+            alert(message);
+        }
+
+        // Toggle course details section
+        function toggleCourseDetails() {
+            const assessmentsSection = document.querySelector('#courseDetailsContainer .card:nth-child(2)');
+            const toggleIcon = document.getElementById('courseToggleIcon');
+
+            if (assessmentsSection.style.display === 'none') {
+                // Show assessments section
+                assessmentsSection.style.display = 'block';
+                toggleIcon.className = 'fas fa-chevron-down me-2';
+            } else {
+                // Hide assessments section
+                assessmentsSection.style.display = 'none';
+                toggleIcon.className = 'fas fa-chevron-right me-2';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Page initialized, checking for errors...');
+
+            // Ensure loading state is cleared after page loads
+            hideLoading();
+
+            // Check if ViewBag.CourseOfferings has data
+            const dropdown = document.getElementById('courseDropdown');
+            if (dropdown) {
+                const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
+                console.log('Found course offering items:', items.length);
+
+                // Ensure dropdown is properly initialized
+                if (items.length > 1) { // More than just the default "Select" option
+                    console.log('Course offerings are available');
+                } else if (items.length === 1) {
+                    // Only the default "Select" option exists
+                    console.log('Only default option found, checking for actual course offerings...');
+                    const courseItems = dropdown.querySelectorAll('.dropdown-item[data-value]:not([data-value=""])');
+                    console.log('Actual course offering items:', courseItems.length);
+
+                    if (courseItems.length > 0) {
+                        console.log('Course offerings are available');
+                    } else {
+                        console.log('No course offerings found in dropdown');
+                    }
+                } else {
+                    console.log('No course offerings found in dropdown');
                 }
             } else {
-                // No course offerings found in dropdown
+                console.error('Dropdown element not found!');
             }
-        } else {
-            console.error('Dropdown element not found!');
-        }
-        
-        // Show default state every time entering the page, don't auto-restore previous selection
-        // Clear previously saved selection state (LO Scores specific)
-        sessionStorage.removeItem('loscores_selectedCourseOfferingId');
-        sessionStorage.removeItem('loscores_selectedCourseOfferingText');
-        
-        // Ensure page displays default state
-        hideCourseDetails();
-        const searchInput = document.getElementById('courseSearchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            
-            // Initialize dropdown search functionality
-            // Show dropdown when clicking on input
-            searchInput.addEventListener('click', showDropdown);
-            
-            // Show dropdown when focusing on input
-            searchInput.addEventListener('focus', showDropdown);
-            
-            // Hide dropdown when blurring from input
-            searchInput.addEventListener('blur', hideDropdown);
-            
-            // Handle keyup for filtering
-            searchInput.addEventListener('keyup', filterCourseOptions);
-            
-            // Handle keyboard navigation
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const dropdown = document.getElementById('courseDropdown');
-                    if (dropdown) {
+
+            // Show default state every time entering the page, don't auto-restore previous selection
+            // Clear previously saved selection state
+            sessionStorage.removeItem('selectedCourseOfferingId');
+            sessionStorage.removeItem('selectedCourseOfferingText');
+
+            // Ensure page displays default state
+            hideCourseDetails();
+            const searchInput = document.getElementById('courseSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+
+                // Initialize dropdown search functionality
+                // Show dropdown when clicking on input
+                searchInput.addEventListener('click', showDropdown);
+
+                // Show dropdown when focusing on input
+                searchInput.addEventListener('focus', showDropdown);
+
+                // Hide dropdown when blurring from input
+                searchInput.addEventListener('blur', hideDropdown);
+
+                // Handle keyup for filtering
+                searchInput.addEventListener('keyup', filterCourseOptions);
+
+                // Handle keyboard navigation
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const dropdown = document.getElementById('courseDropdown');
                         const visibleItems = Array.from(dropdown.querySelectorAll('.dropdown-item[style*="display: block"], .dropdown-item:not([style*="display: none"])'));
                         if (visibleItems.length > 0) {
                             const firstItem = visibleItems[0];
@@ -673,10 +660,11 @@
                             selectCourse(value, text);
                         }
                     }
-                }
-            });
-        } else {
-            console.error('Search input element not found!');
-        }
-    });
-</script>
+                });
+            } else {
+                console.error('Search input element not found!');
+            }
+
+            console.log('Page initialization completed');
+        });
+    </script>
