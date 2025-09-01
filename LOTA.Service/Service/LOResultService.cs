@@ -33,71 +33,50 @@ namespace LOTA.Service.Service
 
         public async Task<LOResultDTO> GetLOResultsByCourseOfferingAsync(string courseOfferingId)
         {
-           
-                // Get the course offering with related data
-                var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseWithDetailsAsync(courseOfferingId);
-                if (courseOffering == null)
-                {
-                    throw new InvalidOperationException("Course offering not found");
-                }
+            // Get the course offering with related data
+            var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseWithDetailsAsync(courseOfferingId);
+            if (courseOffering == null)
+            {
+                throw new InvalidOperationException("Course offering not found");
+            }
 
-                // Get the qualification
-                if (courseOffering.Course == null)
-                {
-                    throw new InvalidOperationException("Course information not found for course offering");
-                }
-                
-                var qualification = courseOffering.Course.Qualification;
-                if (qualification == null)
-                {
-                    // Try to get qualification directly from database
-                    var course = await _unitOfWork.courseRepository.GetByIdAsync(courseOffering.CourseId, "Qualification");
-                    if (course?.QualificationId != null)
-                    {
-                        qualification = course.Qualification ?? await _unitOfWork.qualificationRepository.GetByIdAsync(course.QualificationId);
-                    }
-                    
-                    if (qualification == null)
-                    {
-                        throw new InvalidOperationException($"Qualification information not found for course ");
-                    }
-                }
-                
-                var qualificationResult = new LOResultDTO
-                {
-                    QualificationId = qualification.Id,
-                    QualificationName = qualification.QualificationName,
-                    CourseOfferings = new List<CourseOfferingResultDTO>()
-                };
+            if (courseOffering.Course == null)
+            {
+                throw new InvalidOperationException("Course information not found for course offering");
+            }
 
-                var courseOfferingResult = new CourseOfferingResultDTO
-                {
-                    CourseOfferingId = courseOffering.Id,
-                    CourseName = courseOffering.Course.CourseName,
-                    CourseCode = courseOffering.Course.CourseCode,
-                    TrimesterName = $"Trimester {courseOffering.Trimester.TrimesterNumber} {courseOffering.Trimester.AcademicYear}",
-                    Students = new List<StudentResultDTO>()
-                };
+            var loResult = new LOResultDTO
+            {
+                CourseOfferings = new List<CourseOfferingResultDTO>()
+            };
 
-                // Get students enrolled in this course offering
-                var enrolledStudents = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
+            var courseOfferingResult = new CourseOfferingResultDTO
+            {
+                CourseOfferingId = courseOffering.Id,
+                CourseName = courseOffering.Course.CourseName,
+                CourseCode = courseOffering.Course.CourseCode,
+                TrimesterName = $"Trimester {courseOffering.Trimester.TrimesterNumber} {courseOffering.Trimester.AcademicYear}",
+                Students = new List<StudentResultDTO>()
+            };
 
-                // Use optimized batch processing method
-                try
-                {
-                    var studentResults = await GetStudentResultsBatchAsync(enrolledStudents, courseOffering.Id);
-                    courseOfferingResult.Students.AddRange(studentResults);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error and throw with detailed message
-                    Console.WriteLine($"Batch processing failed: {ex.Message}");
-                    throw new InvalidOperationException($"Failed to retrieve student results using batch processing");
-                }
+            // Get students enrolled in this course offering
+            var enrolledStudents = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOffering.Id);
 
-                qualificationResult.CourseOfferings.Add(courseOfferingResult);
-                return qualificationResult;
-            
+            // Use optimized batch processing method
+            try
+            {
+                var studentResults = await GetStudentResultsBatchAsync(enrolledStudents, courseOffering.Id);
+                courseOfferingResult.Students.AddRange(studentResults);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and throw with detailed message
+                Console.WriteLine($"Batch processing failed: {ex.Message}");
+                throw new InvalidOperationException($"Failed to retrieve student results using batch processing");
+            }
+
+            loResult.CourseOfferings.Add(courseOfferingResult);
+            return loResult;
         }
 
         
@@ -422,10 +401,10 @@ namespace LOTA.Service.Service
                 // Use JOIN query to retrieve all assessments and learning outcomes at once
                 var assessmentsWithLOs = await _unitOfWork.assessmentRepository.GetAssessmentsWithLOsByCourseOfferingId(courseOfferingId);
                 
-                // Validate that we have the required data
+                // If no assessments found, return empty result instead of throwing exception
                 if (!assessmentsWithLOs.Any())
                 {
-                    throw new InvalidOperationException("No assessments found for this course offering");
+                    return new List<StudentResultDTO>();
                 }
                 
                 // Batch retrieve all student scores

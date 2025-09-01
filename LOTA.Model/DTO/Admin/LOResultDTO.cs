@@ -5,8 +5,6 @@ namespace LOTA.Model.DTO.Admin
 {
     public class LOResultDTO
     {
-        public string QualificationId { get; set; }
-        public string QualificationName { get; set; }
         public List<CourseOfferingResultDTO> CourseOfferings { get; set; } = new List<CourseOfferingResultDTO>();
     }
 

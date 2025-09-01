@@ -47,8 +47,7 @@ namespace LOTA.Test
             {
                 Id = "course1",
                 CourseCode = "CS101",
-                CourseName = "Intro",
-                Qualification = new Qualification { Id = "q1", QualificationName = "Bachelor" }
+                CourseName = "Intro"
             };
 
             var trimester = new Trimester { Id = "t1", TrimesterNumber = 1, AcademicYear = 2025 };
@@ -67,11 +66,25 @@ namespace LOTA.Test
             _mockUnitOfWork.Setup(u => u.studentCourseRepository.GetByCourseOfferingIdAsync("co1"))
                 .ReturnsAsync(new List<StudentCourse>());
 
+            // Mock batch processing methods with empty data
+            _mockUnitOfWork.Setup(u => u.studentRepository.GetByIdsAsync(It.IsAny<List<string>>()))
+                .ReturnsAsync(new List<ApplicationUser>());
+
+            // Return empty list for assessments - this should be handled gracefully
+            _mockUnitOfWork.Setup(u => u.assessmentRepository.GetAssessmentsWithLOsByCourseOfferingId("co1"))
+                .ReturnsAsync(new List<AssessmentWithLOsDTO>());
+
+            _mockUnitOfWork.Setup(u => u.studentScoreRepository.GetStudentScoresByCourseOfferingAsync("co1"))
+                .ReturnsAsync(new List<StudentAssessmentScore>());
+
+            _mockUnitOfWork.Setup(u => u.studentLOScoreRepository.GetLOScoresByCourseOfferingAsync("co1"))
+                .ReturnsAsync(new List<StudentLOScore>());
+
             var result = await _service.GetLOResultsByCourseOfferingAsync("co1");
 
             Assert.NotNull(result);
-            Assert.Equal("q1", result.QualificationId);
             Assert.Single(result.CourseOfferings);
+            Assert.Empty(result.CourseOfferings[0].Students);
         }
 
         [Fact]
