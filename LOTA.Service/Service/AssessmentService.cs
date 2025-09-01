@@ -156,8 +156,7 @@ namespace LOTA.Service.Service
         /// </summary>
         private async Task UpdateAssessmentLearningOutcomes(string assessmentId, List<AssessmentLearningOutcomeCreateDTO> newLOs)
         {
-            try
-            {
+          
                 // Get existing learning outcomes for this assessment
                 var existingLOs = await _unitOfWork.assessmentRepository.GetLOListByAssessmentId(assessmentId);
                 
@@ -206,11 +205,7 @@ namespace LOTA.Service.Service
                         Console.WriteLine($"Warning: Cannot remove learning outcome {loId} as it has {hasScores.Count()} related score records");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to update assessment learning outcomes");
-            }
+           
         }
 
         public async Task DeleteAssessmentAsync(string id)
