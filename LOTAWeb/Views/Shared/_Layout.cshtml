@@ -41,7 +41,7 @@
 
     <div class="d-flex">
          <!-- Sidebar -->
-         <nav id="sidebar" class="bg-white shadow-sm" style="width: 280px; min-height: calc(100vh - 80px);">
+         <nav id="sidebar" class="bg-white shadow-sm" style="width: 320px; min-height: calc(100vh - 80px);">
             <div class="p-3">
                 <h5 class="fw-bold text-dark mb-3">Navigation</h5>
                 <hr class="my-3">
@@ -64,13 +64,13 @@
                                 data-bs-toggle="collapse"
                                 data-bs-target="#manageProgramsCollapse"
                                 type="button"
-                                aria-expanded="false"
+                                aria-expanded="true"
                                 aria-controls="manageProgramsCollapse"
                                 id="manageProgramsToggle">
                             <i class="fas fa-cogs me-3"></i>
                             Manage Programs
                         </button>
-                        <div class="collapse" id="manageProgramsCollapse">
+                        <div class="collapse show" id="manageProgramsCollapse">
                             <ul class="nav flex-column ms-3 mt-1">
                                 <li class="nav-item mb-1">
                                     <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Trimester" asp-action="Index">
@@ -114,13 +114,13 @@
                                 data-bs-toggle="collapse" 
                                 data-bs-target="#manageCoursesCollapse" 
                                 type="button"
-                                aria-expanded="false" 
+                                aria-expanded="true" 
                                 aria-controls="manageCoursesCollapse"
                                 id="manageCoursesToggle">
                             <i class="fas fa-book me-3"></i>
                             Manage Courses
                         </button>
-                        <div class="collapse" id="manageCoursesCollapse">
+                        <div class="collapse show" id="manageCoursesCollapse">
                             <ul class="nav flex-column ms-3 mt-1">
                                 <li class="nav-item mb-1">
                                     <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="Index">
@@ -294,26 +294,18 @@
                   }
               });
               
-              // Handle Manage Programs dropdown
-              if (hasActiveProgramsSubMenu && manageProgramsToggle && manageProgramsCollapse) {
-                  // Expand the submenu
+              // Handle Manage Programs dropdown - always expanded by default
+              if (manageProgramsToggle && manageProgramsCollapse) {
+                  // Always expand the submenu
                   manageProgramsCollapse.classList.add('show');
                   manageProgramsToggle.setAttribute('aria-expanded', 'true');
-              } else if (manageProgramsToggle && manageProgramsCollapse) {
-                  // Ensure submenu is collapsed if no submenu items are active
-                  manageProgramsCollapse.classList.remove('show');
-                  manageProgramsToggle.setAttribute('aria-expanded', 'false');
               }
               
-              // Handle Manage Courses dropdown
-              if (hasActiveCoursesSubMenu && manageCoursesToggle && manageCoursesCollapse) {
-                  // Expand the submenu
+              // Handle Manage Courses dropdown - always expanded by default
+              if (manageCoursesToggle && manageCoursesCollapse) {
+                  // Always expand the submenu
                   manageCoursesCollapse.classList.add('show');
                   manageCoursesToggle.setAttribute('aria-expanded', 'true');
-              } else if (manageCoursesToggle && manageCoursesCollapse) {
-                  // Ensure submenu is collapsed if no submenu items are active
-                  manageCoursesCollapse.classList.remove('show');
-                  manageCoursesToggle.setAttribute('aria-expanded', 'false');
               }
           }
          
@@ -339,6 +331,9 @@
             font-weight: 500;
             position: relative;
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         #sidebar .nav-main-item:hover {
@@ -361,6 +356,9 @@
             font-size: 0.9rem;
             font-weight: 400;
             background: transparent;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         #sidebar .nav-sub-item:hover {
@@ -517,6 +515,7 @@
             width: 20px;
             text-align: center;
             transition: all 0.2s ease-in-out;
+            flex-shrink: 0;
         }
         
         /* Dashboard icon - Blue */
@@ -601,6 +600,9 @@
         #sidebar .nav-link {
             border-radius: 0.5rem;
             transition: all 0.2s ease-in-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         /* Smooth transitions for cohesive feel */
@@ -640,14 +642,14 @@
              #sidebar {
                  position: fixed;
                  top: 80px;
-                 left: -280px;
+                 left: -320px;
                  z-index: 1030;
                  height: calc(100vh - 80px);
                  transform: translateX(0);
              }
             
             #sidebar.show {
-                transform: translateX(280px);
+                transform: translateX(320px);
             }
             
             #sidebarToggle {
