@@ -177,18 +177,20 @@
      }
      
            /* Trimester Display Styling - Consistent with CourseOffering.cshtml */
-      .trimester-display {
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-          border: 2px solid #dee2e6;
-          border-radius: 12px;
-          transition: all 0.3s ease;
-          min-height: 60px;
-          max-height: 70px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0.75rem 1rem;
-      }
+             .trimester-display {
+           background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+           border: 2px solid #dee2e6;
+           border-radius: 12px;
+           transition: all 0.3s ease;
+           min-height: 60px;
+           max-height: 70px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           padding: 0.75rem 1rem;
+           cursor: default; /* Ensure cursor shows as default, not pointer */
+           user-select: none; /* Prevent text selection */
+       }
       
              /* Special styling for AddCourseOffering page to match button height */
        .trimester-display.h-100 {
@@ -228,11 +230,12 @@
            justify-content: center !important;
        }
      
-     .trimester-display:hover {
-         border-color: #0d6efd;
-         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-         transform: translateY(-1px);
-     }
+           .trimester-display:hover {
+          /* Remove hover effects to prevent clickable appearance */
+          border-color: #dee2e6;
+          box-shadow: none;
+          transform: none;
+      }
      
      .trimester-display .h5 {
          font-size: 1.1rem;
@@ -509,7 +512,6 @@
                     <div class="d-flex align-items-center justify-content-center h-100">
                         <div class="text-center">
                             <div class="h5 mb-0 text-primary fw-bold">${currentTrimester.academicYear} - Trimester ${currentTrimester.trimesterNumber}</div>
-                            <div class="text-muted small">Current Academic Period</div>
                         </div>
                     </div>
                 `;
