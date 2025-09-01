@@ -35,15 +35,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetLOResultsByCourseOffering(string courseOfferingId)
         {
-            try
-            {
+            
                 var result = await _loResultService.GetLOResultsByCourseOfferingAsync(courseOfferingId);
                 return Json(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Get LOResults Failed" });
-            }
+           
         }
 
         [HttpPost]
