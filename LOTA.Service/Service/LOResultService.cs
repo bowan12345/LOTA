@@ -33,9 +33,7 @@ namespace LOTA.Service.Service
 
         public async Task<LOResultDTO> GetLOResultsByCourseOfferingAsync(string courseOfferingId)
         {
-            try
-            {
-
+           
                 // Get the course offering with related data
                 var courseOffering = await _unitOfWork.trimesterCourseRepository.GetTrimesterCourseWithDetailsAsync(courseOfferingId);
                 if (courseOffering == null)
@@ -99,11 +97,7 @@ namespace LOTA.Service.Service
 
                 qualificationResult.CourseOfferings.Add(courseOfferingResult);
                 return qualificationResult;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to get LO results by course offering");
-            }
+            
         }
 
         
