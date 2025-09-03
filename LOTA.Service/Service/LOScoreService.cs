@@ -80,11 +80,16 @@ namespace LOTA.Service.Service
         /// </summary>
         public async Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores)
         {
-            // Block editing if there exists any retake record under this assessment
-            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByAssessmentIdAsync(assessmentId);
+            // Block editing if there exists any retake record under ANY assessment of the same course offering
+            var assessmentEntity = await _unitOfWork.assessmentRepository.GetByIdAsync(assessmentId);
+            if (assessmentEntity == null)
+            {
+                throw new InvalidOperationException($"Assessment not found");
+            }
+            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
             if (hasRetake)
             {
-                throw new InvalidOperationException("This assessment contains retake records and can no longer be edited.");
+                throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
             }
            
             // Validate LO scores before saving
@@ -205,11 +210,16 @@ namespace LOTA.Service.Service
 
         public async Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
         {
-            // Block editing if there exists any retake record under this assessment
-            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByAssessmentIdAsync(batchSaveDTO.AssessmentId);
+            // Block editing if there exists any retake record under ANY assessment of the same course offering
+            var assessmentEntity = await _unitOfWork.assessmentRepository.GetByIdAsync(batchSaveDTO.AssessmentId);
+            if (assessmentEntity == null)
+            {
+                throw new InvalidOperationException($"Assessment not found");
+            }
+            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
             if (hasRetake)
             {
-                throw new InvalidOperationException("This assessment contains retake records and can no longer be edited.");
+                throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
             }
             // Validate all LO scores before saving
             foreach (var studentScore in batchSaveDTO.StudentScores)

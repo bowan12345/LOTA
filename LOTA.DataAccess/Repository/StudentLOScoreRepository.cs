@@ -86,5 +86,11 @@ namespace LOTA.DataAccess.Repository
             return await _db.StudentLOScore
                 .AnyAsync(s => s.StudentAssessmentScore.AssessmentId == assessmentId && s.IsRetake);
         }
+
+        public async Task<bool> ExistsRetakeByCourseOfferingIdAsync(string courseOfferingId)
+        {
+            return await _db.StudentLOScore
+                .AnyAsync(s => s.StudentAssessmentScore.Assessment.CourseOfferingId == courseOfferingId && s.IsRetake);
+        }
     }
 }
