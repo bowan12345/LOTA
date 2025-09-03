@@ -55,5 +55,10 @@ namespace LOTA.DataAccess.Repository
         {
             dbset.Where(e => ids.Contains(EF.Property<string>(e, "TrimesterId"))).ExecuteDelete();
         }
+
+        public void RemoveEnrolledStudentByCourseOfferingId(string courseOfferingId)
+        {
+            dbset.Where(e =>e.CourseOfferingId == courseOfferingId).ExecuteDelete();
+        }
     }
 }

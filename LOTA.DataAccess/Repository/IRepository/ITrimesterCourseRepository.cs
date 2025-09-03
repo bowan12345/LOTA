@@ -8,7 +8,7 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<TrimesterCourse> GetTrimesterCourseByIdAsync(string id);
         Task<TrimesterCourse> CreateTrimesterCourseAsync(TrimesterCourse trimesterCourse);
         Task<TrimesterCourse> UpdateTrimesterCourseAsync(TrimesterCourse trimesterCourse);
-        Task<bool> DeleteTrimesterCourseAsync(string id);
+        Task DeleteTrimesterCourseAsync(string id);
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTrimesterAsync(string trimesterId);
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByCourseAsync(string courseId);
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTutorAsync(string tutorId);

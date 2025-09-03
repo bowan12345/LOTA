@@ -83,6 +83,33 @@ function showConfirm(message, onConfirm, onCancel = null, title = 'Confirm') {
     });
 }
 
+// Show confirmation dialog with HTML content
+function showConfirmHtml(htmlMessage, onConfirm, onCancel = null, title = 'Confirm') {
+    Swal.fire({
+        title: title,
+        html: htmlMessage,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (onConfirm) {
+                onConfirm();
+            }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            if (onCancel) {
+                onCancel();
+            }
+        }
+    });
+}
+
 // Show loading message
 function showLoading(message = 'Loading...') {
     return Swal.fire({

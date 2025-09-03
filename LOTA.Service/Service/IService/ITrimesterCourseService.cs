@@ -13,7 +13,7 @@ namespace LOTA.Service.Service.IService
         Task<TrimesterCourseReturnDTO> GetTrimesterCourseByIdAsync(string id);
         Task<TrimesterCourseReturnDTO> CreateTrimesterCourseAsync(TrimesterCourseCreateDTO trimesterCourse);
         Task<TrimesterCourseReturnDTO> UpdateTrimesterCourseAsync(TrimesterCourseUpdateDTO trimesterCourse);
-        Task<bool> DeleteTrimesterCourseAsync(string id);
+        Task DeleteTrimesterCourseAsync(string id);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTrimesterAsync(string trimesterId);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByCourseAsync(string courseId);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAsync(string tutorId);

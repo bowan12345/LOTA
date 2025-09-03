@@ -8,11 +8,7 @@ namespace LOTA.DataAccess.Repository
 {
     public class AssessmentRepository : Repository<Assessment>, IAssessmentRepository
     {
-        private readonly DbSet<AssessmentLearningOutcome> _assessmentLearningOutcomesDb;
-        public AssessmentRepository(ApplicationDbContext db) : base(db)
-        {
-            _assessmentLearningOutcomesDb = db.Set<AssessmentLearningOutcome>();
-        }
+        public AssessmentRepository(ApplicationDbContext db) : base(db){}
 
         public async Task AddLearningOutcomesAsync(List<AssessmentLearningOutcome> learningOutcomes)
         {
@@ -31,7 +27,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<IEnumerable<AssessmentLearningOutcome>> GetLOListByAssessmentId(string? assessmentId, string? includeProperties = null)
         {
-            IQueryable<AssessmentLearningOutcome> query = _assessmentLearningOutcomesDb;
+            IQueryable<AssessmentLearningOutcome> query = _db.AssessmentLearningOutcome;
             if (!string.IsNullOrEmpty(includeProperties))
             {
                 foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -45,17 +41,17 @@ namespace LOTA.DataAccess.Repository
 
         public void RemoveLearningOutcomesByAssessmentIdAsync(string? assessmentId)
         {
-            _assessmentLearningOutcomesDb.Where(e => e.AssessmentId == assessmentId).ExecuteDelete();
+            _db.AssessmentLearningOutcome.Where(e => e.AssessmentId == assessmentId).ExecuteDelete();
         }
 
         public void RemoveLearningOutcomeById(string? learningOutcomeId)
         {
-            _assessmentLearningOutcomesDb.Where(e => e.Id == learningOutcomeId).ExecuteDelete();
+            _db.AssessmentLearningOutcome.Where(e => e.Id == learningOutcomeId).ExecuteDelete();
         }
 
         public void UpdateAssessmentLearningOutcome(AssessmentLearningOutcome learningOutcome)
         {
-            _assessmentLearningOutcomesDb.Update(learningOutcome);
+            _db.AssessmentLearningOutcome.Update(learningOutcome);
         }
 
         // Use JOIN query to retrieve assessments with learning outcomes
@@ -78,6 +74,11 @@ namespace LOTA.DataAccess.Repository
                     }).ToList()
                 })
                 .ToListAsync();
+        }
+
+        public void RemoveAssessmentsByCourseOfferingId(string courseOfferingId)
+        {
+            _db.Assessment.Where(e => e.CourseOfferingId == courseOfferingId).ExecuteDelete();
         }
     }
 }

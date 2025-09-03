@@ -5,18 +5,16 @@ using LOTA.DataAccess.Repository.IRepository;
 
 namespace LOTA.DataAccess.Repository
 {
-    public class TrimesterCourseRepository : ITrimesterCourseRepository
+    public class TrimesterCourseRepository :Repository<StudentAssessmentScore>, ITrimesterCourseRepository
     {
-        private readonly ApplicationDbContext _context;
 
-        public TrimesterCourseRepository(ApplicationDbContext context)
+        public TrimesterCourseRepository(ApplicationDbContext db) : base(db)
         {
-            _context = context;
         }
 
         public async Task<IEnumerable<TrimesterCourse>> GetAllTrimesterCoursesAsync()
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
@@ -28,7 +26,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<TrimesterCourse> GetTrimesterCourseByIdAsync(string id)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Course.Qualification)
@@ -39,7 +37,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<TrimesterCourse> GetTrimesterCourseWithDetailsAsync(string id)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Course.Qualification)
@@ -50,29 +48,24 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<TrimesterCourse> CreateTrimesterCourseAsync(TrimesterCourse trimesterCourse)
         {
-            _context.TrimesterCourse.Add(trimesterCourse);
+            _db.TrimesterCourse.Add(trimesterCourse);
             return trimesterCourse;
         }
 
         public async Task<TrimesterCourse> UpdateTrimesterCourseAsync(TrimesterCourse trimesterCourse)
         {
-            _context.TrimesterCourse.Update(trimesterCourse);
+            _db.TrimesterCourse.Update(trimesterCourse);
             return trimesterCourse;
         }
 
-        public async Task<bool> DeleteTrimesterCourseAsync(string id)
+        public async Task DeleteTrimesterCourseAsync(string id)
         {
-            var trimesterCourse = await _context.TrimesterCourse.FindAsync(id);
-            if (trimesterCourse == null)
-                return false;
-
-            _context.TrimesterCourse.Remove(trimesterCourse);
-            return true;
+            _db.TrimesterCourse.Where(tc => tc.Id == id).ExecuteDelete();
         }
 
         public async Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTrimesterAsync(string trimesterId)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Course.Qualification)
@@ -84,7 +77,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByCourseAsync(string courseId)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
@@ -96,7 +89,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTutorAsync(string tutorId)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
@@ -109,7 +102,7 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTrimesterAndCourseAsync(string trimesterId, string courseId)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Tutor)
@@ -119,13 +112,13 @@ namespace LOTA.DataAccess.Repository
 
         public async Task<bool> IsTrimesterCourseExistsAsync(string trimesterId, string courseId)
         {
-            return await _context.TrimesterCourse
+            return await _db.TrimesterCourse
                 .AnyAsync(tc => tc.TrimesterId == trimesterId && tc.CourseId == courseId);
         }
 
         public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()
         {
-            var query = _context.TrimesterCourse
+            var query = _db.TrimesterCourse
                 .Include(tc => tc.Trimester)
                 .Include(tc => tc.Course)
                 .Include(tc => tc.Course.Qualification)
@@ -133,7 +126,7 @@ namespace LOTA.DataAccess.Repository
                 .Where(tc => tc.IsActive == true);
 
             // Get the latest trimester
-            var latestTrimester = await _context.Trimester
+            var latestTrimester = await _db.Trimester
                 .OrderByDescending(t => t.AcademicYear)
                 .ThenByDescending(t => t.TrimesterNumber)
                 .FirstOrDefaultAsync();

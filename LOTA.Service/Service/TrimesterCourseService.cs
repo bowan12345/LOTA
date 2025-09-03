@@ -81,14 +81,35 @@ namespace LOTA.Service.Service
             return MapToReturnDTO(result);
         }
 
-        public async Task<bool> DeleteTrimesterCourseAsync(string id)
+        public async Task DeleteTrimesterCourseAsync(string id)
         {
-            var result = await _unitOfWork.trimesterCourseRepository.DeleteTrimesterCourseAsync(id);
-            if (result)
+            // 1) remove  student's Lo scores under course offering 
+            var loScores = await _unitOfWork.studentLOScoreRepository.GetLOScoresByCourseOfferingAsync(id);
+            if (loScores != null && loScores.Any())
             {
-                await _unitOfWork.SaveAsync();
+                _unitOfWork.studentLOScoreRepository.RemoveRange(loScores.Select(s => s.Id));
             }
-            return result;
+
+            // 2) remove assessment score under course offering (batch)
+            _unitOfWork.studentScoreRepository.RemoveByCourseOfferingId(id);
+
+            // 3) remove Lo under assessments，then remove assessments
+            var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(id);
+            if (assessments != null && assessments.Any())
+            {
+                foreach (var a in assessments)
+                {
+                    _unitOfWork.assessmentRepository.RemoveLearningOutcomesByAssessmentIdAsync(a.Id);
+                }
+                _unitOfWork.assessmentRepository.RemoveAssessmentsByCourseOfferingId(id);
+            }
+
+            // 4) remove enrolled student (batch)
+            _unitOfWork.studentCourseRepository.RemoveEnrolledStudentByCourseOfferingId(id);
+
+            // 5)remove course offering
+            await _unitOfWork.trimesterCourseRepository.DeleteTrimesterCourseAsync(id);
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTrimesterAsync(string trimesterId)

@@ -466,6 +466,8 @@ namespace LOTA.Service.Service
                 var worksheet = workbook.Worksheet(1);
                 var rows = worksheet.RowsUsed().Skip(1); // Skip header row
 
+                // De-duplicate within the uploaded file by (studentId, email)
+                var seenStudentKeySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var row in rows)
                 {
                     try
@@ -478,6 +480,14 @@ namespace LOTA.Service.Service
                             errors.Add($"Row {row.RowNumber()}: Student ID or Email is empty");
                             continue;
                         }
+
+                        var compositeKey = $"{studentId}|{email}";
+                        if (seenStudentKeySet.Contains(compositeKey))
+                        {
+                            errors.Add($"Row {row.RowNumber()}: Duplicate entry for StudentId '{studentId}' and Email '{email}' in file");
+                            continue;
+                        }
+                        seenStudentKeySet.Add(compositeKey);
 
                         // Find student by Student ID or Email
                         var student = await _unitOfWork.studentRepository.GetAsync(s => 

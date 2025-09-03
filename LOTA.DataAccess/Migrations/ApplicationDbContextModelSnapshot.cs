@@ -203,7 +203,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("TrimesterId");
 
-                    b.ToTable("Assessment");
+                    b.ToTable("Assessment", (string)null);
 
                     b.HasData(
                         new
@@ -242,7 +242,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("LOId");
 
-                    b.ToTable("AssessmentLearningOutcome");
+                    b.ToTable("AssessmentLearningOutcome", (string)null);
 
                     b.HasData(
                         new
@@ -273,7 +273,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AssessmentType");
+                    b.ToTable("AssessmentType", (string)null);
 
                     b.HasData(
                         new
@@ -339,7 +339,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("QualificationId");
 
-                    b.ToTable("Course");
+                    b.ToTable("Course", (string)null);
 
                     b.HasData(
                         new
@@ -393,7 +393,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("LearningOutcome");
+                    b.ToTable("LearningOutcome", (string)null);
 
                     b.HasData(
                         new
@@ -444,7 +444,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("QualificationTypeId");
 
-                    b.ToTable("Qualification");
+                    b.ToTable("Qualification", (string)null);
 
                     b.HasData(
                         new
@@ -479,7 +479,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("QualificationType");
+                    b.ToTable("QualificationType", (string)null);
 
                     b.HasData(
                         new
@@ -556,7 +556,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("StudentAssessmentScore");
+                    b.ToTable("StudentAssessmentScore", (string)null);
 
                     b.HasData(
                         new
@@ -612,7 +612,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("TrimesterId");
 
-                    b.ToTable("StudentCourse");
+                    b.ToTable("StudentCourse", (string)null);
 
                     b.HasData(
                         new
@@ -665,7 +665,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("StudentAssessmentScoreId");
 
-                    b.ToTable("StudentLOScore");
+                    b.ToTable("StudentLOScore", (string)null);
 
                     b.HasData(
                         new
@@ -712,7 +712,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Trimester");
+                    b.ToTable("Trimester", (string)null);
 
                     b.HasData(
                         new
@@ -785,7 +785,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("TutorId");
 
-                    b.ToTable("TrimesterCourse");
+                    b.ToTable("TrimesterCourse", (string)null);
 
                     b.HasData(
                         new
@@ -816,7 +816,7 @@ namespace LOTA.DataAccess.Migrations
 
                     b.HasIndex("TutorId");
 
-                    b.ToTable("TutorCourse");
+                    b.ToTable("TutorCourse", (string)null);
 
                     b.HasData(
                         new

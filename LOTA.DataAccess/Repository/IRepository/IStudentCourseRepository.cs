@@ -26,5 +26,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         /// </summary>
         /// <param name="ids"> a list of trimester id</param>
         void RemoveAllByTrimesterIds(IEnumerable<string> ids);
+        void RemoveEnrolledStudentByCourseOfferingId(string courseOfferingId);
     }
 }

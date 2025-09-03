@@ -38,6 +38,13 @@ namespace LOTA.DataAccess.Repository
                 .ToListAsync();
         }
 
+        public void RemoveByCourseOfferingId(string courseOfferingId)
+        {
+            _db.StudentAssessmentScore
+                .Where(ss => ss.Assessment.CourseOfferingId == courseOfferingId)
+                .ExecuteDelete();
+        }
+
         public async Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId)
         {
             return await _db.StudentAssessmentScore

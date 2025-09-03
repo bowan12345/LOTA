@@ -643,28 +643,17 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteCourseOffering(string id)
         {
-            try
+            
+            if (string.IsNullOrWhiteSpace(id))
             {
-                if (string.IsNullOrWhiteSpace(id))
-                {
-                    return Json(new { success = false, message = "Course offering ID is required" });
-                }
-
-                var result = await _trimesterCourseService.DeleteTrimesterCourseAsync(id);
-                if (result)
-                {
-                    return Json(new { success = true, message = "Course offering deleted successfully" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Course offering not found" });
-                }
+                return Json(new { success = false, message = "Course offering ID is required" });
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "An error occurred while deleting the course offering" });
-            }
+            await _trimesterCourseService.DeleteTrimesterCourseAsync(id);
+            return Json(new { success = true, message = "Course offering deleted successfully" });
+               
         }
+
+
         /// <summary>
         /// Show Add Course Offering page
         /// </summary>
