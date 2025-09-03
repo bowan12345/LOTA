@@ -1685,7 +1685,7 @@
          });
          
          let html = '<div class="d-flex flex-column gap-2">';
-         const sortedLOs = Array.from(allLOs.values()).sort((a, b) => a.name.localeCompare(b.name));
+         const sortedLOs = Array.from(allLOs.values()).sort((a, b) => a.name.localeCompare(b.name)); 
          sortedLOs.forEach(lo => {
              let statusClass, statusText, retakeButton = '';
              
