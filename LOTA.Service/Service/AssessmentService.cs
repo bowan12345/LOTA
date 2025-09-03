@@ -216,6 +216,15 @@ namespace LOTA.Service.Service
             {
                 throw new NotImplementedException("Assessment is not found");
             }
+
+            // 1) remove LO scores
+            _unitOfWork.studentLOScoreRepository.RemoveByAssessmentId(id);
+
+            // 2) remove assessment scores
+            _unitOfWork.studentScoreRepository.RemoveByAssessmentId(id);
+
+            // 3) remove assessments
+            _unitOfWork.assessmentRepository.RemoveLearningOutcomesByAssessmentIdAsync(id);
             _unitOfWork.assessmentRepository.Remove(id);
             await _unitOfWork.SaveAsync();
            

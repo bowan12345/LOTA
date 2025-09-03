@@ -72,5 +72,13 @@ namespace LOTA.DataAccess.Repository
                 .OrderByDescending(s => s.CreatedDate)  // Order by creation date to ensure latest scores come first
                 .ToListAsync();
         }
+
+        // Batch delete LO scores by assessment
+        public void RemoveByAssessmentId(string assessmentId)
+        {
+            _db.StudentLOScore
+                .Where(s => s.StudentAssessmentScore.AssessmentId == assessmentId)
+                .ExecuteDelete();
+        }
     }
 }
