@@ -78,16 +78,6 @@
                                         @(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
                                     </div>
                                 }
-
-                            }
-
-                            else
-
-                            {
-                                <div class="dropdown-item text-warning">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    No course offerings found. ViewBag.CourseOfferings is @(ViewBag.CourseOfferings == null ? "null" : "empty")
-                                </div>
                             }
                         </div>
                     </div>

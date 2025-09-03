@@ -183,14 +183,49 @@ namespace LOTA.Service.Service
 
         public async Task DeleteAsync(string id)
         {
-            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var trimester = await _unitOfWork.trimesterRepository.GetByIdAsync(id);
-            if (trimester != null)
+            if (trimester == null)
             {
-                //delete trimester data and  automatelly delete related course and student under trimester
-                _unitOfWork.trimesterRepository.Remove(trimester.Id);
-                await _unitOfWork.SaveAsync();
+                return;
             }
+
+            // 1) Delete all course offerings under this trimester and their related data
+            var offerings = await _unitOfWork.trimesterCourseRepository.GetTrimesterCoursesByTrimesterAsync(id);
+            foreach (var offering in offerings)
+            {
+                var offeringId = offering.Id;
+
+                // 1.1 Delete LO scores (batch by course offering)
+                var loScores = await _unitOfWork.studentLOScoreRepository.GetLOScoresByCourseOfferingAsync(offeringId);
+                if (loScores != null && loScores.Any())
+                {
+                    _unitOfWork.studentLOScoreRepository.RemoveRange(loScores.Select(s => s.Id));
+                }
+
+                // 1.2 Delete student assessment scores (batch)
+                _unitOfWork.studentScoreRepository.RemoveByCourseOfferingId(offeringId);
+
+                // 1.3 Delete assessment-LO mappings, then delete assessments
+                var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(offeringId);
+                if (assessments != null && assessments.Any())
+                {
+                    foreach (var a in assessments)
+                    {
+                        _unitOfWork.assessmentRepository.RemoveLearningOutcomesByAssessmentIdAsync(a.Id);
+                    }
+                    _unitOfWork.assessmentRepository.RemoveAssessmentsByCourseOfferingId(offeringId);
+                }
+
+                // 1.4 Delete student-course enrollments (batch)
+                _unitOfWork.studentCourseRepository.RemoveEnrolledStudentByCourseOfferingId(offeringId);
+
+                // 1.5 Delete the course offering itself
+                await _unitOfWork.trimesterCourseRepository.DeleteTrimesterCourseAsync(offeringId);
+            }
+
+            // 2) Delete the trimester itself
+            _unitOfWork.trimesterRepository.Remove(trimester.Id);
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task DeleteAllAsync(IEnumerable<string> ids)
@@ -200,9 +235,11 @@ namespace LOTA.Service.Service
             {
                 throw new InvalidOperationException("Trimester already exists.");
             }
-            //delete trimester data and  automatelly delete related course and student under trimester
-            _unitOfWork.trimesterRepository.RemoveRange(ids);
-            await _unitOfWork.SaveAsync();
+            // Delete one by one to ensure cascading cleanup
+            foreach (var id in ids)
+            {
+                await DeleteAsync(id);
+            }
         }
     }
 }
