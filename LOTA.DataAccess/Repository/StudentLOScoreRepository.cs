@@ -80,5 +80,11 @@ namespace LOTA.DataAccess.Repository
                 .Where(s => s.StudentAssessmentScore.AssessmentId == assessmentId)
                 .ExecuteDelete();
         }
+
+        public async Task<bool> ExistsRetakeByAssessmentIdAsync(string assessmentId)
+        {
+            return await _db.StudentLOScore
+                .AnyAsync(s => s.StudentAssessmentScore.AssessmentId == assessmentId && s.IsRetake);
+        }
     }
 }

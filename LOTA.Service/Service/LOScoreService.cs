@@ -24,8 +24,11 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException("Course offering not found");
             }
 
-            // Get assessments for this course offering
+            // Get assessments for this course offering (order by creation time ascending)
             var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOfferingId);
+            assessments = assessments
+                .OrderBy(a => a.CreatedDate ?? DateTime.MinValue)
+                .ToList();
 
             // Get students enrolled in this course offering
             var students = await _unitOfWork.studentCourseRepository.GetByCourseOfferingIdAsync(courseOfferingId);
@@ -77,6 +80,12 @@ namespace LOTA.Service.Service
         /// </summary>
         public async Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores)
         {
+            // Block editing if there exists any retake record under this assessment
+            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByAssessmentIdAsync(assessmentId);
+            if (hasRetake)
+            {
+                throw new InvalidOperationException("This assessment contains retake records and can no longer be edited.");
+            }
            
             // Validate LO scores before saving
             await ValidateLOScoresAsync(assessmentId, loScores);
@@ -196,6 +205,12 @@ namespace LOTA.Service.Service
 
         public async Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO)
         {
+            // Block editing if there exists any retake record under this assessment
+            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByAssessmentIdAsync(batchSaveDTO.AssessmentId);
+            if (hasRetake)
+            {
+                throw new InvalidOperationException("This assessment contains retake records and can no longer be edited.");
+            }
             // Validate all LO scores before saving
             foreach (var studentScore in batchSaveDTO.StudentScores)
             {
@@ -222,8 +237,11 @@ namespace LOTA.Service.Service
                 throw new InvalidOperationException("Course offering not found");
             }
 
-            // Get assessments for this course offering
+            // Get assessments for this course offering (order by creation time ascending)
             var assessments = await _unitOfWork.assessmentRepository.GetAssessmentsByCourseOfferingId(courseOfferingId);
+            assessments = assessments
+                .OrderBy(a => a.CreatedDate ?? DateTime.MinValue)
+                .ToList();
             
             // Create a simplified DTO with only necessary information
             var courseOfferingDto = new CourseOfferingDetailsDTO

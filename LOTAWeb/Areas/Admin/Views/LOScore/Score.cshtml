@@ -526,7 +526,7 @@
             
         } catch (error) {
             if (showMessage) {
-                showErrorMessage('Error saving student scores: ' + error.message);
+                showErrorMessage(error.message || 'Failed to save scores');
             }
             throw error;
         }
@@ -664,7 +664,7 @@
             
         } catch (error) {
             hideLoading();
-            showErrorMessage('Error saving all scores: ' + error.message);
+            showErrorMessage(error.message || 'Failed to save all scores');
         }
     }
 
