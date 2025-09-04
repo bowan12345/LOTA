@@ -197,10 +197,13 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="courseId" class="form-label">Course</label>
-                            <select class="form-select" id="courseId" name="courseId" required>
-                                <option value="">Select Course</option>
-                                <option value="">Loading course offerings...</option>
-                            </select>
+                            <div class="position-relative">
+                                <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name..." onkeyup="filterCourseOptions()" onfocus="showDropdown()" onblur="hideDropdown()">
+                                <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
+                                    <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="courseId" name="courseId">
                         </div>
                         
                         <div class="col-12 col-md-6">
@@ -384,12 +387,26 @@
         // Modal event listeners
         const addAssessmentModal = document.getElementById('addAssessmentModal');
         if (addAssessmentModal) {
+            addAssessmentModal.addEventListener('show.bs.modal', function() {
+                resetCourseSearchList();
+                if (Array.isArray(latestTrimesterCourseOfferings) && latestTrimesterCourseOfferings.length > 0) {
+                    // Rebuild full list from cache to clear any previous display:none states
+                    populateCourseSelectAndDropdown();
+                    // Ensure any previous filter display states are cleared
+                    resetCourseSearchList();
+                } else {
+                    // Fetch and then populate if cache is empty
+                    loadLatestTrimesterCourseOfferings();
+                }
+            });
             addAssessmentModal.addEventListener('hidden.bs.modal', function() {
                 document.getElementById('addAssessmentForm').reset();
                 document.getElementById('learningOutcomesContainer').innerHTML = '';
                 document.getElementById('courseId').disabled = false;
                 // Reload assessment types after modal is closed
                 loadAssessmentTypes();
+                // Also clear course search UI state
+                resetCourseSearchList();
             });
         }
         
@@ -402,38 +419,101 @@
                  }
      });
      
-     // Load course offerings for the latest trimester
-     function loadLatestTrimesterCourseOfferings() {
-         const courseSelect = document.getElementById('courseId');
-         if (!courseSelect) return;
-         
-         // Show loading state
-         courseSelect.innerHTML = '<option value="">Loading course offerings...</option>';
-         
-         // Fetch latest trimester course offerings
-         fetch('/Admin/Assessment/GetLatestTrimesterCourseOfferings')
-             .then(response => response.json())
-             .then(data => {
-                 if (data.success && data.data && data.data.length > 0) {
-                     latestTrimesterCourseOfferings = data.data;
-                     
-                     // Populate dropdown with trimester information
-                     courseSelect.innerHTML = '<option value="">Select Course</option>' + 
-                         data.data.map(co => {
-                             const trimesterInfo = co.trimester ? 
-                                 `${co.trimester.academicYear} - Tri${co.trimester.trimesterNumber}` : 
-                                 'Trimester info unavailable';
-                             return `<option value="${co.id}" data-course-id="${co.courseId}" data-trimester-id="${co.trimester?.id || ''}">${co.courseName} (${co.courseCode}) - ${trimesterInfo}</option>`;
-                         }).join('');
-                 } else {
-                     courseSelect.innerHTML = '<option value="">No course offerings available</option>';
-                 }
-             })
-             .catch(error => {
-                 console.error('Error loading course offerings:', error);
-                 courseSelect.innerHTML = '<option value="">Error loading course offerings</option>';
-             });
-     }
+     // Populate Course select and dropdown (format: CODE - NAME - Tri N YEAR)
+    function populateCourseSelectAndDropdown() {
+        const dropdown = document.getElementById('courseDropdown');
+        const input = document.getElementById('courseSearchInput');
+        if (!dropdown) return;
+
+        const dropdownItems = latestTrimesterCourseOfferings.map(co => {
+            const trimesterInfo = co.trimester ? `Tri ${co.trimester.trimesterNumber} ${co.trimester.academicYear}` : 'Trimester info unavailable';
+            const display = `${co.courseCode} - ${co.courseName} - ${trimesterInfo}`;
+            const safeDisplay = display.replace(/'/g, "\\'");
+            return `<div class=\"dropdown-item\" data-value=\"${co.id}\" data-course-code=\"${co.courseCode}\" data-course-name=\"${co.courseName}\" data-trimester=\"${co.trimester?.trimesterNumber || ''}\" data-year=\"${co.trimester?.academicYear || ''}\" onclick=\"selectCourse('${co.id}', '${safeDisplay}')\">${display}</div>`;
+        }).join('');
+        dropdown.innerHTML = `<div class=\"dropdown-item\" data-value=\"\" onclick=\"selectCourse('', '-- Select a Course Offering --')\">-- Select a Course Offering --</div>` + dropdownItems;
+        if (input) input.value = '';
+    }
+
+    function showDropdown() {
+        const dropdown = document.getElementById('courseDropdown');
+        if (dropdown) dropdown.style.display = 'block';
+    }
+
+    function hideDropdown() {
+        setTimeout(() => {
+            const dropdown = document.getElementById('courseDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }, 150);
+    }
+
+    function filterCourseOptions() {
+        const input = document.getElementById('courseSearchInput');
+        const dropdown = document.getElementById('courseDropdown');
+        if (!input || !dropdown) return;
+        const term = input.value.trim().toLowerCase();
+        const items = dropdown.querySelectorAll('.dropdown-item');
+        items.forEach((item, idx) => {
+            if (idx === 0) return; // keep first placeholder item
+            const code = (item.getAttribute('data-course-code') || '').toLowerCase();
+            const name = (item.getAttribute('data-course-name') || '').toLowerCase();
+            item.style.display = (!term || code.includes(term) || name.includes(term)) ? '' : 'none';
+        });
+        showDropdown();
+    }
+
+    // Reset search input and restore all dropdown items' visibility
+    function resetCourseSearchList() {
+        const input = document.getElementById('courseSearchInput');
+        const dropdown = document.getElementById('courseDropdown');
+        const hiddenCourseId = document.getElementById('courseId');
+        if (input) input.value = '';
+        if (hiddenCourseId) hiddenCourseId.value = '';
+        if (dropdown) {
+            const items = dropdown.querySelectorAll('.dropdown-item');
+            items.forEach(item => { item.style.display = ''; });
+        }
+    }
+
+    function selectCourse(id, displayText) {
+        const hiddenCourseId = document.getElementById('courseId');
+        const input = document.getElementById('courseSearchInput');
+        if (hiddenCourseId) hiddenCourseId.value = id || '';
+        if (input) input.value = displayText || '';
+        if (id) {
+            loadLearningOutcomes(id);
+        } else {
+            const container = document.getElementById('learningOutcomesContainer');
+            if (container) container.innerHTML = '';
+        }
+        hideDropdown();
+    }
+
+    // Load course offerings for the latest trimester
+    function loadLatestTrimesterCourseOfferings() {
+        const hiddenCourseId = document.getElementById('courseId');
+        if (!hiddenCourseId) return;
+        
+        // Fetch latest trimester course offerings
+        fetch('/Admin/Assessment/GetLatestTrimesterCourseOfferings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    latestTrimesterCourseOfferings = data.data;
+                    // Populate search suggestions (code - name - trimester)
+                    populateCourseSelectAndDropdown();
+                } else {
+                    // Clear suggestions on empty data
+                    const dropdown = document.getElementById('courseDropdown');
+                    if (dropdown) dropdown.innerHTML = '<div class=\"dropdown-item\">No course offerings available</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading course offerings:', error);
+                const dropdown = document.getElementById('courseDropdown');
+                if (dropdown) dropdown.innerHTML = '<div class=\"dropdown-item\">Error loading course offerings</div>';
+            });
+    }
      
      // Load assessment types
      function loadAssessmentTypes() {
@@ -788,16 +868,13 @@
         
         if (!courseId || !assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
-            // Reset button state
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
             return;
         }
         
-        // Validate weight
         if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
             showError('weight must be between 0 and 100!');
-            // Reset button state
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
             return;
@@ -806,119 +883,81 @@
         // Get selected learning outcomes with scores
         const selectedLOs = [];
         const checkedLOs = document.querySelectorAll('input[name="learningOutcomes"]:checked');
-        
         if (checkedLOs.length === 0) {
             showError('Please select at least one learning outcome!');
-            // Reset button state
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
             return;
         }
-        
         for (let i = 0; i < checkedLOs.length; i++) {
             const checkbox = checkedLOs[i];
             const loId = checkbox.value;
             const scoreInput = document.getElementById(`lo_score_${loId}`);
             const score = scoreInput ? parseFloat(scoreInput.value) || 0 : 0;
-            
-            // Validate score input
             if (!scoreInput || scoreInput.value.trim() === '') {
                 showError('Please enter a score for all selected learning outcomes!');
-                // Reset button state
                 saveButton.innerHTML = originalText;
                 saveButton.disabled = false;
                 return;
             }
-            
             if (score < 0 || score > 100) {
                 showError('Score must be between 0 and 100!');
-                // Reset button state
                 saveButton.innerHTML = originalText;
                 saveButton.disabled = false;
                 return;
             }
-            
-            selectedLOs.push({
-                LOId: loId,
-                Score: score
-            });
+            selectedLOs.push({ LOId: loId, Score: score });
+        }
+
+        // Derive trimesterId and actualCourseId from cached offerings
+        const offering = (latestTrimesterCourseOfferings || []).find(co => co.id === courseId);
+        if (!offering) {
+            showError('Course offering not found!');
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+            return;
+        }
+        const trimesterId = offering.trimester?.id;
+        const actualCourseId = offering.courseId;
+        if (!trimesterId) {
+            showError('Trimester information not found for this course!');
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+            return;
+        }
+        if (!actualCourseId) {
+            showError('Course information not found!');
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+            return;
         }
         
-                 // Get the selected course offering to get trimester ID and course ID
-         const courseSelect = document.getElementById('courseId');
-         const selectedOption = courseSelect.querySelector(`option[value="${courseId}"]`);
-         
-         if (!selectedOption) {
-             showError('Course not selected!');
-             // Reset button state
-             saveButton.innerHTML = originalText;
-             saveButton.disabled = false;
-             return;
-         }
-         
-         // Get trimester ID and course ID from the selected option's data attributes
-         const trimesterId = selectedOption.getAttribute('data-trimester-id');
-         const actualCourseId = selectedOption.getAttribute('data-course-id');
-         
-         if (!trimesterId) {
-             showError('Trimester information not found for this course!');
-             // Reset button state
-             saveButton.innerHTML = originalText;
-             saveButton.disabled = false;
-             return;
-         }
-         
-         if (!actualCourseId) {
-             showError('Course information not found!');
-             // Reset button state
-             saveButton.innerHTML = originalText;
-             saveButton.disabled = false;
-             return;
-         }
-         
-         // Prepare data for API call
-         const assessmentData = {
-             courseId: actualCourseId,
-             courseOfferingId: courseId, // This is the TrimesterCourse ID
-             trimesterId: trimesterId,
-             assessmentName: assessmentName,
-             assessmentTypeId: assessmentType, // This is the AssessmentType ID
-             Weight: parseFloat(Weight),
-             Score: parseFloat(Score),
-             learningOutcomes: selectedLOs
-         };
+        const assessmentData = {
+            courseId: actualCourseId,
+            courseOfferingId: courseId,
+            trimesterId: trimesterId,
+            assessmentName: assessmentName,
+            assessmentTypeId: assessmentType,
+            Weight: parseFloat(Weight),
+            Score: parseFloat(Score),
+            learningOutcomes: selectedLOs
+        };
         
-        // Send API request to create assessment
         fetch('/Admin/Assessment/CreateAssessment', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(assessmentData)
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Show success message
                 showSuccess('Assessment created successfully!');
-                
-                // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addAssessmentModal'));
                 modal.hide();
-                
-                  // Reset form
-                 form.reset();
-                 document.getElementById('learningOutcomesContainer').innerHTML = '';
-                 
-                 // Reload assessment types after form reset
-                 loadAssessmentTypes();
-                 
-                 // Refresh the page after a short delay
-                 setTimeout(() => {
-                     location.reload();
-                 }, 500);
+                form.reset();
+                document.getElementById('learningOutcomesContainer').innerHTML = '';
+                setTimeout(() => { location.reload(); }, 500);
             } else {
-                // Show error message
                 showError('Error: ' + data.message);
             }
         })
@@ -926,7 +965,6 @@
             showError('An error occurred while creating the assessment. Please try again.');
         })
         .finally(() => {
-            // Reset button state
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
         });
@@ -1237,7 +1275,6 @@
         
         if (!assessmentName || !assessmentType || !Weight || !Score) {
             showError('Please fill in all required fields!');
-            // Reset button state
             updateButton.innerHTML = originalText;
             updateButton.disabled = false;
             return;
@@ -1246,7 +1283,6 @@
         // Validate weight
         if (parseFloat(Weight) <= 0 || parseFloat(Weight) > 100) {
             showError('weight must be between 0 and 100!');
-            // Reset button state
             updateButton.innerHTML = originalText;
             updateButton.disabled = false;
             return;
@@ -1258,7 +1294,6 @@
         
         if (checkedLOs.length === 0) {
             showError('Please select at least one learning outcome!');
-            // Reset button state
             updateButton.innerHTML = originalText;
             updateButton.disabled = false;
             return;
@@ -1273,7 +1308,6 @@
             // Validate score input
             if (!scoreInput || scoreInput.value.trim() === '') {
                 showError('Please enter a score for all selected learning outcomes!');
-                // Reset button state
                 updateButton.innerHTML = originalText;
                 updateButton.disabled = false;
                 return;
@@ -1281,7 +1315,6 @@
             
             if (score < 0 || score > 100) {
                 showError('Score must be between 0 and 100!');
-                // Reset button state
                 updateButton.innerHTML = originalText;
                 updateButton.disabled = false;
                 return;
