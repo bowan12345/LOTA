@@ -160,28 +160,12 @@
                         </li>
                         <!-- Subtle Divider -->
                         <div class="nav-divider"></div>
-                        <!-- Manage Courses Dropdown -->
+                        <!-- Manage Courses -->
                         <li class="nav-item mb-2">
-                            <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#tutorManageCoursesCollapse"
-                                    type="button"
-                                    aria-expanded="true"
-                                    aria-controls="tutorManageCoursesCollapse"
-                                    id="tutorManageCoursesToggle">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Tutor" asp-controller="Course" asp-action="Index">
                                 <i class="fas fa-book me-3"></i>
                                 Manage Courses
-                            </button>
-                            <div class="collapse show" id="tutorManageCoursesCollapse">
-                                <ul class="nav flex-column ms-3 mt-1">
-                                    <li class="nav-item mb-1">
-                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Tutor" asp-controller="Course" asp-action="Index">
-                                            <i class="fas fa-list me-3"></i>
-                                            My Courses
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                            </a>
                         </li>
 
                         <!-- Subtle Divider -->
@@ -295,13 +279,10 @@
               const manageCoursesCollapse = document.getElementById('manageCoursesCollapse');
               const manageCoursesToggle = document.getElementById('manageCoursesToggle');
               
-              // Tutor navigation elements
-              const tutorManageCoursesCollapse = document.getElementById('tutorManageCoursesCollapse');
-              const tutorManageCoursesToggle = document.getElementById('tutorManageCoursesToggle');
+              // Tutor navigation elements (removed - no longer using dropdown)
               
               let hasActiveProgramsSubMenu = false;
               let hasActiveCoursesSubMenu = false;
-              let hasActiveTutorCoursesSubMenu = false;
               
               // Reset all navigation items first
               allNavLinks.forEach(item => {
@@ -312,7 +293,7 @@
               // Check all navigation links for matches
               allNavLinks.forEach((link) => {
                   // Skip the dropdown toggle buttons for href checking
-                  if (link.id === 'manageProgramsToggle' || link.id === 'manageCoursesToggle' || link.id === 'tutorManageCoursesToggle') {
+                  if (link.id === 'manageProgramsToggle' || link.id === 'manageCoursesToggle') {
                       return;
                   }
                   
@@ -392,10 +373,6 @@
                               hasActiveCoursesSubMenu = true;
                           }
                           
-                          // Check if this active link is inside the Tutor Manage Courses submenu
-                          if (link.closest('#tutorManageCoursesCollapse')) {
-                              hasActiveTutorCoursesSubMenu = true;
-                          }
                           
                           // Add active class to parent dropdown if submenu item is active
                           if (link.closest('#manageProgramsCollapse') && manageProgramsToggle) {
@@ -403,9 +380,6 @@
                           }
                           if (link.closest('#manageCoursesCollapse') && manageCoursesToggle) {
                               manageCoursesToggle.classList.add('active');
-                          }
-                          if (link.closest('#tutorManageCoursesCollapse') && tutorManageCoursesToggle) {
-                              tutorManageCoursesToggle.classList.add('active');
                           }
                       }
                   }
@@ -423,11 +397,6 @@
                   manageCoursesToggle.setAttribute('aria-expanded', 'true');
               }
               
-              // Handle Tutor Manage Courses dropdown - always expanded by default
-              if (tutorManageCoursesToggle && tutorManageCoursesCollapse) {
-                  tutorManageCoursesCollapse.classList.add('show');
-                  tutorManageCoursesToggle.setAttribute('aria-expanded', 'true');
-              }
           }
          
          // Call the function when page loads
@@ -566,22 +535,6 @@
              border-left-color: #0d6efd;
          }
          
-         /* Tutor Manage Courses dropdown styles */
-         #tutorManageCoursesCollapse {
-             transition: all 0.3s ease-in-out;
-         }
-         
-         #tutorManageCoursesCollapse .nav-link {
-             font-size: 0.9rem;
-             padding-left: 2.5rem;
-             border-left: 2px solid #e9ecef;
-             margin-left: 0.5rem;
-         }
-         
-         #tutorManageCoursesCollapse .nav-link:hover {
-             background-color: #f8f9fa !important;
-             border-left-color: #0d6efd;
-         }
         
         .dropdown-toggle::after {
             margin-left: auto;
@@ -611,25 +564,20 @@
              border-left-color: #ffffff;
          }
          
-         #tutorManageCoursesCollapse .nav-link.active {
-             background-color: #0d6efd !important;
-             color: white !important;
-             border-left-color: #ffffff;
-         }
         
         /* Button styling for dropdown toggle */
-        #manageProgramsToggle, #manageCoursesToggle, #tutorManageCoursesToggle {
+        #manageProgramsToggle, #manageCoursesToggle {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
         }
         
-        #manageProgramsToggle:hover, #manageCoursesToggle:hover, #tutorManageCoursesToggle:hover {
+        #manageProgramsToggle:hover, #manageCoursesToggle:hover {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
             transform: translateX(3px);
             border-color: #dee2e6;
         }
         
-        #manageProgramsToggle:focus, #manageCoursesToggle:focus, #tutorManageCoursesToggle:focus {
+        #manageProgramsToggle:focus, #manageCoursesToggle:focus {
             outline: none;
             box-shadow: none;
         }

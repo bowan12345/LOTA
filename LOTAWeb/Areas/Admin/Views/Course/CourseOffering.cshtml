@@ -1599,9 +1599,6 @@
                              <div class="flex-grow-1">
                                  <div class="d-flex align-items-center mb-1">
                                      <div class="fw-semibold text-dark me-2 fs-5">${student.firstName || ''} ${student.lastName || ''}</div>
-                                     <span class="badge ${student.isActive ? 'bg-success' : 'bg-secondary'}">
-                                         ${student.isActive ? 'Active' : 'Inactive'}
-                                     </span>
                                  </div>
                                  <div class="text-muted fs-6">
                                      <i class="fas fa-id-card me-1"></i>${student.studentNo || 'N/A'}
@@ -1610,7 +1607,8 @@
                                      <i class="fas fa-envelope me-1"></i>${student.email || 'N/A'}
                                  </div>
                              </div>
-                             <div class="ms-2">
+                             <div class="ms-2 d-flex align-items-center gap-2">
+                                 <span class="badge bg-success">Enrolled</span>
                                  <button class="btn btn-outline-danger btn-sm" onclick="removeStudentFromCourse('${student.id}')" title="Remove from course">
                                      <i class="fas fa-times"></i>
                                  </button>
@@ -1896,7 +1894,7 @@
              }
          }
          
-                  // Remove student from course
+         // Remove student from course
          async function removeStudentFromCourse(studentId) {
              // Get course offering ID from the current selected offering
              const courseOfferingId = window.currentSelectedOffering?.id;

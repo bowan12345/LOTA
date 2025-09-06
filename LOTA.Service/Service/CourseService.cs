@@ -538,7 +538,7 @@ namespace LOTA.Service.Service
                         else
                         {
                             // Student is already enrolled in this course for this trimester
-                            errors.Add($"Row {row.RowNumber()}: Student '{studentId}' is already enrolled in this course for trimester {trimesterId}");
+                            errors.Add($"Row {row.RowNumber()}: Student '{studentId}' is already enrolled in this course for trimester {trimester.FirstOrDefault().TrimesterNumber}");
                         }
                     }
                     catch (Exception ex)

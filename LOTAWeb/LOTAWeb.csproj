@@ -39,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Student\Controllers\" />
     <Folder Include="wwwroot\js\student\" />
     <Folder Include="wwwroot\js\tutor\" />
   </ItemGroup>

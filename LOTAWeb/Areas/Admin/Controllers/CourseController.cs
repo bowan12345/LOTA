@@ -435,7 +435,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DownloadStudentsTemplate: {ex.Message}");
-                return Json(new { success = false, message = $"Failed to generate students template: {ex.Message}" });
+                return Json(new { success = false, message = $"Failed to generate students template" });
             }
         }
 
