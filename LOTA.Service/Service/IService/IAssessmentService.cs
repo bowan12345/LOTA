@@ -17,5 +17,6 @@ namespace LOTA.Service.Service.IService
         Task UpdateAssessmentAsync(AssessmentUpdateDTO assessment);
         Task DeleteAssessmentAsync(string id);
         Task<IEnumerable<AssessmentReturnDTO>> GetAssessmentsBySearchTermAsync(string searchTerm);
+        Task<IEnumerable<AssessmentTypeReturnDTO>>  GetAllAssessmentTypesAsync();
     }
 }

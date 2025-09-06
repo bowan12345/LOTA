@@ -297,7 +297,15 @@ namespace LOTA.Service.Service
             return results;
         }
 
-
-      
+        public async Task<IEnumerable<AssessmentTypeReturnDTO>> GetAllAssessmentTypesAsync()
+        {
+            var assessmentTypes = await _unitOfWork.assessmentTypeRepository.GetAllAsync();
+            return assessmentTypes.Select(at=>new AssessmentTypeReturnDTO 
+            {
+                Id = at.Id,
+                AssessmentTypeName = at.AssessmentTypeName,
+            });
+            
+        }
     }
 }

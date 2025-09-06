@@ -3,9 +3,12 @@ using LOTA.Model;
 using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using LOTA.DataAccess.Repository.IRepository;
-namespace LOTAWeb.Areas.Admin.Controllers
+using LOTA.Utility;
+using Microsoft.AspNetCore.Authorization;
+namespace LOTAWeb.Areas.Tutor.Controllers
 {
-    [Area("Admin")]
+    [Area(Roles.Role_Tutor)]
+    [Authorize(Roles = Roles.Role_Tutor)]
     public class AssessmentController : Controller
     {
         private readonly IAssessmentService _assessmentService;
@@ -19,24 +22,14 @@ namespace LOTAWeb.Areas.Admin.Controllers
             _trimesterCourseService = trimesterCourseService;
         }
 
-        public async Task<IActionResult> Index([FromQuery] string searchTerm = "")
+        public async Task<IActionResult> Index()
         {
             // Get all assessments with course and trimester information
-            IEnumerable<AssessmentReturnDTO> assessmentList;
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                assessmentList = await _assessmentService.GetAssessmentsBySearchTermAsync(searchTerm);
-            }
-            else
-            {
-                assessmentList = await _assessmentService.GetAllAssessmentsAsync();
-            }
-
-            // Pass search term to view for maintaining search state
-            ViewBag.SearchTerm = searchTerm;
+            IEnumerable<AssessmentReturnDTO> assessmentList = await _assessmentService.GetAllAssessmentsAsync();
 
             // Return assessments data to the view
             return View(assessmentList);
+
         }
 
         // get learning outcomes for a course
