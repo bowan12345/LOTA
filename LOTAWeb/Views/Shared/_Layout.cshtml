@@ -31,121 +31,191 @@
             <div class="p-3">
                 <h5 class="fw-bold text-dark mb-3">Navigation</h5>
                 <hr class="my-3">
-                
-                <ul class="nav flex-column">
-                    <!-- Dashboard Section -->
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Home" asp-action="Index">
-                            <i class="fas fa-home me-3"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    
-                    <!-- Subtle Divider -->
-                    <div class="nav-divider"></div>
-                    
-                    <!-- Manage Programs Dropdown -->
-                    <li class="nav-item mb-2">
-                        <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#manageProgramsCollapse"
-                                type="button"
-                                aria-expanded="true"
-                                aria-controls="manageProgramsCollapse"
-                                id="manageProgramsToggle">
-                            <i class="fas fa-cogs me-3"></i>
-                            Manage Programs
-                        </button>
-                        <div class="collapse show" id="manageProgramsCollapse">
-                            <ul class="nav flex-column ms-3 mt-1">
-                                <li class="nav-item mb-1">
-                                    <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Trimester" asp-action="Index">
-                                        <i class="fas fa-calendar-week me-3"></i>
-                                        Manage Trimesters
-                                    </a>
-                                </li>
-                                <li class="nav-item mb-1">
-                                    <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Qualification" asp-action="Index">
-                                        <i class="fas fa-certificate me-3"></i>
-                                        Manage Qualifications
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                 <ul class="nav flex-column">
+                    @if (User.IsInRole(Roles.Role_Admin))
+                    {
+                        <!-- Dashboard Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-3"></i>
+                                Dashboard
+                            </a>
+                        </li>
 
-                    <!-- Subtle Divider -->
-                    <div class="nav-divider"></div>
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
 
-                    <!-- People Management Section -->
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Tutor" asp-action="Index">
-                            <i class="fas fa-user-tie me-3"></i>
-                            Manage Tutors
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Student" asp-action="Index">
-                            <i class="fas fa-graduation-cap me-3"></i>
-                            Manage Students
-                        </a>
-                    </li>
-                    
-                    <!-- Subtle Divider -->
-                    <div class="nav-divider"></div>
-                    
-                    <!-- Manage Courses Dropdown -->
-                    <li class="nav-item mb-2">
-                        <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#manageCoursesCollapse" 
-                                type="button"
-                                aria-expanded="true" 
-                                aria-controls="manageCoursesCollapse"
-                                id="manageCoursesToggle">
-                            <i class="fas fa-book me-3"></i>
-                            Manage Courses
-                        </button>
-                        <div class="collapse show" id="manageCoursesCollapse">
-                            <ul class="nav flex-column ms-3 mt-1">
-                                <li class="nav-item mb-1">
-                                    <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="Index">
-                                        <i class="fas fa-list me-3"></i>
-                                        Course Catalog
-                                    </a>
-                                </li>
-                                <li class="nav-item mb-1">
-                                    <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="CourseOffering">
-                                        <i class="fas fa-chalkboard-teacher me-3"></i>
-                                        Course Offerings
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    
-                    <!-- Subtle Divider -->
-                    <div class="nav-divider"></div>
-                    
-                    <!-- Assessment & Results Section -->
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Assessment" asp-action="Index">
-                            <i class="fas fa-file-alt me-3"></i>
-                            Manage Assessments
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOScore" asp-action="Index">
-                            <i class="fas fa-list me-3"></i>
-                            LO Scores
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
-                            <i class="fas fa-chart-line me-3"></i>
-                            LO Results
-                        </a>
-                    </li>
+                        <!-- Manage Programs Dropdown -->
+                        <li class="nav-item mb-2">
+                            <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#manageProgramsCollapse"
+                            type="button"
+                            aria-expanded="true"
+                            aria-controls="manageProgramsCollapse"
+                            id="manageProgramsToggle">
+                                <i class="fas fa-cogs me-3"></i>
+                                Manage Programs
+                            </button>
+                            <div class="collapse show" id="manageProgramsCollapse">
+                                <ul class="nav flex-column ms-3 mt-1">
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Trimester" asp-action="Index">
+                                            <i class="fas fa-calendar-week me-3"></i>
+                                            Manage Trimesters
+                                        </a>
+                                    </li>
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Qualification" asp-action="Index">
+                                            <i class="fas fa-certificate me-3"></i>
+                                            Manage Qualifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+
+                        <!-- People Management Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Tutor" asp-action="Index">
+                                <i class="fas fa-user-tie me-3"></i>
+                                Manage Tutors
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Student" asp-action="Index">
+                                <i class="fas fa-graduation-cap me-3"></i>
+                                Manage Students
+                            </a>
+                        </li>
+
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+
+                        <!-- Manage Courses Dropdown -->
+                        <li class="nav-item mb-2">
+                            <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#manageCoursesCollapse" 
+                            type="button"
+                            aria-expanded="true" 
+                            aria-controls="manageCoursesCollapse"
+                            id="manageCoursesToggle">
+                                <i class="fas fa-book me-3"></i>
+                                Manage Courses
+                            </button>
+                            <div class="collapse show" id="manageCoursesCollapse">
+                                <ul class="nav flex-column ms-3 mt-1">
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="Index">
+                                            <i class="fas fa-list me-3"></i>
+                                            Course Catalog
+                                        </a>
+                                    </li>
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="CourseOffering">
+                                            <i class="fas fa-chalkboard-teacher me-3"></i>
+                                            Course Offerings
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+
+                        <!-- Assessment & Results Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Assessment" asp-action="Index">
+                                <i class="fas fa-file-alt me-3"></i>
+                                Manage Assessments
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOScore" asp-action="Index">
+                                <i class="fas fa-list me-3"></i>
+                                LO Scores
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
+                                <i class="fas fa-chart-line me-3"></i>
+                                LO Results
+                            </a>
+                        </li>
+                    }
+                    <!-- tutor navigation bar-->
+                    @if (User.IsInRole(Roles.Role_Tutor))
+                    {
+                        <!-- Manage Courses Dropdown -->
+                        <li class="nav-item mb-2">
+                            <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#manageCoursesCollapse"
+                                    type="button"
+                                    aria-expanded="true"
+                                    aria-controls="manageCoursesCollapse"
+                                    id="manageCoursesToggle">
+                                <i class="fas fa-book me-3"></i>
+                                Manage Courses
+                            </button>
+                            <div class="collapse show" id="manageCoursesCollapse">
+                                <ul class="nav flex-column ms-3 mt-1">
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="Index">
+                                            <i class="fas fa-list me-3"></i>
+                                            Course Catalog
+                                        </a>
+                                    </li>
+                                    <li class="nav-item mb-1">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="CourseOffering">
+                                            <i class="fas fa-chalkboard-teacher me-3"></i>
+                                            Course Offerings
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+
+                        <!-- Assessment & Results Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Assessment" asp-action="Index">
+                                <i class="fas fa-file-alt me-3"></i>
+                                Manage Assessments
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOScore" asp-action="Index">
+                                <i class="fas fa-list me-3"></i>
+                                LO Scores
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
+                                <i class="fas fa-chart-line me-3"></i>
+                                LO Results
+                            </a>
+                        </li>
+                        
+                    }
+                    <!-- student navigation bar-->
+                    @if (User.IsInRole(Roles.Role_Student))
+                    {
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
+                                <i class="fas fa-chart-line me-3"></i>
+                                LO Results
+                            </a>
+                        </li>
+
+                    }
                 </ul>
             </div>
         </nav>

@@ -9,6 +9,8 @@ using LOTAWeb.Models;
 using ClosedXML.Excel;
 using System.Text.RegularExpressions;
 using LOTA.Service.Service;
+using LOTA.Utility;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -96,7 +98,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 Email = tutorCreateDTO.Email,
                 FirstName = tutorCreateDTO.FirstName,
                 LastName = tutorCreateDTO.LastName,
-                TutorNo = tutorCreateDTO.Email, // Use email as TutorNo for now
+                // Use email as TutorNo for now
+                TutorNo = tutorCreateDTO.Email, 
+                PasswordHash = tutorCreateDTO.Password,
                 IsActive = true,
                 EmailConfirmed = true
             };
@@ -105,6 +109,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             var result = await _userManager.CreateAsync(tutor, tutorCreateDTO.Password);
             if (result.Succeeded)
             {
+                _userManager.AddToRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
                 return Json(new { success = true, message = "Tutor created successfully" });
             }
             else
@@ -247,6 +252,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 var result = await _userManager.DeleteAsync(tutor);
                 if (result.Succeeded)
                 {
+                    _userManager.RemoveFromRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
                     return Json(new { success = true, message = "Tutor deleted successfully" });
                 }
                 else
@@ -304,6 +310,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         var result = await _userManager.DeleteAsync(tutor);
                         if (result.Succeeded)
                         {
+                            _userManager.RemoveFromRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
                             deletedCount++;
                         }
                         else
@@ -502,6 +509,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         var result = await _userManager.CreateAsync(tutor, tutorData.Password);
                         if (result.Succeeded)
                         {
+                            _userManager.AddToRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
                             successCount++;
                         }
                         else
