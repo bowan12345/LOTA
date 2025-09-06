@@ -1,27 +1,52 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@using LOTA.Model
+@using Microsoft.AspNetCore.Identity
+@using LOTA.Service.Service.IService
 
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IPortalContextService portal
 
-<ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
+<!-- Left side: Portal Brand -->
+@if (portal.IsAuthenticated() && !string.IsNullOrEmpty(portal.GetCurrentArea()))
 {
-    <li class="nav-item">
-        <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
-    </li>
-    <li class="nav-item">
-        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
-        </form>
-    </li>
+    <div class="d-flex align-items-center">
+        <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="@portal.GetCurrentArea()" asp-controller="Home" asp-action="Index">
+            <img src="~/image/logo.jpg" alt="LOTA Logo" class="me-3" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+            LOTA @portal.GetCurrentPortalName()
+        </a>
+    </div>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+    <div class="d-flex align-items-center">
+        <div class="navbar-brand fw-bold d-flex align-items-center">
+            <img src="~/image/logo.jpg" alt="LOTA Logo" class="me-3" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+            LOTA System
+        </div>
+    </div>
+}
+
+<!-- Right side: User Actions -->
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item d-flex align-items-center">
+        <a id="manage" class="nav-link text-white d-flex align-items-center" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+            Hi @{
+                var user = await UserManager.GetUserAsync(User);
+                var fullName = !string.IsNullOrEmpty(user?.FirstName)  
+                    ? $"{user.FirstName}"
+                    : user?.LastName ?? user?.UserName;
+            }@fullName!
+        </a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    <li class="nav-item d-flex align-items-center">
+        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })">
+            <button id="logout" type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3 d-flex align-items-center">
+                <i class="fas fa-sign-out-alt me-1"></i>
+                Logout
+            </button>
+        </form>
     </li>
 }
 </ul>

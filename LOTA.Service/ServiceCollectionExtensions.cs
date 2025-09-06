@@ -28,6 +28,7 @@ namespace LOTA.Service
             services.AddScoped<IAssessmentService, AssessmentService>();
             services.AddScoped<ILOScoreService, LOScoreService>();
             services.AddScoped<ILOResultService, LOResultService>();
+            services.AddScoped<IPortalContextService, PortalContextService>();
 
             return services;
         }
