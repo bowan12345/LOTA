@@ -151,30 +151,33 @@
                     <!-- tutor navigation bar-->
                     @if (User.IsInRole(Roles.Role_Tutor))
                     {
+                        <!-- Dashboard Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Tutor" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-3"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
                         <!-- Manage Courses Dropdown -->
                         <li class="nav-item mb-2">
                             <button class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded dropdown-toggle w-100 text-start border-0 bg-transparent nav-main-item"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#manageCoursesCollapse"
+                                    data-bs-target="#tutorManageCoursesCollapse"
                                     type="button"
                                     aria-expanded="true"
-                                    aria-controls="manageCoursesCollapse"
-                                    id="manageCoursesToggle">
+                                    aria-controls="tutorManageCoursesCollapse"
+                                    id="tutorManageCoursesToggle">
                                 <i class="fas fa-book me-3"></i>
                                 Manage Courses
                             </button>
-                            <div class="collapse show" id="manageCoursesCollapse">
+                            <div class="collapse show" id="tutorManageCoursesCollapse">
                                 <ul class="nav flex-column ms-3 mt-1">
                                     <li class="nav-item mb-1">
-                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="Index">
+                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Tutor" asp-controller="Course" asp-action="Index">
                                             <i class="fas fa-list me-3"></i>
-                                            Course Catalog
-                                        </a>
-                                    </li>
-                                    <li class="nav-item mb-1">
-                                        <a class="nav-link text-dark d-flex align-items-center py-1 px-3 rounded nav-sub-item" asp-area="Admin" asp-controller="Course" asp-action="CourseOffering">
-                                            <i class="fas fa-chalkboard-teacher me-3"></i>
-                                            Course Offerings
+                                            My Courses
                                         </a>
                                     </li>
                                 </ul>
@@ -186,35 +189,46 @@
 
                         <!-- Assessment & Results Section -->
                         <li class="nav-item mb-2">
-                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="Assessment" asp-action="Index">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Tutor" asp-controller="Assessment" asp-action="Index">
                                 <i class="fas fa-file-alt me-3"></i>
                                 Manage Assessments
                             </a>
                         </li>
                         <li class="nav-item mb-2">
-                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOScore" asp-action="Index">
-                                <i class="fas fa-list me-3"></i>
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Tutor" asp-controller="LOScore" asp-action="Index">
+                                <i class="fas fa-chart-bar me-3"></i>
                                 LO Scores
                             </a>
                         </li>
                         <li class="nav-item mb-2">
-                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Tutor" asp-controller="LOResult" asp-action="Index">
                                 <i class="fas fa-chart-line me-3"></i>
                                 LO Results
                             </a>
                         </li>
-                        
                     }
+
                     <!-- student navigation bar-->
                     @if (User.IsInRole(Roles.Role_Student))
                     {
+                        <!-- Dashboard Section -->
                         <li class="nav-item mb-2">
-                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Admin" asp-controller="LOResult" asp-action="Index">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Student" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-3"></i>
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+
+                        <!-- Results Section -->
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Student" asp-controller="LOResult" asp-action="Index">
                                 <i class="fas fa-chart-line me-3"></i>
                                 LO Results
                             </a>
                         </li>
-
                     }
                 </ul>
             </div>
@@ -274,13 +288,20 @@
           function setActiveNavigation() {
               const currentPath = window.location.pathname.toLowerCase();
               const allNavLinks = document.querySelectorAll('#sidebar .nav-link, #sidebar button.nav-link');
+              
+              // Admin navigation elements
               const manageProgramsCollapse = document.getElementById('manageProgramsCollapse');
               const manageProgramsToggle = document.getElementById('manageProgramsToggle');
               const manageCoursesCollapse = document.getElementById('manageCoursesCollapse');
               const manageCoursesToggle = document.getElementById('manageCoursesToggle');
               
+              // Tutor navigation elements
+              const tutorManageCoursesCollapse = document.getElementById('tutorManageCoursesCollapse');
+              const tutorManageCoursesToggle = document.getElementById('tutorManageCoursesToggle');
+              
               let hasActiveProgramsSubMenu = false;
               let hasActiveCoursesSubMenu = false;
+              let hasActiveTutorCoursesSubMenu = false;
               
               // Reset all navigation items first
               allNavLinks.forEach(item => {
@@ -290,8 +311,8 @@
               
               // Check all navigation links for matches
               allNavLinks.forEach((link) => {
-                  // Skip the dropdown toggle button for href checking
-                  if (link.id === 'manageProgramsToggle' || link.id === 'manageCoursesToggle') {
+                  // Skip the dropdown toggle buttons for href checking
+                  if (link.id === 'manageProgramsToggle' || link.id === 'manageCoursesToggle' || link.id === 'tutorManageCoursesToggle') {
                       return;
                   }
                   
@@ -301,67 +322,111 @@
                   if (href && href !== '#') {
                       let normalizedHref = href.toLowerCase();
                       
-                      // Create more flexible matching logic
+                      // Create more specific matching logic
                       let isMatch = false;
                       
-                      // Match using contains logic with more flexible patterns
-                      if ((normalizedHref.includes('/course') && currentPath.includes('/course')) && 
-                          !normalizedHref.includes('courseoffering') && !currentPath.includes('courseoffering')) {
+                      // Exact match first, then fallback to contains
+                      if (normalizedHref === currentPath) {
                           isMatch = true;
-                      } else if (normalizedHref.includes('/course/courseoffering') && currentPath.includes('/course/courseoffering')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/trimester') && currentPath.includes('/trimester')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/qualification') && currentPath.includes('/qualification')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/assessment') && currentPath.includes('/assessment')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/student') && currentPath.includes('/student')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/tutor') && currentPath.includes('/tutor')) {
-                          isMatch = true;
-                      } else if (normalizedHref.includes('/home') && currentPath.includes('/home')) {
-                          isMatch = true;
+                      } else {
+                          // More specific matching for different areas
+                          if (currentPath.startsWith('/admin/')) {
+                              // Admin area matching
+                              if (normalizedHref.includes('/admin/course') && currentPath.includes('/admin/course') && 
+                                  !normalizedHref.includes('courseoffering') && !currentPath.includes('courseoffering')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/course/courseoffering') && currentPath.includes('/admin/course/courseoffering')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/trimester') && currentPath.includes('/admin/trimester')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/qualification') && currentPath.includes('/admin/qualification')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/assessment') && currentPath.includes('/admin/assessment')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/student') && currentPath.includes('/admin/student')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/tutor') && currentPath.includes('/admin/tutor')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/home') && currentPath.includes('/admin/home')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/loscore') && currentPath.includes('/admin/loscore')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/admin/loresult') && currentPath.includes('/admin/loresult')) {
+                                  isMatch = true;
+                              }
+                          } else if (currentPath.startsWith('/tutor/')) {
+                              // Tutor area matching
+                              if (normalizedHref.includes('/tutor/course') && currentPath.includes('/tutor/course')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/tutor/assessment') && currentPath.includes('/tutor/assessment')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/tutor/home') && currentPath.includes('/tutor/home')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/tutor/loscore') && currentPath.includes('/tutor/loscore')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/tutor/loresult') && currentPath.includes('/tutor/loresult')) {
+                                  isMatch = true;
+                              }
+                          } else if (currentPath.startsWith('/student/')) {
+                              // Student area matching
+                              if (normalizedHref.includes('/student/home') && currentPath.includes('/student/home')) {
+                                  isMatch = true;
+                              } else if (normalizedHref.includes('/student/loresult') && currentPath.includes('/student/loresult')) {
+                                  isMatch = true;
+                              }
+                          }
                       }
                       
-                                             if (isMatch) {
-                           // Highlight the matched navigation item
-                           link.classList.add('active', 'bg-primary', 'text-white');
-                           link.classList.remove('text-dark');
-                           
-                           // Check if this active link is inside the Manage Programs submenu
-                           if (link.closest('#manageProgramsCollapse')) {
-                               hasActiveProgramsSubMenu = true;
-                           }
-                           
-                           // Check if this active link is inside the Manage Courses submenu
-                           if (link.closest('#manageCoursesCollapse')) {
-                               hasActiveCoursesSubMenu = true;
-                           }
-                           
-                           // Add active class to parent dropdown if submenu item is active
-                           if (link.closest('#manageProgramsCollapse') && manageProgramsToggle) {
-                               manageProgramsToggle.classList.add('active');
-                           }
-                           if (link.closest('#manageCoursesCollapse') && manageCoursesToggle) {
-                               manageCoursesToggle.classList.add('active');
-                           }
-                       }
+                      if (isMatch) {
+                          // Highlight the matched navigation item
+                          link.classList.add('active', 'bg-primary', 'text-white');
+                          link.classList.remove('text-dark');
+                          
+                          // Check if this active link is inside the Manage Programs submenu
+                          if (link.closest('#manageProgramsCollapse')) {
+                              hasActiveProgramsSubMenu = true;
+                          }
+                          
+                          // Check if this active link is inside the Manage Courses submenu
+                          if (link.closest('#manageCoursesCollapse')) {
+                              hasActiveCoursesSubMenu = true;
+                          }
+                          
+                          // Check if this active link is inside the Tutor Manage Courses submenu
+                          if (link.closest('#tutorManageCoursesCollapse')) {
+                              hasActiveTutorCoursesSubMenu = true;
+                          }
+                          
+                          // Add active class to parent dropdown if submenu item is active
+                          if (link.closest('#manageProgramsCollapse') && manageProgramsToggle) {
+                              manageProgramsToggle.classList.add('active');
+                          }
+                          if (link.closest('#manageCoursesCollapse') && manageCoursesToggle) {
+                              manageCoursesToggle.classList.add('active');
+                          }
+                          if (link.closest('#tutorManageCoursesCollapse') && tutorManageCoursesToggle) {
+                              tutorManageCoursesToggle.classList.add('active');
+                          }
+                      }
                   }
               });
               
-              // Handle Manage Programs dropdown - always expanded by default
+              // Handle Admin Manage Programs dropdown - always expanded by default
               if (manageProgramsToggle && manageProgramsCollapse) {
-                  // Always expand the submenu
                   manageProgramsCollapse.classList.add('show');
                   manageProgramsToggle.setAttribute('aria-expanded', 'true');
               }
               
-              // Handle Manage Courses dropdown - always expanded by default
+              // Handle Admin Manage Courses dropdown - always expanded by default
               if (manageCoursesToggle && manageCoursesCollapse) {
-                  // Always expand the submenu
                   manageCoursesCollapse.classList.add('show');
                   manageCoursesToggle.setAttribute('aria-expanded', 'true');
+              }
+              
+              // Handle Tutor Manage Courses dropdown - always expanded by default
+              if (tutorManageCoursesToggle && tutorManageCoursesCollapse) {
+                  tutorManageCoursesCollapse.classList.add('show');
+                  tutorManageCoursesToggle.setAttribute('aria-expanded', 'true');
               }
           }
          
@@ -500,6 +565,23 @@
              background-color: #f8f9fa !important;
              border-left-color: #0d6efd;
          }
+         
+         /* Tutor Manage Courses dropdown styles */
+         #tutorManageCoursesCollapse {
+             transition: all 0.3s ease-in-out;
+         }
+         
+         #tutorManageCoursesCollapse .nav-link {
+             font-size: 0.9rem;
+             padding-left: 2.5rem;
+             border-left: 2px solid #e9ecef;
+             margin-left: 0.5rem;
+         }
+         
+         #tutorManageCoursesCollapse .nav-link:hover {
+             background-color: #f8f9fa !important;
+             border-left-color: #0d6efd;
+         }
         
         .dropdown-toggle::after {
             margin-left: auto;
@@ -528,20 +610,26 @@
              color: white !important;
              border-left-color: #ffffff;
          }
+         
+         #tutorManageCoursesCollapse .nav-link.active {
+             background-color: #0d6efd !important;
+             color: white !important;
+             border-left-color: #ffffff;
+         }
         
         /* Button styling for dropdown toggle */
-        #manageProgramsToggle, #manageCoursesToggle {
+        #manageProgramsToggle, #manageCoursesToggle, #tutorManageCoursesToggle {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
         }
         
-        #manageProgramsToggle:hover, #manageCoursesToggle:hover {
+        #manageProgramsToggle:hover, #manageCoursesToggle:hover, #tutorManageCoursesToggle:hover {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
             transform: translateX(3px);
             border-color: #dee2e6;
         }
         
-        #manageProgramsToggle:focus, #manageCoursesToggle:focus {
+        #manageProgramsToggle:focus, #manageCoursesToggle:focus, #tutorManageCoursesToggle:focus {
             outline: none;
             box-shadow: none;
         }

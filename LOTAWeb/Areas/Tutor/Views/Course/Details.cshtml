@@ -1,0 +1,155 @@
+﻿@model LOTA.Model.DTO.Admin.CourseReturnDTO
+@{
+    ViewData["Title"] = "Course Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    // Add anti-forgery token for AJAX requests
+    var token = Html.AntiForgeryToken();
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Course Details</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/Tutor/Course">Courses</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.CourseName</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/Tutor/Course" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Courses
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content - Responsive Top-Bottom Layout -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Course Information Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-graduation-cap text-primary me-2"></i>
+                        Course Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted">Course Name</label>
+                            <p class="mb-0">@Model.CourseName</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted">Course Code</label>
+                            <p class="mb-0">@Model.CourseCode</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted">Level</label>
+                            <p class="mb-0">
+                                @if (Model.Level > 0)
+                                {
+                                    <span class="badge bg-info">@Model.Level</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted">Status</label>
+                            <p class="mb-0">
+                                <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(Model.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold text-muted">Qualification</label>
+                            <p class="mb-0">
+                                @if (!string.IsNullOrEmpty(Model.QualificationName))
+                                {
+                                    <div>
+                                        <div class="fw-semibold">@Model.QualificationName</div>
+                                        @if (!string.IsNullOrEmpty(Model.QualificationType))
+                                        {
+                                            <small class="text-muted">@Model.QualificationType</small>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No qualification assigned</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold text-muted">Description</label>
+                            <p class="mb-0">
+                                @if (!string.IsNullOrEmpty(Model.Description))
+                                {
+                                    @Model.Description
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No description available</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Outcomes Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-target text-primary me-2"></i>
+                        Learning Outcomes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.LearningOutcomes != null && Model.LearningOutcomes.Any())
+                    {
+                        <div class="row">
+                            @foreach (var lo in Model.LearningOutcomes.OrderBy(lo => lo.LOName))
+                            {
+                                <div class="col-12 mb-3">
+                                    <div class="border rounded p-3">
+                                        <h6 class="fw-semibold mb-2">@lo.LOName</h6>
+                                        <p class="mb-0 text-muted">@lo.Description</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-target fa-2x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No learning outcomes defined for this course</p>
+                            <small class="text-muted">Learning outcomes help define what students will learn</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/sweetalert-utils.js"></script>
+    <script>
+        // Page initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Any other page initialization code can go here
+        });
+    </script>
+}

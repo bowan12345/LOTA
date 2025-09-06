@@ -197,5 +197,11 @@ namespace LOTA.Service.Service
                 UpdatedDate = trimesterCourse.UpdatedDate
             };
         }
+
+        public async Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAndTrimesterAsync(string tutorId, string trimesterId)
+        {
+            var trimesterCourses = await _unitOfWork.trimesterCourseRepository.GetTrimesterCoursesByTutorAndTrimesterAsync(tutorId, trimesterId);
+            return trimesterCourses.Select(MapToReturnDTO);
+        }
     }
 }

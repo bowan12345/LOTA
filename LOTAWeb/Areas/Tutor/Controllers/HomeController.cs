@@ -1,13 +1,14 @@
-using LOTA.Model;
 using LOTA.Service.Service.IService;
+using LOTA.Utility;
 using LOTAWeb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using LOTA.Model.DTO;
 
 namespace LOTAWeb.Controllers
 {
-    [Area("Tutor")]
+    [Area(Roles.Role_Tutor)]
+    [Authorize(Roles = Roles.Role_Tutor)]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -19,15 +20,11 @@ namespace LOTAWeb.Controllers
             _courseService = courseService;
         }
 
-        /*public IActionResult Index()
+        public IActionResult Index()
         {
             return View();
-        }*/
-        public async Task<IActionResult> Index()
-        {
-            var courses = await _courseService.GetAllCoursesAsync();
-            return View(courses);
         }
+        
         public IActionResult Privacy()
         {
             return View();

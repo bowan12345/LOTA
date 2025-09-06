@@ -33,6 +33,10 @@ namespace LOTA.Service.Service.IService
         /// <returns> one course </returns>
         Task<CourseReturnDTO> GetCourseByIdAsync(string courseId);
 
+        Task<IEnumerable<CourseReturnDTO>> GetCourseByIdsAsync(List<string> courseIds);
+        
+        Task UpdateCourseDescriptionAndLOsAsync(string courseId, string description, string learningOutcomeNames, string learningOutcomeDescriptions);
+
         /// <summary>
         /// Get all courses
         /// </summary>

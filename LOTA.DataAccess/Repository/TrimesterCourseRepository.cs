@@ -140,5 +140,17 @@ namespace LOTA.DataAccess.Repository
                 .OrderBy(tc => tc.Course.CourseCode)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTutorAndTrimesterAsync(string tutorId, string trimesterId)
+        {
+            return await _db.TrimesterCourse
+                 .Include(tc => tc.Trimester)
+                 .Include(tc => tc.Course)
+                 .Include(tc => tc.Course.Qualification)
+                 .Include(tc => tc.Tutor)
+                 .Where(tc => tc.TrimesterId == trimesterId && tc.TutorId == tutorId && tc.IsActive == true)
+                 .OrderBy(tc => tc.Course.CourseCode)
+                 .ToListAsync();
+        }
     }
 }

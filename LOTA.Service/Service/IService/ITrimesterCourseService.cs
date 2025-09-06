@@ -17,6 +17,7 @@ namespace LOTA.Service.Service.IService
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTrimesterAsync(string trimesterId);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByCourseAsync(string courseId);
         Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAsync(string tutorId);
+        Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAndTrimesterAsync(string tutorId, string trimesterId);
         Task<bool> IsTrimesterCourseExistsAsync(string trimesterId, string courseId);
         Task<IEnumerable<CourseOfferingReturnDTO>> GetLatestTrimesterCourseOfferingsAsync();
     }
