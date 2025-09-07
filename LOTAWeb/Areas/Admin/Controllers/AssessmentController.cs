@@ -3,9 +3,12 @@ using LOTA.Model;
 using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using LOTA.DataAccess.Repository.IRepository;
+using LOTA.Utility;
+using Microsoft.AspNetCore.Authorization;
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class AssessmentController : Controller
     {
         private readonly IAssessmentService _assessmentService;

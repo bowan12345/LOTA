@@ -4,11 +4,12 @@ using LOTA.Model.DTO.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using LOTA.Model;
+using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class LOScoreController : Controller
     {
         private readonly ILOScoreService _loScoreService;

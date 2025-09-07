@@ -92,5 +92,26 @@ namespace LOTA.DataAccess.Repository
             return await _db.StudentLOScore
                 .AnyAsync(s => s.StudentAssessmentScore.Assessment.CourseOfferingId == courseOfferingId && s.IsRetake);
         }
+
+        // Batch retrieve all LO scores for a specific student with all related data
+        public async Task<IEnumerable<StudentLOScore>> GetStudentLOScoresWithDetailsAsync(string studentId)
+        {
+            return await _db.StudentLOScore
+                .Include(s => s.StudentAssessmentScore)
+                .Include(s => s.StudentAssessmentScore.Assessment)
+                .Include(s => s.StudentAssessmentScore.Assessment.AssessmentType)
+                .Include(s => s.StudentAssessmentScore.Assessment.AssessmentLearningOutcomes)
+                .Include(s => s.StudentAssessmentScore.Assessment.AssessmentLearningOutcomes)
+                .ThenInclude(alo => alo.LearningOutcome)
+                .Include(s => s.StudentAssessmentScore.Assessment.TrimesterCourse)
+                .Include(s => s.StudentAssessmentScore.Assessment.TrimesterCourse.Course)
+                .Include(s => s.StudentAssessmentScore.Assessment.TrimesterCourse.Trimester)
+                .Where(s => s.StudentAssessmentScore.StudentId == studentId && s.IsActive)
+                .OrderBy(s => s.StudentAssessmentScore.Assessment.TrimesterCourse.Trimester.AcademicYear)
+                .ThenBy(s => s.StudentAssessmentScore.Assessment.TrimesterCourse.Trimester.TrimesterNumber)
+                .ThenBy(s => s.StudentAssessmentScore.Assessment.TrimesterCourse.Course.CourseCode)
+                .ThenBy(s => s.StudentAssessmentScore.Assessment.AssessmentName)
+                .ToListAsync();
+        }
     }
 }

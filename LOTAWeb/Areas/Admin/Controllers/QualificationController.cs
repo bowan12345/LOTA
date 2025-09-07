@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Identity;
 using LOTA.Model.DTO.Admin;
 using LOTA.Utility;
 using LOTA.Model.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class QualificationController : Controller
     {
 

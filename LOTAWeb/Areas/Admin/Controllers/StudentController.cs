@@ -12,8 +12,8 @@ using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class StudentController : Controller
     {
         private readonly IStudentService _studentService;

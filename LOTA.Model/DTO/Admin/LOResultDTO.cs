@@ -35,9 +35,9 @@ namespace LOTA.Model.DTO.Admin
     {
         public string AssessmentId { get; set; }
         public string AssessmentName { get; set; }
+        public string AssessmentType { get; set; }
         public decimal AssessmentScore { get; set; }
         public decimal MaxAssessmentScore { get; set; }
-        public decimal AssessmentPercentage { get; set; }
         public bool AssessmentPassed { get; set; }
         public decimal Weight { get; set; }
         public List<LearningOutcomeResultDTO> LearningOutcomes { get; set; } = new List<LearningOutcomeResultDTO>();

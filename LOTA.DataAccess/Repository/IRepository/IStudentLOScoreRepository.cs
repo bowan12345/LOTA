@@ -14,5 +14,6 @@ namespace LOTA.DataAccess.Repository.IRepository
         void RemoveByAssessmentId(string id);
         Task<bool> ExistsRetakeByAssessmentIdAsync(string assessmentId);
         Task<bool> ExistsRetakeByCourseOfferingIdAsync(string courseOfferingId);
+        Task<IEnumerable<StudentLOScore>> GetStudentLOScoresWithDetailsAsync(string studentId);
     }
 }

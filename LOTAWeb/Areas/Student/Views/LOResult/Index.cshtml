@@ -1,3 +1,4 @@
+@model LOTA.Model.DTO.Student.StudentLOResultDTO
 @{
     ViewData["Title"] = "Learning Outcome Results";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -6,30 +7,292 @@
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark mb-0">
-            <i class="fas fa-chart-line text-success me-2"></i>
-            Learning Outcome Results
-        </h2>
+        <div>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fas fa-chart-line text-success me-2"></i>
+                My Learning Outcome Results
+            </h2>
+            <p class="text-muted mb-0">
+                View your academic performance and learning outcome achievements
+            </p>
+        </div>
     </div>
 
-    <!-- Student LO Results Content -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="text-center py-5">
-                        <i class="fas fa-chart-line fa-4x text-success mb-3"></i>
-                        <h5 class="fw-bold text-dark mb-3">Your Learning Outcome Results</h5>
-                        <p class="text-muted mb-4">
-                            View your academic performance and learning outcome achievements across all enrolled courses.
-                        </p>
-                        <div class="alert alert-info border-0">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> This feature is currently under development. Your learning outcome results will be available here once implemented.
-                        </div>
+    @if (Model != null && !string.IsNullOrEmpty(Model.StudentId))
+    {
+        <!-- Student Information -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Student Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Name:</strong> @Model.StudentName
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Student No:</strong> @Model.StudentNo
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Email:</strong> @Model.StudentEmail
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Trimesters:</strong> @Model.Trimesters.Count
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        @if (Model.Trimesters != null && Model.Trimesters.Any())
+        {
+            <!-- Selection Controls -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-2">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-filter text-primary me-2"></i>
+                        Select Trimester & Course
+                    </h5>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="trimesterSelect" class="form-label fw-semibold mb-1">Trimester</label>
+                            <select id="trimesterSelect" class="form-select" onchange="loadTrimesterData()">
+                                <option value="">-- Select a Trimester --</option>
+                                @foreach (var trimester in Model.Trimesters)
+                                {
+                                    <option value="@trimester.TrimesterId" 
+                                            data-trimester-name="@trimester.TrimesterName"
+                                            data-trimester-number="@trimester.TrimesterNumber"
+                                            data-academic-year="@trimester.AcademicYear">
+                                        @trimester.TrimesterName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="courseOfferingColumn" style="display: none;">
+                            <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course Offering</label>
+                            <select id="courseOfferingSelect" class="form-select" onchange="loadCourseOfferingData()">
+                                <option value="">-- Select a Course --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LO Results Display -->
+            <div class="card border-0 shadow-sm" id="resultsCard" style="display: none;">
+                <div class="card-header bg-white border-0 py-2">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        Learning Outcome Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsContent">
+                        <!-- Results will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- No Data Message -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-info-circle fa-4x text-muted mb-3"></i>
+                    <h5 class="fw-bold text-dark mb-3">No Learning Outcome Results Found</h5>
+                    <p class="text-muted mb-0">
+                        You don't have any learning outcome results available at this time.
+                    </p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Error Message -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                <h5 class="fw-bold text-dark mb-3">Unable to Load Results</h5>
+                <p class="text-muted mb-0">
+                    There was an error loading your learning outcome results. Please try again later.
+                </p>
+            </div>
+        </div>
+    }
 </div>
+
+<!-- Hidden data for JavaScript -->
+<script>
+    const studentData = @Html.Raw(Json.Serialize(Model));
+    
+</script>
+
+<script>
+    function loadTrimesterData() {
+        const trimesterSelect = document.getElementById('trimesterSelect');
+        const courseOfferingColumn = document.getElementById('courseOfferingColumn');
+        const courseOfferingSelect = document.getElementById('courseOfferingSelect');
+        const resultsCard = document.getElementById('resultsCard');
+        
+        if (trimesterSelect.value === '') {
+            courseOfferingColumn.style.display = 'none';
+            resultsCard.style.display = 'none';
+            return;
+        }
+        
+        // Show course offering column
+        courseOfferingColumn.style.display = 'block';
+        
+        // Clear and populate course offering dropdown
+        courseOfferingSelect.innerHTML = '<option value="">-- Select a Course Offering --</option>';
+        
+        const selectedTrimester = studentData.trimesters.find(t => t.trimesterId === trimesterSelect.value);
+        if (selectedTrimester && selectedTrimester.courseOfferings) {
+            selectedTrimester.courseOfferings.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.courseOfferingId;
+                option.textContent = `${course.courseCode} - ${course.courseName}`;
+                option.setAttribute('data-course-name', course.courseName);
+                option.setAttribute('data-course-code', course.courseCode);
+                courseOfferingSelect.appendChild(option);
+            });
+        }
+        
+        // Hide results card
+        resultsCard.style.display = 'none';
+    }
+    
+    function loadCourseOfferingData() {
+        const trimesterSelect = document.getElementById('trimesterSelect');
+        const courseOfferingSelect = document.getElementById('courseOfferingSelect');
+        const resultsCard = document.getElementById('resultsCard');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (courseOfferingSelect.value === '') {
+            resultsCard.style.display = 'none';
+            return;
+        }
+        
+        // Show results card
+        resultsCard.style.display = 'block';
+        
+        // Find the selected course offering data
+        const selectedTrimester = studentData.trimesters.find(t => t.trimesterId === trimesterSelect.value);
+        const selectedCourse = selectedTrimester.courseOfferings.find(c => c.courseOfferingId === courseOfferingSelect.value);
+        
+        if (selectedCourse) {
+            displayCourseResults(selectedCourse);
+        }
+    }
+    
+    function displayCourseResults(courseData) {
+        const resultsContent = document.getElementById('resultsContent');
+        
+        
+        let html = `
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    ${courseData.courseCode} - ${courseData.courseName}
+                </h6>
+            </div>
+        `;
+        
+        // Display assessments
+        if (courseData.assessments && courseData.assessments.length > 0) {
+            html += '<div class="row">';
+            
+            courseData.assessments.forEach((assessment, index) => {
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="card-title mb-0">
+                                    <strong>${assessment.assessmentName}</strong>
+                                    <small class="ms-2">(${assessment.assessmentType})</small>
+                                </h6>
+                                <small class="text-light">${assessment.assessmentScore.toFixed(1)}/${assessment.maxAssessmentScore.toFixed(1)}</small>
+                            </div>
+                            <div class="card-body p-0">
+                                ${displayLearningOutcomes(assessment.learningOutcomes)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+        } else {
+            html += `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No assessments found for this course offering.
+                </div>
+            `;
+        }
+        
+        resultsContent.innerHTML = html;
+    }
+    
+    function displayLearningOutcomes(learningOutcomes) {
+        
+        if (!learningOutcomes || learningOutcomes.length === 0) {
+            return '<p class="text-muted">No learning outcomes found for this assessment.</p>';
+        }
+        
+        let html = '<div class="table-responsive"><table class="table table-sm table-borderless mb-0">';
+        html += `
+            <thead class="table-light">
+                <tr>
+                    <th class="border-0">Learning Outcome</th>
+                    <th class="text-center border-0">Score</th>
+                    <th class="text-center border-0">Percentage</th>
+                    <th class="text-center border-0">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        learningOutcomes.forEach(lo => {
+            
+            const percentageColor = getPercentageColor(lo.loPercentage);
+            const retakeBadge = lo.isRetake ? '<span class="badge bg-warning ms-1">Retake</span>' : '';
+            
+            html += `
+                <tr>
+                    <td>
+                        <strong>${lo.learningOutcomeName}</strong>
+                        ${retakeBadge}
+                    </td>
+                    <td class="text-center">${lo.loScore.toFixed(1)}/${lo.maxLOScore.toFixed(1)}</td>
+                    <td class="text-center">
+                        <span class="badge ${percentageColor}">${lo.loPercentage.toFixed(1)}%</span>
+                    </td>
+                    <td class="text-center">
+                        ${getStatusIcon(lo.loPercentage)}
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        return html;
+    }
+    
+    function getPercentageColor(percentage) {
+        if (percentage >= 80) return 'bg-success';
+        if (percentage >= 50) return 'bg-warning';
+        return 'bg-danger';
+    }
+    
+    function getStatusIcon(percentage) {
+        if (percentage >= 50) return '<i class="fas fa-check-circle text-success"></i>';
+        return '<i class="fas fa-times-circle text-danger"></i>';
+    }
+</script>

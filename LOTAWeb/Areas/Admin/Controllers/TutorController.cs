@@ -14,8 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class TutorController : Controller
     {
         private readonly ITutorService _tutorService;

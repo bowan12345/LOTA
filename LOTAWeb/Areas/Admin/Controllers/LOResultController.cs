@@ -3,10 +3,13 @@ using LOTA.Service.Service.IService;
 using LOTA.Model.DTO.Admin;
 using System.Text.Json;
 using LOTA.Service.Service;
+using LOTA.Utility;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class LOResultController : Controller
     {
         private readonly ILOResultService _loResultService;

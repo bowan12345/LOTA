@@ -4,7 +4,7 @@ using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Student.Controllers
 {
-    [Area("Student")]
+    [Area(Roles.Role_Student)]
     [Authorize(Roles = Roles.Role_Student)]
     public class HomeController : Controller
     {

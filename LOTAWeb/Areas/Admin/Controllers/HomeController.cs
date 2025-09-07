@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using LOTA.Service.Service.IService;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class HomeController : Controller
     {
         private readonly ITutorService _tutorService;

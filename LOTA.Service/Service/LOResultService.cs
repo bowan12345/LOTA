@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LOTA.DataAccess.Repository;
 using LOTA.Model.DTO.Admin;
+using LOTA.Model.DTO.Student;
 using LOTA.Model;
 using LOTA.Service.Service.IService;
 using LOTA.DataAccess.Repository.IRepository;
@@ -230,6 +231,7 @@ namespace LOTA.Service.Service
                     {
                         AssessmentId = assessment.Id,
                         AssessmentName = assessment.AssessmentName,
+                        AssessmentType = assessment.AssessmentType?.AssessmentTypeName ?? "Unknown",
                         MaxAssessmentScore = assessment.Score,
                         Weight = assessment.Weight,
                         LearningOutcomes = new List<LearningOutcomeResultDTO>()
@@ -333,8 +335,7 @@ namespace LOTA.Service.Service
 
                     // Calculate assessment totals
                     assessmentResult.AssessmentScore = assessmentResult.LearningOutcomes.Sum(lo => lo.LOScore);
-                    assessmentResult.AssessmentPercentage = (assessmentResult.AssessmentScore / assessmentResult.MaxAssessmentScore) * 100;
-                    assessmentResult.AssessmentPassed = assessmentResult.AssessmentPercentage >= 50;
+                    assessmentResult.AssessmentPassed = (assessmentResult.AssessmentScore / assessmentResult.MaxAssessmentScore) >= 0.5m;
 
                     studentResult.Assessments.Add(assessmentResult);
                 }
@@ -441,7 +442,7 @@ namespace LOTA.Service.Service
             }
         }
 
-        // Build student results using batch data to avoid N+1 queries
+        // Build student results using batch data
         private StudentResultDTO BuildStudentResultFromBatchData(
             ApplicationUser student, 
             string courseOfferingId, 
@@ -502,9 +503,8 @@ namespace LOTA.Service.Service
                                 
                                 if (allScoresForLO.Any())
                                 {
-                                                    // According to business rules: IsActive=true and IsRetake=true means new score after retake
-                // IsActive=true and IsRetake=false means old score
-                                    
+                                    // According to business rules: IsActive=true and IsRetake=true means new score after retake
+                                    // IsActive=true and IsRetake=false means old score
                                     // Prioritize new score after retake
                                     var retakeScore = allScoresForLO
                                         .Where(s => s.IsActive && s.IsRetake)
@@ -534,14 +534,12 @@ namespace LOTA.Service.Service
                                             loResult.RetakeDate = retakeScore.RetakeDate;
                                             var retakePercentage = Math.Round((retakeScore.Score / assessmentLO.Score) * 100, 2);
                                             
-                                                            // Each LO under each assessment is judged separately for retake status
-                // If the LO under this assessment passes retake, show "retake passed"; if fails, show "retake failed"
+                                            // Each LO under each assessment is judged separately for retake status
+                                            // If the LO under this assessment passes retake, show "retake passed"; if fails, show "retake failed"
                                             var currentAssessmentRetakePassed = retakePercentage >= 50;
+                                            // Only when all instances of the same LO across all assessments pass retake, the overall LO will show "retake passed"
                                             loResult.RetakePassed = currentAssessmentRetakePassed;
                                             loResult.RetakeFailed = !currentAssessmentRetakePassed;
-                                            
-                                                            // Note: The overall LO Overview retake status will be calculated elsewhere
-                // Only when all instances of the same LO across all assessments pass retake, the overall LO will show "retake passed"
                                         }
                                         else
                                         {
@@ -608,8 +606,7 @@ namespace LOTA.Service.Service
 
                             // Calculate assessment total score
                             assessmentResult.AssessmentScore = Math.Round(assessmentResult.LearningOutcomes.Sum(lo => lo.LOScore), 2);
-                            assessmentResult.AssessmentPercentage = Math.Round((assessmentResult.AssessmentScore / assessmentResult.MaxAssessmentScore) * 100, 2);
-                            assessmentResult.AssessmentPassed = assessmentResult.AssessmentPercentage >= 50;
+                            assessmentResult.AssessmentPassed = (assessmentResult.AssessmentScore / assessmentResult.MaxAssessmentScore) >= 0.5m;
                         }
                         else
                         {
@@ -645,7 +642,6 @@ namespace LOTA.Service.Service
                             }
 
                             assessmentResult.AssessmentScore = 0;
-                            assessmentResult.AssessmentPercentage = 0;
                             assessmentResult.AssessmentPassed = false;
                         }
 
@@ -692,7 +688,6 @@ namespace LOTA.Service.Service
                             MaxAssessmentScore = assessment.MaxAssessmentScore,
                             Weight = assessment.Weight,
                             AssessmentScore = 0,
-                            AssessmentPercentage = 0,
                             AssessmentPassed = false,
                             LearningOutcomes = new List<LearningOutcomeResultDTO>()
                         };
@@ -933,6 +928,149 @@ namespace LOTA.Service.Service
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Failed to get failed assessments for retake");
+            }
+        }
+
+        public async Task<StudentLOResultDTO> GetStudentLOResultsAsync(string studentId)
+        {
+            try
+            {
+                // Get student information
+                var student = await _unitOfWork.studentRepository.GetByIdAsync(studentId);
+                if (student == null)
+                {
+                    throw new InvalidOperationException("Student not found");
+                }
+
+                // Batch retrieve all LO scores with related data in a single query
+                var allLOScores = await _unitOfWork.studentLOScoreRepository.GetStudentLOScoresWithDetailsAsync(studentId);
+                
+                var result = new StudentLOResultDTO
+                {
+                    StudentId = student.Id,
+                    StudentName = $"{student.FirstName} {student.LastName}",
+                    StudentNo = student.StudentNo,
+                    StudentEmail = student.Email,
+                    Trimesters = new List<TrimesterResultDTO>()
+                };
+
+                // Group by trimester using the batch data
+                //IOrderedEnumerable<IGrouping<string, StudentLOScore>> 
+                var trimesterGroups = allLOScores
+                    .GroupBy(score => score.StudentAssessmentScore.Assessment.TrimesterCourse.TrimesterId)
+                    .OrderBy(g => g.First().StudentAssessmentScore.Assessment.TrimesterCourse.Trimester.AcademicYear)
+                    .ThenBy(g => g.First().StudentAssessmentScore.Assessment.TrimesterCourse.Trimester.TrimesterNumber);
+
+                foreach (var trimesterGroup in trimesterGroups)
+                {
+                    //StudentLOScore
+                    var firstScore = trimesterGroup.First();
+                    var trimester = firstScore.StudentAssessmentScore.Assessment.TrimesterCourse.Trimester;
+                    
+                    var trimesterResult = new TrimesterResultDTO
+                    {
+                        TrimesterId = trimester.Id,
+                        TrimesterName = $"Trimester {trimester.TrimesterNumber} {trimester.AcademicYear}",
+                        TrimesterNumber = trimester.TrimesterNumber,
+                        AcademicYear = trimester.AcademicYear.ToString(),
+                        CourseOfferings = new List<StudentCourseOfferingResultDTO>()
+                    };
+
+                    // Group by course offering within this trimester
+                    var courseOfferingGroups = trimesterGroup
+                        .GroupBy(score => score.StudentAssessmentScore.Assessment.TrimesterCourse.Id)
+                        .OrderBy(g => g.First().StudentAssessmentScore.Assessment.TrimesterCourse.Course.CourseCode);
+
+                    foreach (var courseOfferingGroup in courseOfferingGroups)
+                    {
+                        var firstCourseScore = courseOfferingGroup.First();
+                        var courseOffering = firstCourseScore.StudentAssessmentScore.Assessment.TrimesterCourse;
+                        var course = courseOffering.Course;
+                        
+                        var courseOfferingResult = new StudentCourseOfferingResultDTO
+                        {
+                            CourseOfferingId = courseOffering.Id,
+                            CourseName = course.CourseName,
+                            CourseCode = course.CourseCode,
+                            Assessments = new List<AssessmentResultDTO>()
+                        };
+
+                        // Group by assessment within this course offering
+                        var assessmentGroups = courseOfferingGroup
+                            .GroupBy(score => score.StudentAssessmentScore.AssessmentId)
+                            .OrderBy(g => g.First().StudentAssessmentScore.Assessment.AssessmentName);
+
+                        decimal totalScore = 0;
+                        decimal maxTotalScore = 0;
+
+                        foreach (var assessmentGroup in assessmentGroups)
+                        {
+                            var firstAssessmentScore = assessmentGroup.First();
+                            var assessment = firstAssessmentScore.StudentAssessmentScore.Assessment;
+                            var studentAssessmentScore = firstAssessmentScore.StudentAssessmentScore;
+                            
+                            var assessmentResult = new AssessmentResultDTO
+                            {
+                                AssessmentId = assessment.Id,
+                                AssessmentName = assessment.AssessmentName,
+                                AssessmentType = assessment.AssessmentType?.AssessmentTypeName ?? "Unknown",
+                                AssessmentScore = studentAssessmentScore.TotalScore,
+                                MaxAssessmentScore = assessment.Score,
+                                // 50% pass threshold
+                                AssessmentPassed = (studentAssessmentScore.TotalScore / assessment.Score) >= 0.5m,
+                                Weight = assessment.Weight,
+                                LearningOutcomes = new List<LearningOutcomeResultDTO>()
+                            };
+                            
+                            totalScore += studentAssessmentScore.TotalScore;
+                            maxTotalScore += assessment.Score;
+
+                            // Process LO scores for this assessment
+                            foreach (var loScore in assessmentGroup)
+                            {
+                                var assessmentLO = loScore.AssessmentLearningOutcome;
+                                var learningOutcome = assessmentLO.LearningOutcome;
+                                
+                                var loResult = new LearningOutcomeResultDTO
+                                {
+                                    LearningOutcomeId = learningOutcome.Id,
+                                    LearningOutcomeName = learningOutcome.LOName,
+                                    AssessmentLearningOutcomeId = assessmentLO.Id,
+                                    LOScore = loScore.Score,
+                                    MaxLOScore = assessmentLO.Score,
+                                    LOPercentage = assessmentLO.Score > 0 ? (loScore.Score / assessmentLO.Score) * 100 : 0,
+                                    LOPassed = (loScore.Score / assessmentLO.Score) >= 0.5m, // 50% pass threshold
+                                    NeedsRetake = (loScore.Score / assessmentLO.Score) < 0.5m,
+                                    HasRetake = loScore.IsRetake,
+                                    HasFailed = (loScore.Score / assessmentLO.Score) < 0.5m,
+                                    IsRetake = loScore.IsRetake,
+                                    RetakeDate = loScore.RetakeDate,
+                                    RetakePassed = loScore.IsRetake && (loScore.Score / assessmentLO.Score) >= 0.5m,
+                                    RetakeFailed = loScore.IsRetake && (loScore.Score / assessmentLO.Score) < 0.5m,
+                                    FailedAssessments = new List<FailedAssessmentDTO>(),
+                                    HistoricalScores = new List<HistoricalScoreDTO>()
+                                };
+                                
+                                assessmentResult.LearningOutcomes.Add(loResult);
+                            }
+
+                            courseOfferingResult.Assessments.Add(assessmentResult);
+                        }
+
+                        courseOfferingResult.TotalScore = totalScore;
+                        courseOfferingResult.MaxTotalScore = maxTotalScore;
+
+                        trimesterResult.CourseOfferings.Add(courseOfferingResult);
+                    }
+
+                    result.Trimesters.Add(trimesterResult);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to get student LO results: {ex.Message}");
             }
         }
     }

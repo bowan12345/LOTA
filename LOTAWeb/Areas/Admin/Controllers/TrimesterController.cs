@@ -10,10 +10,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using LOTA.Model.DTO;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using LOTA.Utility;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
-    [Area("Admin")]
+    [Area(Roles.Role_Admin)]
+    [Authorize(Roles = Roles.Role_Student)]
     public class TrimesterController : Controller
     {
         private readonly ITrimesterService _trimesterService;
