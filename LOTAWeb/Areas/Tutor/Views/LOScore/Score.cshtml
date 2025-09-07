@@ -7,9 +7,6 @@
 @{
     var token = Html.AntiForgeryToken();
 }
-
-
-
 @token
 
 <div class="container-fluid">
@@ -26,7 +23,7 @@
             </p>
         </div>
         <div class="d-flex gap-2">
-            <a href="@Url.Action("Index", "LOScore", new { area = "Admin" })" class="btn btn-outline-secondary">
+            <a href="@Url.Action("Index", "LOScore", new { area = "Tutor" })" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>
                 Back to List
             </a>
@@ -37,6 +34,7 @@
         </div>
     </div>
 
+    
 
     @if (Model.Assessments.Any())
     {
@@ -461,7 +459,7 @@
             
             console.log('Sending request data:', requestData);
             
-            const response = await fetch('@Url.Action("BatchSaveStudentLOScores", "LOScore", new { area = "Admin" })', {
+            const response = await fetch('@Url.Action("BatchSaveStudentLOScores", "LOScore", new { area = "Tutor" })', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -600,7 +598,7 @@
             
             console.log('Sending batch save request:', requestData);
             
-            const response = await fetch('@Url.Action("BatchSaveAllStudentsLOScores", "LOScore", new { area = "Admin" })', {
+            const response = await fetch('@Url.Action("BatchSaveAllStudentsLOScores", "LOScore", new { area = "Tutor" })', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -725,6 +723,7 @@
             timerProgressBar: true
         });
     }
+
 
 
      

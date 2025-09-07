@@ -44,7 +44,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
