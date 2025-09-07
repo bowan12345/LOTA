@@ -15,17 +15,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using LOTA.Model;
+using LOTA.Utility;
 
 namespace LOTAWeb.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -116,6 +119,34 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+                    
+                    // Get user and determine redirect URL based on role
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+                    if (user != null)
+                    {
+                        var roles = await _userManager.GetRolesAsync(user);
+                        
+                        // If returnUrl is not the default home page, use it
+                        if (returnUrl != Url.Content("~/"))
+                        {
+                            return LocalRedirect(returnUrl);
+                        }
+                        
+                        // Otherwise, redirect based on user role
+                        if (roles.Contains(Roles.Role_Admin))
+                        {
+                            return LocalRedirect("/Admin");
+                        }
+                        else if (roles.Contains(Roles.Role_Tutor))
+                        {
+                            return LocalRedirect("/Tutor");
+                        }
+                        else if (roles.Contains(Roles.Role_Student))
+                        {
+                            return LocalRedirect("/Student");
+                        }
+                    }
+                    
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

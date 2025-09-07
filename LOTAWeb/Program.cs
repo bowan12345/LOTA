@@ -1,6 +1,7 @@
 using LOTA.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Service;
 using LOTA.Model;
@@ -41,6 +42,9 @@ builder.Services.AddHttpContextAccessor();
 
 // Add all LOTA Services/repository
 builder.Services.AddLOTAProjectServices();
+
+// Add Email Sender for password reset functionality
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 
