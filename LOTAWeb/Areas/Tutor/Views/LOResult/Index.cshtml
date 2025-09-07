@@ -19,7 +19,7 @@
                  Student LO Results
              </h2>
              <p class="text-muted mb-0">
-                 View and manage student learning outcome results for course offerings
+                 View and manage student learning outcome results for course 
              </p>
          </div>
      </div>
@@ -30,17 +30,17 @@
          <div class="card-header bg-white border-0 py-2">
              <h5 class="card-title mb-0 fw-bold">
                  <i class="fas fa-filter text-primary me-2"></i>
-                 Select Course Offering
+                 Select Course
              </h5>
          </div>
          <div class="card-body py-2">
              <div class="row">
                  <div class="col-md-6">
-                     <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course Offering</label>
+                     <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course</label>
                      <div class="position-relative">
                          <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name..." onkeyup="filterCourseOptions()" onfocus="showDropdown()" onblur="hideDropdown()">
                          <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
-                             <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
+                             <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course --')">-- Select a Course --</div>
                              @if (Model != null && Model.Count() > 0)
                              {
                                  foreach (var courseOffering in Model)
@@ -131,7 +131,7 @@
      <div id="initialMessage" class="card border-0 shadow-sm">
          <div class="card-body text-center text-muted py-5">
             <i class="fas fa-chart-line fa-2x mb-3 text-muted"></i>
-            <p class="mb-3">Please select a course offering from the dropdown above to view learning outcome results.</p>
+            <p class="mb-3">Please select a course from the dropdown above to view learning outcome results.</p>
          </div>
      </div>
 
@@ -140,7 +140,7 @@
          <div class="card-body text-center text-muted py-3">
              <i class="fas fa-search fa-2x mb-2"></i>
              <h5>No Results Found</h5>
-             <p>Please select a course offering to view LO results.</p>
+             <p>Please select a course to view LO results.</p>
          </div>
      </div>
 </div>

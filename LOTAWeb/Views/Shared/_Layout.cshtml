@@ -214,6 +214,20 @@
                             </a>
                         </li>
                     }
+                    
+                    <!-- Change Password Section - Available for all roles -->
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <!-- Subtle Divider -->
+                        <div class="nav-divider"></div>
+                        
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-dark d-flex align-items-center py-2 px-3 rounded nav-main-item" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">
+                                <i class="fas fa-shield-alt me-3 text-success"></i>
+                                Change Password
+                            </a>
+                        </li>
+                    }
                 </ul>
             </div>
         </nav>
@@ -673,9 +687,9 @@
             filter: brightness(1.2);
         }
         
-        /* Active state - icons become white */
+        /* Active state - icons keep their original colors */
         #sidebar .nav-link.active i {
-            color: #ffffff !important;
+            color: inherit !important; /* Keep original color */
             transform: scale(1.05);
         }
         
@@ -718,15 +732,15 @@
             100% { transform: scale(1.1); }
         }
         
-        /* Active icon glow effect */
+        /* Active icon glow effect - subtle glow that works with any color */
         #sidebar .nav-link.active i {
-            text-shadow: 0 0 8px rgba(255,255,255,0.8);
+            text-shadow: 0 0 4px rgba(0,0,0,0.3);
             animation: iconGlow 2s ease-in-out infinite alternate;
         }
         
         @@keyframes iconGlow {
-            from { text-shadow: 0 0 8px rgba(255,255,255,0.8); }
-            to { text-shadow: 0 0 12px rgba(255,255,255,1); }
+            from { text-shadow: 0 0 4px rgba(0,0,0,0.3); }
+            to { text-shadow: 0 0 8px rgba(0,0,0,0.5); }
         }
         
          /* Mobile sidebar */

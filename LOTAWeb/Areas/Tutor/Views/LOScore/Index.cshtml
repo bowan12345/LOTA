@@ -20,7 +20,7 @@
                 LO Scores
             </h2>
             <p class="text-muted mb-0">
-                View and manage learning outcome scores for course offerings
+                View and manage learning outcome scores for course
             </p>
         </div>
     </div>
@@ -51,17 +51,17 @@
         <div class="card-header bg-white border-0 py-2">
             <h5 class="card-title mb-0 fw-bold">
                 <i class="fas fa-filter text-primary me-2"></i>
-                Select Course Offering
+                Select Course
             </h5>
         </div>
         <div class="card-body py-2">
             <div class="row">
                 <div class="col-md-6">
-                    <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course Offering</label>
+                    <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course</label>
                     <div class="position-relative">
                         <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name...">
                         <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
-                            <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
+                            <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course --')">-- Select a Course --</div>
                             @if (Model != null && Model.Count() > 0)
                             {
                                 foreach (var courseOffering in Model)
@@ -89,7 +89,7 @@
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-2 text-muted">Loading course offering details...</p>
+        <p class="mt-2 text-muted">Loading course details...</p>
     </div>
 
     <!-- Course Details Container -->
@@ -149,8 +149,8 @@
         <div id="noResultsMessage" class="card border-0 shadow-sm" style="display: none;">
             <div class="card-body text-center text-muted py-3">
                 <i class="fas fa-search fa-2x mb-2"></i>
-                <h5>No Course Offering Selected</h5>
-                <p>Please select a course offering from the dropdown above to view details.</p>
+                <h5>No Course Selected</h5>
+                <p>Please select a course from the dropdown above to view details.</p>
             </div>
         </div>
     </div>
@@ -344,11 +344,11 @@
                 if (result.success) {
                     displayCourseOfferingDetails(result.data);
                 } else {
-                    showErrorMessage(result.message || 'Failed to load course offering details');
+                    showErrorMessage(result.message || 'Failed to load course details');
                     hideCourseDetails();
                 }
             } catch (error) {
-                showErrorMessage('Error loading course offering details: ' + error.message);
+                showErrorMessage('Error loading course details: ' + error.message);
                 hideCourseDetails();
             } finally {
                 hideLoading();
@@ -426,7 +426,7 @@
                 showCourseDetails();
 
             } catch (error) {
-                showErrorMessage('Error displaying course offering details');
+                showErrorMessage('Error displaying course details');
                 hideCourseDetails();
             }
         }
@@ -439,7 +439,7 @@
                 container.innerHTML = `
                         <div class="text-center text-muted py-3">
                             <i class="fas fa-info-circle fa-2x mb-2"></i>
-                            <p class="mb-0">No assessments found for this course offering.</p>
+                            <p class="mb-0">No assessments found for this course.</p>
                         </div>
                     `;
                 return;
@@ -588,24 +588,24 @@
             const dropdown = document.getElementById('courseDropdown');
             if (dropdown) {
                 const items = dropdown.querySelectorAll('.dropdown-item[data-value]');
-                console.log('Found course offering items:', items.length);
+                console.log('Found course items:', items.length);
 
                 // Ensure dropdown is properly initialized
                 if (items.length > 1) { // More than just the default "Select" option
-                    console.log('Course offerings are available');
+                    console.log('Course are available');
                 } else if (items.length === 1) {
                     // Only the default "Select" option exists
-                    console.log('Only default option found, checking for actual course offerings...');
+                    console.log('Only default option found, checking for actual course...');
                     const courseItems = dropdown.querySelectorAll('.dropdown-item[data-value]:not([data-value=""])');
-                    console.log('Actual course offering items:', courseItems.length);
+                    console.log('Actual course items:', courseItems.length);
 
                     if (courseItems.length > 0) {
-                        console.log('Course offerings are available');
+                        console.log('Course are available');
                     } else {
-                        console.log('No course offerings found in dropdown');
+                        console.log('No course found in dropdown');
                     }
                 } else {
-                    console.log('No course offerings found in dropdown');
+                    console.log('No course found in dropdown');
                 }
             } else {
                 console.error('Dropdown element not found!');

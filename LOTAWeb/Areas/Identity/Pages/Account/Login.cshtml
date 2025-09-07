@@ -68,4 +68,25 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // check if there is a password changed message in the URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        
+        if (message === 'PasswordChanged') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Changed Successfully!',
+                text: 'Your password has been updated. Please log in with your new password.',
+                position: 'top-end',
+                toast: true,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+    </script>
 }
