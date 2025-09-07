@@ -1,5 +1,2177 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<LOTA.Model.DTO.Admin.TrimesterCourseReturnDTO>
 @{
+    ViewData["Title"] = "LO Results";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+@{
+    var token = Html.AntiForgeryToken();
+}
+
+@token
+
+<div class="container-fluid">
+         <!-- Page Header -->
+     <div class="d-flex justify-content-between align-items-center mb-3">
+         <div>
+             <h2 class="fw-bold text-dark mb-0">
+                 <i class="fas fa-chart-line text-primary me-2"></i>
+                 Student LO Results
+             </h2>
+             <p class="text-muted mb-0">
+                 View and manage student learning outcome results for course offerings
+             </p>
+         </div>
+     </div>
+
+
+         <!-- Course Offering Selection -->
+     <div class="card border-0 shadow-sm mb-3">
+         <div class="card-header bg-white border-0 py-2">
+             <h5 class="card-title mb-0 fw-bold">
+                 <i class="fas fa-filter text-primary me-2"></i>
+                 Select Course Offering
+             </h5>
+         </div>
+         <div class="card-body py-2">
+             <div class="row">
+                 <div class="col-md-6">
+                     <label for="courseOfferingSelect" class="form-label fw-semibold mb-1">Course Offering</label>
+                     <div class="position-relative">
+                         <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name..." onkeyup="filterCourseOptions()" onfocus="showDropdown()" onblur="hideDropdown()">
+                         <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
+                             <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
+                             @if (Model != null && Model.Count() > 0)
+                             {
+                                 foreach (var courseOffering in Model)
+                                 {
+                                     <div class="dropdown-item" 
+                                          data-value="@courseOffering.Id"
+                                          data-course-code="@courseOffering.Course?.CourseCode"
+                                          data-course-name="@courseOffering.Course?.CourseName"
+                                          data-trimester="@courseOffering.Trimester?.TrimesterNumber"
+                                          data-year="@courseOffering.Trimester?.AcademicYear"
+                                          onclick="selectCourse('@courseOffering.Id', '@(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Trimester @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)')">
+                                         @(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
+                                     </div>
+                                 }
+                             }
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+         <!-- Loading Spinner -->
+     <div id="loadingSpinner" class="text-center py-3" style="display: none;">
+         <div class="spinner-border text-primary" role="status">
+             <span class="visually-hidden">Loading...</span>
+         </div>
+         <p class="mt-2 text-muted">Loading LO results...</p>
+     </div>
+
+    <!-- Results Container -->
+    <div id="resultsContainer" style="display: none;">
+                 <!-- Course Title and Weight Distribution -->
+         <div class="card border-0 shadow-sm mb-3">
+             <div class="card-header bg-white border-0 py-2">
+                 <h4 class="card-title mb-0 fw-bold" id="courseTitle">
+                     <i class="fas fa-graduation-cap text-primary me-2"></i>
+                     Student LO Results - <span id="courseName">Course Name</span>
+                 </h4>
+             </div>
+             <div class="card-body py-2">
+                 <div class="row">
+                     <div class="col-md-8">
+                         <div id="weightDistribution" class="text-muted">
+                             <!-- Weight distribution will be populated here -->
+                         </div>
+                     </div>
+                     <div class="col-md-4 text-end">
+                         <span class="badge bg-success fs-6" id="studentCount">0 Students</span>
+                     </div>
+                 </div>
+             </div>
+         </div>
+
+        <!-- Main Results Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <table class="table table-hover mb-0" id="resultsTable" style="min-width: 800px; table-layout: auto;">
+                                <thead class="table-light">
+                                    <tr id="mainHeaderRow">
+                                        <th style="width: 150px;" class="text-center">Student</th>
+                                        <!-- Assessment columns will be dynamically generated here -->
+                                        <th style="width: 120px;" class="text-center">Overall Score</th>
+                                        <th style="width: 200px;" class="text-center">LO Overview & Actions</th>
+                                    </tr>
+                                    <tr id="loHeaderRow" style="display: none;">
+                                        <th style="width: 150px;" class="text-center"></th>
+                                        <!-- LO sub-headers will be dynamically generated here -->
+                                        <th style="width: 120px;" class="text-center"></th>
+                                        <th style="width: 200px;" class="text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTableBody">
+                                    <!-- Results will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+         <!-- Initial Message -->
+     <div id="initialMessage" class="card border-0 shadow-sm">
+         <div class="card-body text-center text-muted py-5">
+            <i class="fas fa-chart-line fa-2x mb-3 text-muted"></i>
+            <p class="mb-3">Please select a course offering from the dropdown above to view learning outcome results.</p>
+         </div>
+     </div>
+
+         <!-- No Results Message -->
+     <div id="noResultsMessage" class="card border-0 shadow-sm" style="display: none;">
+         <div class="card-body text-center text-muted py-3">
+             <i class="fas fa-search fa-2x mb-2"></i>
+             <h5>No Results Found</h5>
+             <p>Please select a course offering to view LO results.</p>
+         </div>
+     </div>
+</div>
+
+ <!-- Retake Modal -->
+ <div class="modal fade" id="retakeModal" tabindex="-1" data-bs-backdrop="static">
+     <div class="modal-dialog modal-xl">
+         <div class="modal-content">
+                           <div class="modal-header">
+                  <h5 class="modal-title">
+                      <i class="fas fa-redo text-warning me-2"></i>
+                      Retake LO
+                  </h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+             <div class="modal-body">
+                                   <div class="alert alert-info">
+                      <i class="fas fa-info-circle me-2"></i>
+                      <strong>Learning Outcome:</strong> <span id="retakeLOName"></span>
+                      <br>
+                      <small class="text-muted">Please enter new scores for all failed assessments. Scores can be any value between 0 and the maximum score.</small>
+                  </div>
+                 
+                 <div id="retakeForm">
+                     <!-- Retake form will be populated here -->
+                 </div>
+             </div>
+                           <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="button" class="btn btn-success" onclick="submitRetakeScores()">
+                      <i class="fas fa-save me-2"></i>
+                      Update
+                  </button>
+              </div>
+         </div>
+     </div>
+ </div>
+
+<style>
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    
+              .lo-status-passed {
+         background-color: #28a745;
+         color: #ffffff;
+         border: 1px solid #1e7e34;
+         border-radius: 1rem;
+         padding: 0.15rem 0.6rem;
+         min-width: 4rem;
+         min-height: 2rem;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 0.7rem;
+         font-weight: 600;
+     }
+     
+     .lo-status-failed {
+         background-color: #dc3545;
+         color: #ffffff;
+         border: 1px solid #c82333;
+         border-radius: 1rem;
+         padding: 0.15rem 0.6rem;
+         min-width: 4rem;
+         min-height: 2rem;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 0.7rem;
+         font-weight: 600;
+     }
+    
+    .assessment-header {
+        background-color: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 0.375rem;
+        padding: 0.75rem 0.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #1565c0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+    }
+    
+    .assessment-header .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #2196f3;
+        color: white;
+        border: 1px solid #1976d2;
+        font-weight: 600;
+    }
+    
+    .lo-sub-header {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 0.5rem 0.5rem;
+        margin: 0.125rem 0;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .lo-sub-header .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #e9ecef;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        font-weight: 500;
+    }
+    
+    /* New header styles */
+         .main-assessment-header {
+         background-color: #f8f9fa;
+         border: none;
+         border-radius: 0;
+         padding: 0.4rem 0.3rem;
+         font-weight: 700;
+         font-size: 0.85rem;
+         color: #495057;
+         text-align: center;
+         box-shadow: none;
+         margin-bottom: 0;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 0.1rem;
+         border-bottom: none;
+         min-height: 2.4rem;
+     }
+    
+    .main-assessment-header .assessment-name {
+        font-weight: 700;
+        color: #495057;
+        line-height: 1.2;
+    }
+    
+    .main-assessment-header .assessment-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        align-items: center;
+    }
+    
+    .main-assessment-header .weight-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        font-weight: 600;
+        border-radius: 0.2rem;
+        display: inline-block;
+    }
+    
+         .main-assessment-header .total-score-badge {
+         font-size: 0.65rem;
+         padding: 0.15rem 0.3rem;
+         background-color: #28a745;
+         color: white;
+         border: none;
+         font-weight: 600;
+         border-radius: 0.15rem;
+         display: inline-block;
+     }
+    
+    .lo-sub-header-new {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 0.5rem 0.5rem;
+        margin: 0.125rem 0;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: #495057;
+        min-height: 2.5rem;
+    }
+    
+    .lo-sub-header-new .lo-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.8rem;
+    }
+    
+    .lo-sub-header-new .points-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #e9ecef;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        font-weight: 500;
+        border-radius: 0.25rem;
+        white-space: nowrap;
+    }
+    
+         /* Detailed LO header styles */
+          .lo-sub-header-detailed {
+          background-color: #f8f9fa;
+          border: none;
+          border-radius: 0;
+          padding: 0.4rem 0.25rem;
+          margin: 0;
+          font-size: 0.7rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          color: #495057;
+          min-height: 3rem;
+          text-align: center;
+          min-width: 80px;
+          max-width: 120px;
+          box-shadow: none;
+          gap: 0.2rem;
+          flex: 1;
+          position: relative;
+      }
+    
+    /* Add separator between LOs */
+    .lo-sub-header-detailed:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 10%;
+        bottom: 10%;
+        width: 1px;
+        background-color: #dee2e6;
+        opacity: 0.9;
+    }
+    
+    /* Add stronger separator between assessment boundaries */
+    .lo-sub-header-detailed.assessment-boundary::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 5%;
+        bottom: 5%;
+        width: 2px;
+        background-color: #adb5bd;
+        opacity: 0.8;
+    }
+    
+    .lo-sub-header-detailed .lo-name-detailed {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.7rem;
+        line-height: 1.1;
+        text-align: center;
+        white-space: normal;
+        word-wrap: break-word;
+        max-width: 100%;
+    }
+    
+    .lo-sub-header-detailed .lo-points-detailed {
+        font-weight: 500;
+        color: #6c757d;
+        font-size: 0.6rem;
+        line-height: 1.1;
+        text-align: center;
+        white-space: nowrap;
+    }
+    
+    .lo-item {
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    
+    .lo-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .lo-score {
+        font-weight: 700;
+        color: #212529;
+        font-size: 1rem;
+    }
+    
+    .lo-percentage {
+        color: #6c757d;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+              /* Detailed LO data display styles */
+           .lo-item-detailed {
+           padding: 0.4rem 0.25rem;
+           border: none;
+           border-radius: 0;
+           margin: 0;
+           font-size: 0.7rem;
+           background-color: transparent;
+           box-shadow: none;
+           text-align: center;
+           min-height: 3rem;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: center;
+           gap: 0.2rem;
+           flex: 1;
+           min-width: 80px;
+           max-width: 120px;
+           height: 100%;
+       }
+    
+         /* Center align LO score data */
+     .lo-score-detailed {
+         font-weight: 700;
+         color: #212529;
+         font-size: 0.75rem;
+         line-height: 1.1;
+         text-align: center;
+         width: 100%;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+     }
+     
+     .lo-percentage-detailed {
+         font-weight: 500;
+         color: #6c757d;
+         font-size: 0.65rem;
+         line-height: 1.1;
+         text-align: center;
+         width: 100%;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+     }
+     
+     .lo-status-detailed {
+         font-weight: 600;
+         font-size: 0.6rem;
+         padding: 0.1rem 0.3rem;
+         border-radius: 0.15rem;
+         white-space: nowrap;
+         text-align: center;
+         width: 100%;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+     }
+     
+     /* Center align all LO data cells */
+     .assessment-column {
+         text-align: center;
+     }
+     
+     .assessment-column .lo-item-detailed {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         text-align: center;
+         width: 100%;
+     }
+     
+     /* Ensure LO data is centered in assessment columns */
+     .assessment-column .d-flex.flex-row {
+         justify-content: center;
+         align-items: center;
+         width: 100%;
+     }
+     
+     /* Center align individual LO items */
+     .lo-item-detailed {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         text-align: center;
+         width: 100%;
+     }
+     
+     /* Ensure all text content in LO cells is centered */
+     .assessment-column * {
+         text-align: center;
+     }
+     
+     /* Center align the flex container for LO data */
+     .assessment-column .d-flex {
+         justify-content: center;
+         align-items: center;
+     }
+     
+     /* Center align LO sub-headers */
+     .lo-sub-header-detailed {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         text-align: center;
+     }
+     
+     /* Center align LO names and points in sub-headers */
+     .lo-name-detailed,
+     .lo-points-detailed {
+         text-align: center;
+         width: 100%;
+     }
+    
+    .lo-score-detailed {
+        font-weight: 700;
+        color: #212529;
+        font-size: 0.75rem;
+        line-height: 1.1;
+    }
+    
+    .lo-percentage-detailed {
+        font-weight: 500;
+        color: #6c757d;
+        font-size: 0.65rem;
+        line-height: 1.1;
+    }
+    
+    .lo-status-detailed {
+        font-weight: 600;
+        font-size: 0.6rem;
+        padding: 0.1rem 0.3rem;
+        border-radius: 0.15rem;
+        white-space: nowrap;
+    }
+    
+                   .lo-item-detailed.lo-status-passed .lo-status-detailed {
+          background-color: #28a745;
+          color: #ffffff;
+          border: 1px solid #1e7e34;
+          border-radius: 1rem;
+          padding: 0.1rem 0.5rem;
+      }
+    
+                   .lo-item-detailed.lo-status-failed .lo-status-detailed {
+          background-color: #dc3545;
+          color: #ffffff;
+          border: 1px solid #c82333;
+          border-radius: 1rem;
+          padding: 0.1rem 0.5rem;
+      }
+    
+    .overall-lo-item {
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        margin-bottom: 0.75rem;
+        background-color: #f8f9fa;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+    
+    .overall-lo-item:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        background-color: #ffffff;
+    }
+    
+         .overall-lo-item:last-child {
+         margin-bottom: 0;
+     }
+
+        /* Center align LO Overview & Actions data */
+     .overall-lo-item .text-muted {
+         font-size: 0.9rem;
+         color: #6c757d;
+         font-style: italic;
+         text-align: center;
+         width: 100%;
+     }
+     
+     .overall-lo-item .text-danger {
+         font-size: 0.85rem;
+         color: #dc3545;
+         text-align: center;
+         width: 100%;
+     }
+
+                   /* Compact LO Overview & Actions styles */
+               .overall-lo-item-compact {
+            padding: 0.5rem 0.6rem;
+            border: 1px solid #e9ecef;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            background-color: #f8f9fa;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            min-height: 3rem;
+        }
+      
+      .overall-lo-item-compact:hover {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+          background-color: #f1f3f4;
+      }
+     
+     .overall-lo-item-compact:last-child {
+         margin-bottom: 0;
+     }
+     
+     .lo-name-compact {
+         font-weight: 600;
+         color: #495057;
+         font-size: 0.85rem;
+     }
+     
+     .overall-lo-item-compact {
+         padding: 0.5rem;
+         border-radius: 0.375rem;
+         background-color: #f8f9fa;
+         margin-bottom: 0.5rem;
+         border: 1px solid #e9ecef;
+     }
+     
+     .overall-lo-item-compact .retake-btn {
+         margin-left: 0.5rem !important;
+         margin-right: 0 !important;
+         align-self: center;
+     }
+     
+     .overall-lo-item-compact .retake-btn-container {
+         display: flex;
+         justify-content: flex-end;
+         width: 100%;
+     }
+     
+     /* Force right alignment for retake button container */
+     .overall-lo-item-compact .d-flex.justify-content-end {
+         justify-content: flex-end !important;
+     }
+    
+    .retake-btn {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 0.3rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        min-width: 70px;
+        min-height: 32px;
+    }
+    
+    .retake-btn:hover {
+        background-color: #ffca2c;
+        border-color: #ffc720;
+        color: #000;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+    }
+    
+         .table th {
+         border-top: none;
+         font-weight: 600;
+         color: #495057;
+         vertical-align: middle;
+         padding: 8px 6px;
+         font-size: 0.875rem;
+         text-align: center;
+         border-bottom: 2px solid #dee2e6;
+         background-color: #f8f9fa;
+     }
+    
+    .table th:first-child {
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+         /* Special styling for Student column in LO header row */
+     #loHeaderRow th:first-child {
+         background-color: #f8f9fa !important;
+         border: none !important;
+         box-shadow: none !important;
+         padding: 12px 8px !important;
+         margin: 0 !important;
+     }
+    
+         .table td {
+         vertical-align: middle;
+         padding: 8px 6px;
+         font-size: 0.875rem;
+         border-bottom: 1px solid #f1f3f4;
+         background-color: #ffffff;
+         text-align: center;
+     }
+    
+         .assessment-column {
+         min-width: 120px;
+         max-width: none;
+         vertical-align: middle;
+         padding: 4px 6px;
+         width: auto;
+         position: relative;
+         text-align: center;
+     }
+    
+    /* Add separator between assessment columns */
+    .assessment-column:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 5%;
+        bottom: 5%;
+        width: 2px;
+        background-color: #adb5bd;
+        opacity: 0.7;
+        border-radius: 1px;
+    }
+    
+                                       .student-info {
+           font-weight: 700;
+           color: #212529;
+           margin-bottom: 0.3rem;
+           font-size: 1rem;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 1.8rem;
+           height: 100%;
+       }
+       
+               .student-id {
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 1.8rem;
+            height: 100%;
+            background-color: #e9ecef;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #dee2e6;
+        }
+    
+                                       .overall-score {
+           font-weight: 700;
+           font-size: 1.1rem;
+           color: #212529;
+           text-align: center;
+           width: 100%;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 3rem;
+           height: 100%;
+       }
+      
+           .overall-percentage {
+           font-size: 0.9rem;
+           font-weight: 600;
+           text-align: center;
+           width: 100%;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100%;
+       }
+     
+     .needs-resit-badge {
+         font-size: 0.75rem;
+         font-weight: 600;
+         color: #dc3545;
+         background-color: #f8d7da;
+         border: 1px solid #f5c6cb;
+         border-radius: 0.25rem;
+         padding: 0.2rem 0.4rem;
+         margin-top: 0.25rem;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         text-align: center;
+         width: 100%;
+         height: 100%;
+     }
+     
+     /* Retake status styles for LO Overview & Actions */
+     .lo-status-retake-passed {
+         background-color: transparent;
+         color: #212529;
+         border: none;
+         border-radius: 0;
+         padding: 0;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 0.1rem;
+     }
+     
+     .lo-status-retake-failed {
+         background-color: transparent;
+         color: #212529;
+         border: none;
+         border-radius: 0;
+         padding: 0;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 0.1rem;
+     }
+     
+     .retake-label {
+         background-color: #ffc107;
+         color: #000000;
+         border: 1px solid #e0a800;
+         border-radius: 0.5rem;
+         padding: 0.1rem 0.4rem;
+         font-size: 0.6rem;
+         font-weight: 600;
+         white-space: nowrap;
+     }
+     
+     .retake-passed-label {
+         background-color: #28a745;
+         color: #ffffff;
+         border: 1px solid #1e7e34;
+         border-radius: 0.5rem;
+         padding: 0.1rem 0.4rem;
+         font-size: 0.6rem;
+         font-weight: 600;
+         white-space: nowrap;
+     }
+     
+     .retake-passed-container {
+         background-color: #ffc107;
+         color: #000000;
+         border: 1px solid #e0a800;
+         border-radius: 0.5rem;
+         padding: 0.2rem 0.5rem;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         gap: 0.05rem;
+         min-width: 4rem;
+         min-height: 2rem;
+     }
+     
+     .retake-passed-container .retake-text {
+         font-size: 0.6rem;
+         font-weight: 600;
+         line-height: 1;
+     }
+     
+     .retake-passed-container .passed-text {
+         font-size: 0.6rem;
+         font-weight: 600;
+         line-height: 1;
+     }
+     
+     .retake-failed-label {
+         background-color: #dc3545;
+         color: #ffffff;
+         border: 1px solid #c82333;
+         border-radius: 0.5rem;
+         padding: 0.1rem 0.4rem;
+         font-size: 0.6rem;
+         font-weight: 600;
+         white-space: nowrap;
+     }
+     
+     .retake-failed-container {
+         background-color: #dc3545;
+         color: #ffffff;
+         border: 1px solid #c82333;
+         border-radius: 0.5rem;
+         padding: 0.2rem 0.5rem;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         gap: 0.05rem;
+         min-width: 4rem;
+         min-height: 2rem;
+     }
+     
+     .retake-failed-container .retake-text {
+         font-size: 0.6rem;
+         font-weight: 600;
+         line-height: 1;
+     }
+     
+     .retake-failed-container .failed-text {
+         font-size: 0.6rem;
+         font-weight: 600;
+         line-height: 1;
+     }
+     
+     /* Retake status styles for LO score display in table */
+     .lo-item-detailed.lo-status-retake-passed .lo-status-detailed {
+         background-color: transparent;
+         color: #212529;
+         border: none;
+         border-radius: 0;
+         padding: 0;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 0.1rem;
+     }
+     
+     .lo-item-detailed.lo-status-retake-failed .lo-status-detailed {
+         background-color: transparent;
+         color: #212529;
+         border: none;
+         border-radius: 0;
+         padding: 0;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 0.1rem;
+     }
+     
+     .retake-score-tooltip {
+         position: relative;
+         cursor: help;
+     }
+     
+     .retake-score-tooltip:hover::after {
+         content: attr(data-tooltip);
+         position: absolute;
+         top: 100%;
+         left: 50%;
+         transform: translateX(-50%);
+         background-color: #333;
+         color: white;
+         padding: 0.5rem;
+         border-radius: 0.25rem;
+         font-size: 0.75rem;
+         white-space: nowrap;
+         z-index: 1000;
+         margin-top: 0.5rem;
+     }
+     
+     .retake-score-tooltip:hover::before {
+         content: '';
+         position: absolute;
+         top: 100%;
+         left: 50%;
+         transform: translateX(-50%);
+         border: 5px solid transparent;
+         border-bottom-color: #333;
+         margin-top: 0.25rem;
+         z-index: 1000;
+     }
+    
+    .weight-distribution {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .weight-distribution .badge {
+        font-size: 0.75rem;
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    /* Force hide loading elements */
+    #loadingSpinner.hidden,
+    #loadingSpinner[style*="display: none"],
+    #loadingSpinner[style*="visibility: hidden"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Force hide overlays and backdrops */
+    .modal-backdrop {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Remove modal-open class effects */
+    body:not(.modal-open) {
+        overflow: auto !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Hide any overlay elements */
+    .overlay, .backdrop, .loading-overlay {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Ensure body is clickable */
+    body {
+        overflow: auto !important;
+        padding-right: 0 !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Remove modal-open effects */
+    body.modal-open {
+        overflow: auto !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Fix single assessment table layout */
+    .assessment-column {
+        min-width: 150px;
+        text-align: center;
+    }
+    
+    .lo-sub-header-detailed {
+        flex: 1;
+    }
+    
+
+    
+    /* Course search input styling */
+    #courseSearchInput {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        cursor: pointer;
+    }
+    
+    #courseSearchInput:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    #courseSearchInput::placeholder {
+        color: #6c757d;
+        opacity: 1;
+    }
+    
+    /* Course dropdown styling */
+    #courseDropdown {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        background-color: #fff;
+        z-index: 1050;
+    }
+    
+    #courseDropdown .dropdown-item {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid #f8f9fa;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    #courseDropdown .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    #courseDropdown .dropdown-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<script>
+    let currentStudentId = '';
+    let currentLOName = '';
+    let currentCourseOfferingId = '';
+    let currentLOResults = null;
+
+    // Load LO results when course offering is selected
+    async function loadLOResults(courseOfferingId) {
+        if (!courseOfferingId) {
+            // Try to get from currentCourseOfferingId first
+            courseOfferingId = currentCourseOfferingId;
+            
+            // If still no course offering ID, try to get from search input
+            if (!courseOfferingId) {
+                const searchInput = document.getElementById('courseSearchInput');
+                if (searchInput && searchInput.value) {
+                    // Find the selected course offering from dropdown
+                    const dropdownItems = document.querySelectorAll('#courseDropdown .dropdown-item[data-value]');
+                    for (const item of dropdownItems) {
+                        const itemText = item.textContent.trim();
+                        if (itemText === searchInput.value.trim()) {
+                            courseOfferingId = item.getAttribute('data-value');
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!courseOfferingId) {
+            hideResults();
+            hideLoading();
+            return;
+        }
+        
+        // Set current course offering ID for retake functionality
+        currentCourseOfferingId = courseOfferingId;
+        
+        try {
+            showLoading();
+            
+            const url = `@Url.Action("GetLOResultsByCourseOffering", "LOResult", new { area = "Tutor" })?courseOfferingId=${courseOfferingId}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                currentLOResults = result.data;
+                displayResults(result.data);
+            } else {
+                showErrorMessage(result.message || 'Failed to load LO results');
+                showNoResults();
+            }
+        } catch (error) {
+            showErrorMessage('Error loading LO results: ' + error.message);
+            showNoResults();
+        } finally {
+            setTimeout(() => {
+                hideLoading();
+            }, 100);
+        }
+    }
+
+    // Display LO results
+    function displayResults(data) {
+        try {
+            // Handle both camelCase and PascalCase property names
+            const courseOfferings = data.courseOfferings || data.CourseOfferings;
+            
+            if (!data || !courseOfferings || courseOfferings.length === 0) {
+                showNoResults();
+                hideLoading();
+                return;
+            }
+            
+            const courseOffering = courseOfferings[0];
+            const students = courseOffering.Students || courseOffering.students;
+            
+            if (!students || students.length === 0) {
+                showNoResults();
+                hideLoading();
+                return;
+            }
+            
+            // Hide initial message and show results
+            const initialMessage = document.getElementById('initialMessage');
+            if (initialMessage) {
+                initialMessage.style.display = 'none';
+            }
+            
+            // Update course info
+            const courseName = courseOffering.CourseName || courseOffering.courseName || 'Unknown Course';
+            document.getElementById('courseName').textContent = courseName;
+            document.getElementById('studentCount').textContent = `${students.length} Students`;
+            
+            // Generate assessment columns and weight distribution
+            const assessments = students[0].Assessments || students[0].assessments;
+            
+            if (!assessments || assessments.length === 0) {
+                showNoResults();
+                hideLoading();
+                return;
+            }
+        
+        generateAssessmentColumns(assessments);
+        generateWeightDistribution(assessments);
+        
+        
+        
+        // Populate results table
+        populateResultsTable(students, assessments);
+
+        // LO Overview & Actions generation is now handled directly in the table
+            
+            showResults();
+            hideLoading();
+            
+            // Remove any overlays after displaying results
+            setTimeout(() => {
+                removeOverlay();
+            }, 100);
+        } catch (error) {
+            showErrorMessage('Error displaying results: ' + error.message);
+            hideResults();
+            hideLoading();
+        }
+    }
+
+    // Generate assessment columns for table header
+    function generateAssessmentColumns(assessments) {
+        // Sort assessments alphabetically by name
+        const sortedAssessments = [...assessments].sort((a, b) => {
+            const nameA = (a.AssessmentName || a.assessmentName || '').toLowerCase();
+            const nameB = (b.AssessmentName || b.assessmentName || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
+        const mainHeaderRow = document.querySelector('#mainHeaderRow');
+        const loHeaderRow = document.querySelector('#loHeaderRow');
+        
+        // Clear existing assessment columns (keep first and last 2 columns)
+        const existingMainColumns = mainHeaderRow.querySelectorAll('th');
+        for (let i = 1; i < existingMainColumns.length - 2; i++) {
+            existingMainColumns[i].remove();
+        }
+        
+        const existingLOColumns = loHeaderRow.querySelectorAll('th');
+        for (let i = 1; i < existingLOColumns.length - 2; i++) {
+            existingLOColumns[i].remove();
+        }
+        
+        // Add assessment columns to main header with weight percentages
+        sortedAssessments.forEach(assessment => {
+            const assessmentName = assessment.AssessmentName || assessment.assessmentName;
+            const maxScore = assessment.MaxAssessmentScore || assessment.maxAssessmentScore || 0;
+            // Use the actual Weight field from database instead of calculating from scores
+            const weight = assessment.Weight || assessment.weight || 0;
+            
+            const th = document.createElement('th');
+            th.className = 'assessment-column text-center';
+            th.innerHTML = `
+                <div class="main-assessment-header">
+                    <span class="assessment-name">${assessmentName}</span>
+                    <div class="assessment-details">
+                        <span class="weight-badge">${weight}%</span>
+                                                 <span class="total-score-badge">Max Score: ${maxScore}</span>
+                    </div>
+                </div>
+            `;
+            mainHeaderRow.insertBefore(th, mainHeaderRow.querySelector('th:nth-last-child(2)'));
+        });
+        
+        // Add LO sub-headers for each assessment
+        sortedAssessments.forEach((assessment, assessmentIndex) => {
+            const learningOutcomes = assessment.LearningOutcomes || assessment.learningOutcomes || [];
+            
+            // Sort LOs by name for each assessment
+            const sortedLOs = [...learningOutcomes].sort((a, b) => {
+                const nameA = (a.LearningOutcomeName || a.learningOutcomeName || `LO${a.LearningOutcomeId || a.learningOutcomeId}`).toLowerCase();
+                const nameB = (b.LearningOutcomeName || b.learningOutcomeName || `LO${b.LearningOutcomeId || b.learningOutcomeId}`).toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Create a container for LOs under this assessment
+            const loContainer = document.createElement('th');
+            loContainer.className = 'assessment-column text-center p-0';
+            // Width will be automatically determined by LO content
+                
+            let loHtml = '<div class="d-flex flex-row justify-content-center align-items-center gap-0" style="width: 100%;">';
+            sortedLOs.forEach((lo, loIndex) => {
+                const loName = lo.LearningOutcomeName || lo.learningOutcomeName || `LO${lo.LearningOutcomeId || lo.learningOutcomeId}`;
+                const maxScore = lo.MaxLOScore || lo.maxLOScore || 0;
+                
+                // Add assessment boundary class for the last LO of each assessment (except the last assessment)
+                const isLastLOOfAssessment = loIndex === sortedLOs.length - 1;
+                const isLastAssessment = assessmentIndex === sortedAssessments.length - 1;
+                const boundaryClass = isLastLOOfAssessment && !isLastAssessment ? 'assessment-boundary' : '';
+                
+                loHtml += `
+                    <div class="lo-sub-header-detailed ${boundaryClass}">
+                        <div class="lo-name-detailed">${loName}</div>
+                        <div class="lo-points-detailed">${maxScore}</div>
+                    </div>
+                `;
+            });
+            loHtml += '</div>';
+            
+            loContainer.innerHTML = loHtml;
+            loHeaderRow.insertBefore(loContainer, loHeaderRow.querySelector('th:nth-last-child(2)'));
+        });
+        
+        // Add empty cell for Student column in LO header row
+        const studentLOHeader = loHeaderRow.querySelector('th:first-child');
+        studentLOHeader.innerHTML = '';
+        studentLOHeader.style.border = 'none';
+        studentLOHeader.style.background = 'transparent';
+        studentLOHeader.style.boxShadow = 'none';
+        studentLOHeader.style.padding = '0';
+        studentLOHeader.style.margin = '0';
+        
+        // Show the LO header row
+        loHeaderRow.style.display = 'table-row';
+    }
+
+         // Generate weight distribution
+     function generateWeightDistribution(assessments) {
+         // Sort assessments alphabetically to match table header
+         const sortedAssessments = [...assessments].sort((a, b) => {
+             const nameA = (a.AssessmentName || a.assessmentName || '').toLowerCase();
+             const nameB = (b.AssessmentName || b.assessmentName || '').toLowerCase();
+             return nameA.localeCompare(nameB);
+         });
+         
+         const weightDiv = document.getElementById('weightDistribution');
+         weightDiv.innerHTML = '';
+     }
+
+    // Populate results table
+    function populateResultsTable(students, assessments) {
+        // Sort assessments alphabetically to match header
+        const sortedAssessments = [...assessments].sort((a, b) => {
+            const nameA = (a.AssessmentName || a.assessmentName || '').toLowerCase();
+            const nameB = (b.AssessmentName || b.assessmentName || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
+        const tbody = document.getElementById('resultsTableBody');
+        tbody.innerHTML = '';
+        
+        students.forEach(student => {
+            const row = document.createElement('tr');
+            
+            // Student info columns - handle both cases
+            const studentName = student.StudentName || student.studentName;
+            const studentNo = student.StudentNo || student.studentNo;
+            const totalScore = student.TotalScore || student.totalScore || 0;
+            const maxTotalScore = student.MaxTotalScore || student.maxTotalScore || 0;
+            const totalPercentage = student.TotalPercentage || student.totalPercentage || 0;
+            const overallPassed = student.OverallPassed || student.overallPassed || false;
+            
+            let rowHtml = `
+                <td class="text-center">
+                    <div class="student-info">${studentName}</div>
+                    <div class="student-id">${studentNo}</div>
+                </td>
+            `;
+            
+            // Assessment columns with LO scores
+            const studentAssessments = student.Assessments || student.assessments || [];
+            sortedAssessments.forEach(assessment => {
+                const assessmentId = assessment.AssessmentId || assessment.assessmentId;
+                const studentAssessment = studentAssessments.find(a => {
+                    const aId = a.AssessmentId || a.assessmentId;
+                    return aId === assessmentId;
+                });
+                
+                if (studentAssessment) {
+                    const learningOutcomes = studentAssessment.LearningOutcomes || studentAssessment.learningOutcomes || [];
+                    rowHtml += `
+                        <td class="assessment-column">
+                            ${generateAssessmentLOs(learningOutcomes)}
+                        </td>
+                    `;
+                } else {
+                    rowHtml += '<td class="assessment-column"></td>';
+                }
+            });
+            
+                         // Overall Score Status column
+             rowHtml += `
+                 <td class="text-center">
+                     <div class="overall-score">${formatScore(totalScore)}/${formatScore(maxTotalScore)}</div>
+                     <div class="overall-percentage ${overallPassed ? 'text-success' : 'text-danger'}">${totalPercentage.toFixed(1)}%</div>
+                     ${totalPercentage < 50 ? '<div class="needs-resit-badge">Needs Resit</div>' : ''}
+                 </td>
+             `;
+
+            // LO Overview & Actions column
+             rowHtml += `
+                 <td class="text-center">
+                     ${generateOverallLOStatusForStudent(student, sortedAssessments, totalPercentage < 50)}
+                 </td>
+             `;
+            
+            row.innerHTML = rowHtml;
+            tbody.appendChild(row);
+        });
+    }
+
+         // Smart score formatting function - shows decimals only when needed
+     function formatScore(score) {
+         return score % 1 === 0 ? score.toString() : score.toFixed(2);
+     }
+     
+     // Generate assessment LOs HTML
+     function generateAssessmentLOs(learningOutcomes) {
+         // Sort LOs by name to match header order
+         const sortedLOs = [...learningOutcomes].sort((a, b) => {
+             const nameA = (a.LearningOutcomeName || a.learningOutcomeName || `LO${a.LearningOutcomeId || a.learningOutcomeId}`).toLowerCase();
+             const nameB = (b.LearningOutcomeName || b.learningOutcomeName || `LO${b.LearningOutcomeId || b.learningOutcomeId}`).toLowerCase();
+             return nameA.localeCompare(nameB);
+         });
+         
+         let html = '<div class="d-flex flex-row justify-content-center align-items-center gap-0" style="width: 100%;">';
+         
+             sortedLOs.forEach(lo => {
+        const loScore = lo.LOScore || lo.loScore || 0;
+        const maxLOScore = lo.MaxLOScore || lo.maxLOScore || 0;
+        const loPercentage = lo.LOPercentage || lo.loPercentage || 0;
+        const loPassed = lo.LOPassed || lo.loPassed || false;
+        const isRetake = lo.IsRetake || lo.isRetake || false;
+        const retakePassed = lo.RetakePassed || lo.retakePassed || false;
+        const retakeFailed = lo.RetakeFailed || lo.retakeFailed || false;
+        const historicalScores = lo.HistoricalScores || lo.historicalScores || [];
+        
+
+        
+        let statusClass, statusText, tooltipText = '';
+        
+        if (isRetake) {
+            if (retakePassed) {
+                statusClass = 'lo-status-retake-passed';
+                statusText = '<div class="retake-passed-container"><div class="retake-text">RETAKE</div><div class="passed-text">PASSED</div></div>';
+                // Create tooltip for historical failed scores
+                if (historicalScores.length > 0) {
+                    tooltipText = historicalScores.map(score => {
+                        // Handle both uppercase and lowercase field names
+                        const historicalScore = score.Score || score.score || 0;
+                        const historicalMaxScore = score.MaxScore || score.maxScore || 0;
+                        const percentage = historicalMaxScore > 0 ? ((historicalScore / historicalMaxScore) * 100).toFixed(1) : '0.0';
+                        return `Previous Score: ${formatScore(historicalScore)}/${formatScore(historicalMaxScore)} (${percentage}%)`;
+                    }).join('\n');
+                }
+            } else if (retakeFailed) {
+                statusClass = 'lo-status-retake-failed';
+                statusText = '<div class="retake-failed-container"><div class="retake-text">RETAKE</div><div class="failed-text">FAILED</div></div>';
+                // Create tooltip for historical failed scores
+                if (historicalScores.length > 0) {
+                    tooltipText = historicalScores.map(score => {
+                        // Handle both uppercase and lowercase field names
+                        const historicalScore = score.Score || score.score || 0;
+                        const historicalMaxScore = score.MaxScore || score.maxScore || 0;
+                        const percentage = historicalMaxScore > 0 ? ((historicalScore / historicalMaxScore) * 100).toFixed(1) : '0.0';
+                        return `Previous Score: ${formatScore(historicalScore)}/${formatScore(historicalMaxScore)} (${percentage}%)`;
+                    }).join('\n');
+                }
+            } else {
+                statusClass = 'lo-status-failed';
+                statusText = 'Failed';
+            }
+                } else if (historicalScores.length > 0) {
+            // This LO has historical scores (either from retakes or previous attempts)
+            const latestHistoricalScore = historicalScores[0]; // First one is most recent
+            
+            // Handle both uppercase and lowercase field names
+            const historicalScore = latestHistoricalScore.Score || latestHistoricalScore.score || 0;
+            const historicalMaxScore = latestHistoricalScore.MaxScore || latestHistoricalScore.maxScore || 0;
+            const historicalPercentage = historicalMaxScore > 0 ? ((historicalScore / historicalMaxScore) * 100).toFixed(1) : '0.0';
+            
+            // Check if this is actually a retake based on historical scores
+            const isActuallyRetake = (lo.HasRetake || lo.hasRetake) || (lo.IsRetake || lo.isRetake);
+            
+            if (isActuallyRetake) {
+                // This is a retake attempt
+                if (loPassed) {
+                    statusClass = 'lo-status-retake-passed';
+                    statusText = '<div class="retake-passed-container"><div class="retake-text">RETAKE</div><div class="passed-text">PASSED</div></div>';
+                } else {
+                    statusClass = 'lo-status-retake-failed';
+                    statusText = '<div class="retake-failed-container"><div class="retake-text">RETAKE</div><div class="failed-text">FAILED</div></div>';
+                }
+            } else {
+                // This has historical scores but is not a retake (maybe from previous course offerings)
+                if (loPassed) {
+                    statusClass = 'lo-status-passed';
+                    statusText = 'PASSED';
+                } else {
+                    statusClass = 'lo-status-failed';
+                    statusText = 'FAILED';
+                }
+            }
+            
+            // Always show historical score in tooltip
+            tooltipText = `Previous Score: ${formatScore(historicalScore)}/${formatScore(historicalMaxScore)} (${historicalPercentage}%)`;
+        } else {
+            statusClass = loPassed ? 'lo-status-passed' : 'lo-status-failed';
+            statusText = loPassed ? 'Passed' : 'Failed';
+        }
+        
+        // Add tooltip if there's historical score information
+        if (tooltipText) {
+            const loHtml = `
+                <div class="lo-item-detailed ${statusClass}">
+                    <div class="lo-score-detailed">${formatScore(loScore)}/${formatScore(maxLOScore)}</div>
+                    <div class="lo-percentage-detailed">${loPercentage.toFixed(1)}%</div>
+                    <div class="lo-status-detailed retake-score-tooltip" data-tooltip="${tooltipText}">${statusText}</div>
+                </div>
+            `;
+            html += loHtml;
+        } else {
+            const loHtml = `
+                <div class="lo-item-detailed ${statusClass}">
+                    <div class="lo-score-detailed">${formatScore(loScore)}/${formatScore(maxLOScore)}</div>
+                    <div class="lo-percentage-detailed">${loPercentage.toFixed(1)}%</div>
+                    <div class="lo-status-detailed">${statusText}</div>
+                </div>
+            `;
+            html += loHtml;
+        }
+    });
+         
+         html += '</div>';
+         return html;
+     }
+
+         // Generate LO Overview & Actions for a specific student
+      function generateOverallLOStatusForStudent(student, assessments, needsResit = false) {
+         const studentAssessments = student.Assessments || student.assessments || [];
+         const studentId = student.StudentId || student.studentId;
+         
+         // Collect all unique LOs across all assessments
+         const allLOs = new Map();
+         
+         assessments.forEach(assessment => {
+             const assessmentId = assessment.AssessmentId || assessment.assessmentId;
+             const studentAssessment = studentAssessments.find(a => {
+                 const aId = a.AssessmentId || a.assessmentId;
+                 return aId === assessmentId;
+             });
+             
+             if (studentAssessment) {
+                 const learningOutcomes = studentAssessment.LearningOutcomes || studentAssessment.learningOutcomes || [];
+                 
+                 learningOutcomes.forEach(lo => {
+                     const loName = lo.LearningOutcomeName || lo.learningOutcomeName || `LO${lo.LearningOutcomeId || lo.learningOutcomeId}`;
+                     const loPassed = lo.LOPassed || lo.loPassed || false;
+                     const loScore = lo.LOScore || lo.loScore || 0;
+                     const maxLOScore = lo.MaxLOScore || lo.maxLOScore || 0;
+                     const loPercentage = lo.LOPercentage || lo.loPercentage || 0;
+                     const isRetake = lo.IsRetake || lo.isRetake || false;
+                     const originalScore = lo.OriginalScore || lo.originalScore || loScore;
+                     const originalMaxScore = lo.OriginalMaxScore || lo.originalMaxScore || maxLOScore;
+                     
+                     if (!allLOs.has(loName)) {
+                         allLOs.set(loName, {
+                             name: loName,
+                             passed: true,
+                             failedAssessments: [],
+                             totalScore: 0,
+                             totalMaxScore: 0,
+                             totalPercentage: 0,
+                             hasRetake: false,
+                             retakePassed: false,
+                             retakeFailed: false,
+                             retakeScores: [],
+                             originalScores: []
+                         });
+                     }
+                     
+                     const overallLO = allLOs.get(loName);
+                     overallLO.totalScore += loScore;
+                     overallLO.totalMaxScore += maxLOScore;
+                     
+                                  if (isRetake) {
+                 overallLO.hasRetake = true;
+                 // Store retake scores for overall assessment
+                 if (!overallLO.retakeScores) {
+                     overallLO.retakeScores = [];
+                 }
+                 overallLO.retakeScores.push({
+                     assessmentId: assessmentId,
+                     score: loScore,
+                     maxScore: maxLOScore,
+                     percentage: loPercentage,
+                     passed: loPassed
+                 });
+             }
+                     
+                     if (!loPassed) {
+                         overallLO.passed = false;
+                         overallLO.failedAssessments.push({
+                             assessmentId: assessmentId,
+                             assessmentName: assessment.AssessmentName || assessment.assessmentName,
+                             score: loScore,
+                             maxScore: maxLOScore,
+                             percentage: loPercentage
+                         });
+                     }
+                     
+                     // Store original scores for tooltip
+                     if (isRetake) {
+                         // Add safety check for division by zero
+                         const originalPercentage = originalMaxScore > 0 ? 
+                             ((originalScore / originalMaxScore) * 100).toFixed(1) : '0.0';
+                         
+                         overallLO.originalScores.push({
+                             assessmentName: assessment.AssessmentName || assessment.assessmentName,
+                             originalScore: originalScore,
+                             originalMaxScore: originalMaxScore,
+                             originalPercentage: originalPercentage
+                         });
+                     }
+                 });
+             }
+         });
+         
+         // Calculate overall percentages for each LO
+         allLOs.forEach(lo => {
+             if (lo.totalMaxScore > 0) {
+                 lo.totalPercentage = (lo.totalScore / lo.totalMaxScore) * 100;
+             }
+         });
+         
+         let html = '<div class="d-flex flex-column gap-2">';
+         const sortedLOs = Array.from(allLOs.values()).sort((a, b) => a.name.localeCompare(b.name)); 
+         sortedLOs.forEach(lo => {
+             let statusClass, statusText, retakeButton = '';
+             
+             // Check retake status for LO Overview & Actions
+             if (lo.hasRetake && lo.retakeScores && lo.retakeScores.length > 0) {
+                 // This LO has retake attempts
+                 const allRetakesPassed = lo.retakeScores.every(score => score.passed);
+                 
+                 if (allRetakesPassed) {
+                     // All retakes passed (≥50%)
+                     statusClass = 'lo-status-retake-passed';
+                     statusText = '<div class="retake-passed-container"><div class="retake-text">RETAKE</div><div class="passed-text">PASSED</div></div>';
+                 } else {
+                     // At least one retake failed (<50%)
+                     statusClass = 'lo-status-retake-failed';
+                     statusText = '<div class="retake-failed-container"><div class="retake-text">RETAKE</div><div class="failed-text">FAILED</div></div>';
+                 }
+                 
+                 // No retake button for LO with retake history
+                 retakeButton = '';
+             } else {
+                 // No retake history, show basic passed/failed status
+                 statusClass = lo.passed ? 'lo-status-passed' : 'lo-status-failed';
+                 statusText = lo.passed ? 'PASSED' : 'FAILED';
+                 
+                 // Only show retake button if not passed, not needs resit, and no previous retake
+                 if (!lo.passed && !needsResit && !lo.hasRetake) {
+                     retakeButton = `<button class="btn retake-btn btn-sm ms-2" onclick="showRetakeModal('${studentId}', '${lo.name}', '${currentCourseOfferingId}')">
+                         <i class="fas fa-redo me-1"></i>
+                         Retake
+                     </button>`;
+                 }
+             }
+             
+             html += `
+                 <div class="overall-lo-item-compact">
+                     <div class="d-flex align-items-center justify-content-between w-100">
+                         <div class="d-flex align-items-center">
+                             <span class="lo-name-compact me-2">${lo.name}:</span>
+                             <span class="badge status-badge ${statusClass}">${statusText}</span>
+                         </div>
+                         ${retakeButton ? retakeButton : ''}
+                     </div>
+                 </div>
+             `;
+         });
+         html += '</div>';
+         
+         return html;
+     }
+
+
+
+    // Show retake modal
+    async function showRetakeModal(studentId, loName, courseOfferingId) {
+        currentStudentId = studentId;
+        currentLOName = loName;
+        currentCourseOfferingId = courseOfferingId;
+        
+        try {
+    
+            
+            const response = await fetch(`@Url.Action("GetFailedAssessmentsForRetake", "LOResult", new { area = "Tutor" })?studentId=${studentId}&courseOfferingId=${courseOfferingId}&loName=${encodeURIComponent(loName)}`);
+            const result = await response.json();
+            
+
+            
+            if (result.success) {
+                displayRetakeForm(result.data, loName);
+            } else {
+                showErrorMessage(result.message || 'Failed to load retake data');
+            }
+        } catch (error) {
+            showErrorMessage('Error loading retake data: ' + error.message);
+        }
+    }
+
+         // Display retake form
+     function displayRetakeForm(failedAssessments, loName) {
+ 
+         
+         document.getElementById('retakeLOName').textContent = loName;
+         
+         let formHtml = '<div class="row">';
+         failedAssessments.forEach((assessment, index) => {
+             
+             
+             // Handle both camelCase and PascalCase property names
+             const loScore = assessment.LOScore || assessment.loScore || 0;
+             const maxLOScore = assessment.MaxLOScore || assessment.maxLOScore || 0;
+             const assessmentId = assessment.AssessmentId || assessment.assessmentId || '';
+             const assessmentName = assessment.AssessmentName || assessment.assessmentName || '';
+             
+     
+             
+             if (maxLOScore === 0) {
+                 // Invalid assessment data
+                 return; // Skip this assessment
+             }
+             
+                           const currentPercentage = ((loScore / maxLOScore) * 100).toFixed(1);
+              
+              formHtml += `
+                  <div class="col-md-6 mb-3">
+                      <div class="card border-0 shadow-sm">
+                                                    <div class="card-header bg-light">
+                               <h6 class="mb-0 fw-semibold">${assessmentName}</h6>
+                           </div>
+                           <div class="card-body">
+                               <div class="row">
+                                   <div class="col-12 mb-2">
+                                       <div class="d-flex justify-content-between align-items-center">
+                                           <span class="text-muted small">Current Score:</span>
+                                           <span class="badge bg-secondary">${formatScore(loScore)} / ${formatScore(maxLOScore)} (${currentPercentage}%)</span>
+                                       </div>
+                                   </div>
+                                   <div class="col-12">
+                                       <label class="form-label fw-semibold">New Score <span class="text-danger">*</span></label>
+                                       <div class="input-group">
+                                           <input type="number" 
+                                                  class="form-control retake-score-input" 
+                                                  data-assessment-id="${assessmentId}"
+                                                  data-max-score="${maxLOScore}"
+                                                  min="0" 
+                                                  max="${maxLOScore}" 
+                                                  step="0.01"
+                                                  placeholder="Enter new score"
+                                                  required>
+                                           <span class="input-group-text">/ ${maxLOScore}</span>
+                                       </div>
+                                       <div class="form-text">
+                                           <small class="text-muted">Score range: 0 - ${maxLOScore}</small>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                      </div>
+                  </div>
+              `;
+         });
+         formHtml += '</div>';
+         
+         document.getElementById('retakeForm').innerHTML = formHtml;
+         
+         // Add validation to inputs
+         const inputs = document.querySelectorAll('.retake-score-input');
+         inputs.forEach(input => {
+             input.addEventListener('input', validateRetakeInputs);
+         });
+         
+         const modal = new bootstrap.Modal(document.getElementById('retakeModal'));
+         modal.show();
+     }
+
+                   // Validate retake inputs
+      function validateRetakeInputs() {
+          const inputs = document.querySelectorAll('.retake-score-input');
+          const submitBtn = document.querySelector('#retakeModal .btn-success');
+          let allValid = true;
+          
+          inputs.forEach(input => {
+              const value = parseFloat(input.value) || 0;
+              const maxScore = parseFloat(input.getAttribute('data-max-score'));
+              
+              // Reset input styling
+              input.classList.remove('is-invalid', 'is-valid');
+              
+              if (value === 0 || isNaN(value)) {
+                  input.classList.add('is-invalid');
+                  allValid = false;
+              } else if (value < 0) {
+                  input.classList.add('is-invalid');
+                  allValid = false;
+              } else if (value > maxScore) {
+                  input.classList.add('is-invalid');
+                  allValid = false;
+              } else {
+                  input.classList.add('is-valid');
+              }
+          });
+          
+          // Enable/disable submit button
+          if (submitBtn) {
+              submitBtn.disabled = !allValid;
+          }
+          
+          return allValid;
+      }
+     
+     // Submit retake scores
+     async function submitRetakeScores() {
+         if (!validateRetakeInputs()) {
+             showErrorMessage('Please fix validation errors before submitting');
+             return;
+         }
+         
+         const inputs = document.querySelectorAll('.retake-score-input');
+         const retakeScores = [];
+         
+                   // Collect all retake scores
+          for (const input of inputs) {
+              const value = parseFloat(input.value) || 0;
+              const maxScore = parseFloat(input.getAttribute('data-max-score'));
+              
+              retakeScores.push({
+                  AssessmentId: input.getAttribute('data-assessment-id'),
+                  NewScore: value,
+                  MaxScore: maxScore
+              });
+          }
+         
+         const retakeData = {
+             StudentId: currentStudentId,
+             LearningOutcomeName: currentLOName,
+             CourseOfferingId: currentCourseOfferingId,
+             RetakeScores: retakeScores
+         };
+         
+         try {
+             const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+             if (!tokenElement) {
+                 throw new Error('Anti-forgery token not found');
+             }
+             
+             const response = await fetch('@Url.Action("UpdateRetakeScores", "LOResult", new { area = "Tutor" })', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'RequestVerificationToken': tokenElement.value
+                 },
+                 body: JSON.stringify(retakeData)
+             });
+             
+             const result = await response.json();
+             
+             if (result.success) {
+                 showSuccessMessage('Retake scores updated successfully!');
+                 bootstrap.Modal.getInstance(document.getElementById('retakeModal')).hide();
+                 
+                 // Reload the current course offering results
+                 loadLOResults(currentCourseOfferingId);
+             } else {
+                 showErrorMessage(result.message || 'Failed to update retake scores');
+             }
+         } catch (error) {
+             showErrorMessage('Error updating retake scores: ' + error.message);
+         }
+     }
+
+    // Utility functions
+    function showLoading() {
+        try {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
+            hideResults();
+        } catch (error) {
+            // Error in showLoading
+        }
+    }
+
+    function hideLoading() {
+        try {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+                loadingSpinner.style.visibility = 'hidden';
+                loadingSpinner.style.opacity = '0';
+                loadingSpinner.classList.add('d-none');
+            }
+            
+            // Remove any modal backdrop effects
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            
+            // Hide any backdrop elements
+            const backdropElements = document.querySelectorAll('.modal-backdrop');
+            backdropElements.forEach(backdrop => {
+                if (backdrop.style) {
+                    backdrop.style.display = 'none';
+                    backdrop.style.visibility = 'hidden';
+                    backdrop.style.opacity = '0';
+                }
+            });
+            
+            // Force remove any Bootstrap modal backdrops
+            const bootstrapBackdrops = document.querySelectorAll('[class*="backdrop"], [class*="modal-backdrop"]');
+            bootstrapBackdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
+            
+            // Force enable pointer events on body
+            document.body.style.pointerEvents = 'auto';
+            
+        } catch (error) {
+            // Error in hideLoading
+        }
+    }
+
+    function removeOverlay() {
+        try {
+            // Remove modal backdrop classes from body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            
+            // Remove all backdrop elements
+            const backdropElements = document.querySelectorAll('.modal-backdrop');
+            backdropElements.forEach(backdrop => {
+                backdrop.remove();
+            });
+            
+            // Force remove any Bootstrap modal backdrops
+            const bootstrapBackdrops = document.querySelectorAll('[class*="backdrop"], [class*="modal-backdrop"]');
+            bootstrapBackdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
+            
+            // Hide any overlay elements
+            const overlayElements = document.querySelectorAll('.overlay, .backdrop, .loading-overlay');
+            overlayElements.forEach(overlay => {
+                if (overlay.style) {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                }
+            });
+            
+            // Force enable pointer events on body
+            document.body.style.pointerEvents = 'auto';
+            
+        } catch (error) {
+            // Error in removeOverlay
+        }
+    }
+
+    function showResults() {
+        document.getElementById('resultsContainer').style.display = 'block';
+        document.getElementById('noResultsMessage').style.display = 'none';
+        // Hide initial message when showing results
+        const initialMessage = document.getElementById('initialMessage');
+        if (initialMessage) {
+            initialMessage.style.display = 'none';
+        }
+    }
+
+    function hideResults() {
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('noResultsMessage').style.display = 'none';
+        // Show initial message when hiding results
+        const initialMessage = document.getElementById('initialMessage');
+        if (initialMessage) {
+            initialMessage.style.display = 'block';
+        }
+    }
+
+    function showNoResults() {
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('initialMessage').style.display = 'none';
+        document.getElementById('noResultsMessage').style.display = 'block';
+    }
+
+    function showSuccessMessage(message) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+
+    function showErrorMessage(message) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+
+    // Show dropdown when input is focused
+    function showDropdown() {
+        const dropdown = document.getElementById('courseDropdown');
+        if (dropdown) {
+            dropdown.style.display = 'block';
+        }
+    }
+    
+    // Hide dropdown when input loses focus
+    function hideDropdown() {
+        setTimeout(() => {
+            const dropdown = document.getElementById('courseDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        }, 200);
+    }
+    
+    // Filter course options based on search input
+    function filterCourseOptions() {
+        const searchInput = document.getElementById('courseSearchInput');
+        const dropdown = document.getElementById('courseDropdown');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        if (!dropdown) return;
+        
+        // Get all dropdown items except the first one (placeholder)
+        const items = Array.from(dropdown.querySelectorAll('.dropdown-item')).slice(1);
+        
+        if (searchTerm === '') {
+            // Show all items if search is empty
+            items.forEach(item => {
+                item.style.display = '';
+            });
+            return;
+        }
+        
+        // Filter items based on course code or course name
+        items.forEach(item => {
+            const courseCode = item.getAttribute('data-course-code') || '';
+            const courseName = item.getAttribute('data-course-name') || '';
+            const trimester = item.getAttribute('data-trimester') || '';
+            const year = item.getAttribute('data-year') || '';
+            
+            const searchText = `${courseCode} ${courseName} ${trimester} ${year}`.toLowerCase();
+            
+            if (searchText.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    
+    // Select a course from dropdown
+    function selectCourse(value, text) {
+        const searchInput = document.getElementById('courseSearchInput');
+        const dropdown = document.getElementById('courseDropdown');
+        
+        if (searchInput) {
+            searchInput.value = text;
+        }
+        
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+        
+        // Store the selected course offering ID and text for persistence
+        if (value) {
+            currentCourseOfferingId = value;
+            // Store in sessionStorage for persistence across page interactions (LO Results specific)
+            sessionStorage.setItem('loresults_selectedCourseOfferingId', value);
+            sessionStorage.setItem('loresults_selectedCourseOfferingText', text);
+            loadLOResults(value);
+        }
+    }
+
+    // Initialize page - auto-cleanup on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide any loading elements on page load
+        setTimeout(() => {
+            hideLoading();
+        }, 1000);
+        
+        // Auto-remove any overlays on page load
+        setTimeout(() => {
+            removeOverlay();
+        }, 1500);
+        
+        // Clear any previously selected course offering from session storage
+        // This ensures the page starts fresh without auto-loading previous selections
+        sessionStorage.removeItem('loresults_selectedCourseOfferingId');
+        sessionStorage.removeItem('loresults_selectedCourseOfferingText');
+        
+        // Initialize dropdown search functionality
+        const searchInput = document.getElementById('courseSearchInput');
+        if (searchInput) {
+            // Show dropdown when clicking on input
+            searchInput.addEventListener('click', showDropdown);
+            
+            // Handle keyboard navigation
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const dropdown = document.getElementById('courseDropdown');
+                    const visibleItems = Array.from(dropdown.querySelectorAll('.dropdown-item[style*="display: block"], .dropdown-item:not([style*="display: none"])'));
+                    if (visibleItems.length > 0) {
+                        const firstItem = visibleItems[0];
+                        const value = firstItem.getAttribute('data-value');
+                        const text = firstItem.textContent;
+                        selectCourse(value, text);
+                    }
+                }
+            });
+        }
+    });
+</script>
+

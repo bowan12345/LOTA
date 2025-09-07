@@ -19,18 +19,6 @@ namespace LOTA.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync()
-        {
-            try
-            {
-                return await _unitOfWork.trimesterCourseRepository.GetLatestTrimesterCourseOfferingsAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to get latest trimester course offerings");
-            }
-        }
-
         public async Task<LOResultDTO> GetLOResultsByCourseOfferingAsync(string courseOfferingId)
         {
             // Get the course offering with related data

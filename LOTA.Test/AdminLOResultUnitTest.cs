@@ -22,23 +22,6 @@ namespace LOTA.Test
             _service = new LOResultService(_mockUnitOfWork.Object);
         }
 
-        [Fact]
-        public async Task GetLatestTrimesterCourseOfferingsAsync_ReturnsCourseOfferings()
-        {
-            var courseOfferings = new List<TrimesterCourse>
-            {
-                new TrimesterCourse { Id = "c1" },
-                new TrimesterCourse { Id = "c2" }
-            };
-
-            _mockUnitOfWork.Setup(u => u.trimesterCourseRepository.GetLatestTrimesterCourseOfferingsAsync())
-                .ReturnsAsync(courseOfferings);
-
-            var result = await _service.GetLatestTrimesterCourseOfferingsAsync();
-
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
-        }
 
         [Fact]
         public async Task GetLOResultsByCourseOfferingAsync_ReturnsLOResultDTO()

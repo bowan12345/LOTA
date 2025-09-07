@@ -1,6 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<LOTA.Model.DTO.Admin.CourseOfferingReturnDTO>
 @{
     ViewData["Title"] = "LO Results";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -26,24 +24,6 @@
          </div>
      </div>
 
-    <!-- Alert Messages -->
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
 
          <!-- Course Offering Selection -->
      <div class="card border-0 shadow-sm mb-3">
@@ -61,18 +41,18 @@
                          <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name..." onkeyup="filterCourseOptions()" onfocus="showDropdown()" onblur="hideDropdown()">
                          <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
                              <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
-                             @if (ViewBag.CourseOfferings != null)
+                             @if (Model != null && Model.Count() > 0)
                              {
-                                 foreach (var courseOffering in ViewBag.CourseOfferings)
+                                 foreach (var courseOffering in Model)
                                  {
                                      <div class="dropdown-item" 
                                           data-value="@courseOffering.Id"
-                                          data-course-code="@courseOffering.Course.CourseCode"
-                                          data-course-name="@courseOffering.Course.CourseName"
-                                          data-trimester="@courseOffering.Trimester.TrimesterNumber"
-                                          data-year="@courseOffering.Trimester.AcademicYear"
-                                          onclick="selectCourse('@courseOffering.Id', '@courseOffering.Course.CourseCode - @courseOffering.Course.CourseName - Trimester @courseOffering.Trimester.TrimesterNumber @courseOffering.Trimester.AcademicYear')">
-                                         @courseOffering.Course.CourseCode - @courseOffering.Course.CourseName - Tri @courseOffering.Trimester.TrimesterNumber @courseOffering.Trimester.AcademicYear
+                                          data-course-code="@courseOffering.CourseCode"
+                                          data-course-name="@courseOffering.CourseName"
+                                          data-trimester="@courseOffering.Trimester?.TrimesterNumber"
+                                          data-year="@courseOffering.Trimester?.AcademicYear"
+                                          onclick="selectCourse('@courseOffering.Id', '@(courseOffering.CourseCode ?? "Unknown") - @(courseOffering.CourseName ?? "Unknown") - Trimester @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)')">
+                                         @(courseOffering.CourseCode ?? "Unknown") - @(courseOffering.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
                                      </div>
                                  }
                              }

@@ -2,6 +2,7 @@
 using LOTA.Service.Service.IService;
 using LOTA.Model.DTO.Admin;
 using System.Text.Json;
+using LOTA.Service.Service;
 
 namespace LOTAWeb.Areas.Admin.Controllers
 {
@@ -9,26 +10,24 @@ namespace LOTAWeb.Areas.Admin.Controllers
     public class LOResultController : Controller
     {
         private readonly ILOResultService _loResultService;
+        private readonly ITrimesterCourseService _trimesterCourseService;
 
-        public LOResultController(ILOResultService loResultService)
+        public LOResultController(ILOResultService loResultService, ITrimesterCourseService trimesterCourseService)
         {
             _loResultService = loResultService;
+            _trimesterCourseService = trimesterCourseService;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                // Get latest trimester course offerings for dropdown
-                var courseOfferings = await _loResultService.GetLatestTrimesterCourseOfferingsAsync();
-                ViewBag.CourseOfferings = courseOfferings;
-                
-                return View();
+                var courseOfferings = await _trimesterCourseService.GetLatestTrimesterCourseOfferingsAsync();
+                return View(courseOfferings);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error loading course offerings";
-                return View();
+                return View(new List<CourseOfferingReturnDTO>());
             }
         }
 
