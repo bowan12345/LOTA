@@ -25,15 +25,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
             try
             {
                 var courseOfferings = await _loScoreService.GetLatestTrimesterCourseOfferingsAsync();
-                _logger.LogInformation($"Loaded {courseOfferings?.Count() ?? 0} course offerings");
-                ViewBag.CourseOfferings = courseOfferings;
-                return View();
+                return View(courseOfferings);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error loading course offerings";
-                ViewBag.CourseOfferings = new List<TrimesterCourse>();
-                return View();
+                return View(new List<TrimesterCourse>());
             }
         }
 

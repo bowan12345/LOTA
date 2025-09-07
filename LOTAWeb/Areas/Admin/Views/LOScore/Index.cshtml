@@ -1,4 +1,5 @@
-﻿@{
+﻿@model IEnumerable<LOTA.Model.TrimesterCourse>
+@{
     ViewData["Title"] = "LO Scores";
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -61,12 +62,9 @@
                         <input type="text" id="courseSearchInput" class="form-control" placeholder="Type to search course code or name...">
                         <div id="courseDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
                             <div class="dropdown-item" data-value="" onclick="selectCourse('', '-- Select a Course Offering --')">-- Select a Course Offering --</div>
-                            @if (ViewBag.CourseOfferings != null && ViewBag.CourseOfferings.Count > 0)
-
+                            @if (Model != null && Model.Count() > 0)
                             {
-
-                                foreach (var courseOffering in ViewBag.CourseOfferings)
-
+                                foreach (var courseOffering in Model)
                                 {
                                     <div class="dropdown-item"
                                          data-value="@courseOffering.Id"
