@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace LOTAWeb.Areas.Admin.Controllers
 {
     [Area(Roles.Role_Admin)]
-    [Authorize(Roles = Roles.Role_Student)]
+    [Authorize(Roles = Roles.Role_Admin)]
     public class LOResultController : Controller
     {
         private readonly ILOResultService _loResultService;
