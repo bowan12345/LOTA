@@ -12,11 +12,13 @@ namespace LOTAWeb.Areas.Admin.Controllers
     public class LOScoreController : Controller
     {
         private readonly ILOScoreService _loScoreService;
+        private readonly ITrimesterCourseService _trimesterCourseService;
         private readonly ILogger<LOScoreController> _logger;
 
-        public LOScoreController(ILOScoreService loScoreService, ILogger<LOScoreController> logger)
+        public LOScoreController(ILOScoreService loScoreService, ITrimesterCourseService trimesterCourseService, ILogger<LOScoreController> logger)
         {
             _loScoreService = loScoreService;
+            _trimesterCourseService = trimesterCourseService;
             _logger = logger;
         }
 
@@ -24,12 +26,12 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                var courseOfferings = await _loScoreService.GetLatestTrimesterCourseOfferingsAsync();
+                var courseOfferings = await _trimesterCourseService.GetLatestTrimesterCourseOfferingsAsync();
                 return View(courseOfferings);
             }
             catch (Exception ex)
             {
-                return View(new List<TrimesterCourse>());
+                return View(new List<CourseOfferingReturnDTO>());
             }
         }
 

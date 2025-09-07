@@ -5,7 +5,6 @@ namespace LOTA.Service.Service.IService
 {
     public interface ILOScoreService
     {
-        Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync();
         Task<CourseOfferingAssessmentDTO> GetCourseOfferingWithAssessmentsAsync(string courseOfferingId);
         Task<CourseOfferingDetailsDTO> GetCourseOfferingDetailsByCourseOfferingId(string courseOfferingId);
         Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores);

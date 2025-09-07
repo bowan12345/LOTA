@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LOTA.Model.TrimesterCourse>
+﻿@model IEnumerable<LOTA.Model.DTO.Admin.CourseOfferingReturnDTO>
 @{
     ViewData["Title"] = "LO Scores";
 
@@ -68,12 +68,12 @@
                                 {
                                     <div class="dropdown-item"
                                          data-value="@courseOffering.Id"
-                                         data-course-code="@courseOffering.Course?.CourseCode"
-                                         data-course-name="@courseOffering.Course?.CourseName"
+                                         data-course-code="@courseOffering.CourseCode"
+                                         data-course-name="@courseOffering.CourseName"
                                          data-trimester="@courseOffering.Trimester?.TrimesterNumber"
                                          data-year="@courseOffering.Trimester?.AcademicYear"
-                                         onclick="selectCourse('@courseOffering.Id', '@(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Trimester @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)')">
-                                        @(courseOffering.Course?.CourseCode ?? "Unknown") - @(courseOffering.Course?.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
+                                         onclick="selectCourse('@courseOffering.Id', '@(courseOffering.CourseCode ?? "Unknown") - @(courseOffering.CourseName ?? "Unknown") - Trimester @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)')">
+                                        @(courseOffering.CourseCode ?? "Unknown") - @(courseOffering.CourseName ?? "Unknown") - Tri @(courseOffering.Trimester?.TrimesterNumber ?? 0) @(courseOffering.Trimester?.AcademicYear ?? 0)
                                     </div>
                                 }
                             }
