@@ -11,6 +11,7 @@ namespace LOTA.Service.Service.IService
     public interface IAssessmentService
     {
         Task<IEnumerable<AssessmentReturnDTO>> GetAllAssessmentsAsync();
+        Task<IEnumerable<AssessmentReturnDTO>> GetAllAssessmentsBuTutorIdAsync(string tutorId);
         Task<AssessmentReturnDTO> GetAssessmentByIdAsync(string id);
         Task<IEnumerable<LearningOutcomeReturnDTO>> GetLearningOutcomesByCourseOfferingIdAsync(string courseOfferingId);
         Task<AssessmentReturnDTO> CreateAssessmentAsync(AssessmentCreateDTO assessmentCreateDTO);

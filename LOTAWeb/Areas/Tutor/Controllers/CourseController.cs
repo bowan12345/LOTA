@@ -130,7 +130,7 @@ namespace LOTAWeb.Areas.Tutor.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in UpdateCourse: {ex.Message}");
-                return Json(new { success = false, message = $"Failed to update course: {ex.Message}" });
+                return Json(new { success = false, message = $"Failed to update course" });
             }
         }
 

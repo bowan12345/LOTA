@@ -307,5 +307,25 @@ namespace LOTA.Service.Service
             });
             
         }
+
+        public async Task<IEnumerable<AssessmentReturnDTO>> GetAllAssessmentsBuTutorIdAsync(string tutorId)
+        {
+            //get latest trimester
+            var trimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
+            if (trimester == null)
+            {
+                throw new NotImplementedException("No trimester Information ");
+            }
+            // get assessments at latest trimester
+            var assessments = await _unitOfWork.assessmentRepository.GetAllAsync(a => a.TrimesterId == trimester.Id && a.TrimesterCourse.TutorId == tutorId, includeProperties: "AssessmentType,TrimesterCourse,TrimesterCourse.Course,Trimester");
+            var assessmentsWithDetails = new List<AssessmentReturnDTO>();
+
+            foreach (var assessment in assessments)
+            {
+                assessmentsWithDetails.Add(MapToReturnDTO(assessment, assessment.TrimesterCourse, assessment.Trimester, assessment.AssessmentType));
+            }
+
+            return assessmentsWithDetails;
+        }
     }
 }

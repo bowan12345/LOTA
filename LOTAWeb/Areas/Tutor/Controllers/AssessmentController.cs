@@ -5,6 +5,8 @@ using LOTA.Service.Service.IService;
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Utility;
 using Microsoft.AspNetCore.Authorization;
+using LOTA.Service.Service;
+using Microsoft.AspNetCore.Identity;
 namespace LOTAWeb.Areas.Tutor.Controllers
 {
     [Area(Roles.Role_Tutor)]
@@ -14,22 +16,32 @@ namespace LOTAWeb.Areas.Tutor.Controllers
         private readonly IAssessmentService _assessmentService;
         private readonly ICourseService _courseService;
         private readonly ITrimesterCourseService _trimesterCourseService;
+        private readonly ITrimesterService _trimesterService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AssessmentController(IAssessmentService assessmentService, ICourseService courseService, ITrimesterCourseService trimesterCourseService)
+        public AssessmentController(IAssessmentService assessmentService, ICourseService courseService, 
+                    ITrimesterCourseService trimesterCourseService,ITrimesterService trimesterService, UserManager<ApplicationUser> userManager)
         {
             _assessmentService = assessmentService;
             _courseService = courseService;
             _trimesterCourseService = trimesterCourseService;
+            _trimesterService = trimesterService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
         {
-            // Get all assessments with course and trimester information
-            IEnumerable<AssessmentReturnDTO> assessmentList = await _assessmentService.GetAllAssessmentsAsync();
+            // Get current tutor user id
+            var currentUserId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return RedirectToAction("Index", "Home", new { area = Roles.Role_Tutor });
+            }
 
-            // Return assessments data to the view
-            return View(assessmentList);
-
+            // Fetch assessments from the latest trimester (handled inside service layer)
+            IEnumerable<AssessmentReturnDTO> allTutorAssessments = await _assessmentService.GetAllAssessmentsBuTutorIdAsync(currentUserId);
+          
+            return View(allTutorAssessments);
         }
 
         // get learning outcomes for a course
@@ -70,12 +82,26 @@ namespace LOTAWeb.Areas.Tutor.Controllers
         {
             try
             {
-                var courseOfferings = await _trimesterCourseService.GetLatestTrimesterCourseOfferingsAsync();
-                return Json(new { success = true, data = courseOfferings });
+                // Get current user
+                var currentUserId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+                // Get latest trimester
+                var latestTrimester = await _trimesterService.GetLatestTrimesterAsync();
+                if (latestTrimester == null || string.IsNullOrEmpty(latestTrimester.Id))
+                {
+                    return Json(new { success = false, message = "Trimester has not existed" });
+                }
+
+                // Get course offerings for current tutor in latest trimester
+                var tutorTrimesterCourses = await _trimesterCourseService.GetTrimesterCoursesByTutorAndTrimesterAsync(currentUserId, latestTrimester.Id);
+                return Json(new { success = true, data = tutorTrimesterCourses });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = true, data = new List<TrimesterCourseReturnDTO>() });
             }
         }
 
@@ -132,7 +158,7 @@ namespace LOTAWeb.Areas.Tutor.Controllers
             }
         }
 
-                //update an assessment
+        //update an assessment
         [HttpPut]
         public async Task<IActionResult> UpdateAssessment([FromBody] AssessmentUpdateDTO request)
         {
