@@ -105,7 +105,7 @@
                                                 <th style="width: 200px;">Student</th>
                                                 @foreach (var alo in assessment.AssessmentLearningOutcomes.OrderBy(alo => alo.LearningOutcome.LOName))
                                                 {
-                                                    <th class="text-center" style="min-width: 120px;">
+                                                    <th class="text-center" style="min-width: 120px;" data-lo-id="@alo.Id">
                                                         <div class="d-flex flex-column align-items-center">
                                                             <small class="fw-bold">@alo.LearningOutcome.LOName</small>
                                                             <small class="text-muted">LO</small>
@@ -271,12 +271,24 @@
         justify-content: center;
     }
 
+    .table-responsive {
+        max-height: 70vh;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+
     .table th {
         border-top: none;
         font-weight: 600;
         color: #495057;
         vertical-align: top;
         padding: 12px 8px;
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 20;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .table td {
@@ -407,13 +419,62 @@
         }
     }
 
-    // Save scores for a specific student
-    async function saveStudentScores(studentId, assessmentId, showMessage = true) {
+    // Validate all inputs before saving
+    function validateAllInputs(studentId, assessmentId) {
         const row = document.querySelector(`tr[data-student-id="${studentId}"][data-assessment-id="${assessmentId}"]`);
         if (!row) {
             throw new Error(`Row not found for Student ID: ${studentId}, Assessment ID: ${assessmentId}`);
         }
         
+        const scoreInputs = row.querySelectorAll('.lo-score-input');
+        let hasErrors = false;
+        
+        // Clear all previous error states
+        scoreInputs.forEach(input => {
+            input.classList.remove('invalid');
+        });
+        
+        scoreInputs.forEach(input => {
+            // Skip retake scores - they cannot be edited
+            const isRetake = input.getAttribute('data-is-retake') === 'true';
+            if (isRetake) {
+                return; // Skip this input
+            }
+            
+            const value = parseFloat(input.value);
+            const maxScore = parseFloat(input.getAttribute('data-lo-score'));
+            
+            // Validate input
+            if (isNaN(value) || value < 0 || value > maxScore) {
+                input.classList.add('invalid');
+                hasErrors = true;
+            }
+        });
+        
+        if (hasErrors) {
+            // Scroll to first error
+            const firstError = row.querySelector('.lo-score-input.invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            
+            // Show simple error message
+            showErrorMessage('Please fix the highlighted errors before saving.');
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Save scores for a specific student
+    async function saveStudentScores(studentId, assessmentId, showMessage = true) {
+        // Validate all inputs first
+        if (!validateAllInputs(studentId, assessmentId)) {
+            return; // Stop if validation fails
+        }
+        
+        const row = document.querySelector(`tr[data-student-id="${studentId}"][data-assessment-id="${assessmentId}"]`);
         const scoreInputs = row.querySelectorAll('.lo-score-input');
         const loScores = [];
         
@@ -512,6 +573,64 @@
         }
     }
 
+    // Validate all inputs for all students
+    function validateAllStudentsInputs() {
+        const allRows = document.querySelectorAll('tbody tr');
+        let hasErrors = false;
+        
+        // Clear all previous error states
+        allRows.forEach(row => {
+            const scoreInputs = row.querySelectorAll('.lo-score-input');
+            scoreInputs.forEach(input => {
+                input.classList.remove('invalid');
+            });
+        });
+        
+        // Validate each student's inputs
+        allRows.forEach(row => {
+            const studentId = row.getAttribute('data-student-id');
+            const assessmentId = row.getAttribute('data-assessment-id');
+            const currentAssessmentId = document.querySelector('.tab-pane.active').id.replace('content-', '');
+            
+            // Only validate rows for the current assessment
+            if (assessmentId === currentAssessmentId) {
+                const scoreInputs = row.querySelectorAll('.lo-score-input');
+                
+                scoreInputs.forEach(input => {
+                    // Skip retake scores - they cannot be edited
+                    const isRetake = input.getAttribute('data-is-retake') === 'true';
+                    if (isRetake) {
+                        return; // Skip this input
+                    }
+                    
+                    const value = parseFloat(input.value);
+                    const maxScore = parseFloat(input.getAttribute('data-lo-score'));
+                    
+                    // Validate input
+                    if (isNaN(value) || value < 0 || value > maxScore) {
+                        input.classList.add('invalid');
+                        hasErrors = true;
+                    }
+                });
+            }
+        });
+        
+        if (hasErrors) {
+            // Scroll to first error
+            const firstError = document.querySelector('.lo-score-input.invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            
+            // Show simple error message
+            showErrorMessage('Please fix the highlighted errors before saving.');
+            return false;
+        }
+        
+        return true;
+    }
+
     // Save all scores
     async function saveAllScores() {
         const allRows = document.querySelectorAll('tbody tr');
@@ -536,6 +655,11 @@
         if (!hasChanges) {
             showInfoMessage('No changes to save.');
             return;
+        }
+        
+        // Validate all inputs before saving
+        if (!validateAllStudentsInputs()) {
+            return; // Stop if validation fails
         }
         
         try {
