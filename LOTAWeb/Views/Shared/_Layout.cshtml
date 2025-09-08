@@ -17,9 +17,9 @@
 </head>
 <body>
     <!-- Top Header -->
-    <header class="bg-success text-white shadow-sm d-flex align-items-center" style="min-height: 80px;">
+    <header class="bg-success text-white shadow-sm d-flex align-items-center" style="min-height: 80px; min-width: 100%;">
         <nav class="navbar navbar-expand-lg navbar-dark w-100">
-             <div class="container-fluid d-flex align-items-center justify-content-between">
+             <div class="container-fluid d-flex align-items-center justify-content-between" style="min-width: 100%;">
                  @await Html.PartialAsync("_LoginPartial")
              </div>
         </nav>
@@ -421,6 +421,24 @@
         /* Custom styles for the layout */
         body {
             background-color: #f8f9fa;
+            overflow-x: auto;
+            min-width: 100%;
+        }
+
+        /* Ensure header adapts to content width */
+        header {
+            min-width: 100%;
+            width: max-content;
+        }
+
+        /* Ensure main content area can expand horizontally */
+        .flex-grow-1 {
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        main {
+            min-width: 100%;
         }
         
         /* Sidebar styles */
