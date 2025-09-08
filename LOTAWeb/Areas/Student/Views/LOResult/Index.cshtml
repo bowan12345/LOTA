@@ -39,9 +39,6 @@
                     <div class="col-md-3">
                         <strong>Email:</strong> @Model.StudentEmail
                     </div>
-                    <div class="col-md-3">
-                        <strong>Total Trimesters:</strong> @Model.Trimesters.Count
-                    </div>
                 </div>
             </div>
         </div>
@@ -307,21 +304,9 @@
         console.log('Retake LOs Map:', retakeLOsMap);
         console.log('Retake LOs Array:', retakeLOs);
         
-        // Check if overall score is below 50% - need to resit entire course
+        // Check if overall score is below 50% - need to resit entire course (no message needed)
         if (overallPercentage < 50) {
-            return `
-                <div class="mt-4">
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Course Resit Required</strong>
-                        <p class="mb-0 mt-2">
-                            Your overall score is <strong>${overallPercentage.toFixed(1)}%</strong> 
-                            (${totalScore.toFixed(1)}/${maxTotalScore.toFixed(1)}), which is below the 50% pass threshold. 
-                            You need to resit this course.
-                        </p>
-                    </div>
-                </div>
-            `;
+            return '';
         }
         
         // If overall score >= 50% but some LOs need retake
@@ -365,7 +350,7 @@
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-info-circle text-info me-2"></i>
                                     <div>
-                                        <strong class="text-dark">Your overall score is ${overallPercentage.toFixed(1)}% (${totalScore.toFixed(1)}/${maxTotalScore.toFixed(1)}), but some Learning Outcomes require retake to pass the course.</strong>
+                                        <strong class="text-dark">The above Learning Outcomes require retake to pass the course.</strong>
                                     </div>
                                 </div>
                             </div>
@@ -377,19 +362,8 @@
             return html;
         }
         
-        // If overall score >= 50% AND all LOs >= 50% - course passed
-        return `
-            <div class="mt-4">
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <strong>Course Passed!</strong>
-                    <p class="mb-0 mt-2">
-                        Your overall score is <strong>${overallPercentage.toFixed(1)}%</strong> 
-                        (${totalScore.toFixed(1)}/${maxTotalScore.toFixed(1)}) and all Learning Outcomes meet the 50% pass requirement.
-                    </p>
-                </div>
-            </div>
-        `;
+        // If overall score >= 50% AND all LOs >= 50% - course passed 
+        return '';
     }
     
     function displayLearningOutcomes(learningOutcomes) {
