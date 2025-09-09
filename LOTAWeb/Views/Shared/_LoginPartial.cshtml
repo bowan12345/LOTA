@@ -31,7 +31,8 @@ else
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item d-flex align-items-center">
-        <a id="manage" class="nav-link text-white d-flex align-items-center" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+       @*  <a id="manage" class="nav-link text-white d-flex align-items-center" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"> *@
+        <a id="manage" class="nav-link text-white d-flex align-items-center" href="#">
             Hi @{
                 var user = await UserManager.GetUserAsync(User);
                 var fullName = !string.IsNullOrEmpty(user?.FirstName)  
