@@ -43,8 +43,12 @@ builder.Services.AddHttpContextAccessor();
 // Add all LOTA Services/repository
 builder.Services.AddLOTAProjectServices();
 
+// Configure SMTP options
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+
 // Add Email Sender for password reset functionality
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<ILOTAEmailSender, EmailSender>();
 
 var app = builder.Build();
 

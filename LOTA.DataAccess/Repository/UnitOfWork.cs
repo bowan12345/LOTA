@@ -15,7 +15,6 @@ namespace LOTA.DataAccess.Repository
         private ApplicationDbContext _db;
         public ICourseRepository courseRepository { get; private set; }
         public ITutorRepository tutorRepository { get; private set; }
-        public ITutorCourseRepository tutorCourseRepository { get; private set; }
         public ILearningOutcomeRepository learningOutcomeRepository { get; private set; }
         public IQualificationRepository qualificationRepository { get; private set; }
         public IStudentRepository studentRepository { get; private set; }
@@ -32,7 +31,6 @@ namespace LOTA.DataAccess.Repository
             _db = db;
             courseRepository = new CourseRepository(_db);
             tutorRepository = new TutorRepository(_db);
-            tutorCourseRepository = new TutorCourseRepository(_db);
             learningOutcomeRepository = new LearningOutcomeRepository(_db);
             qualificationRepository = new QualificationRepository(_db);
             studentRepository = new StudentRepository(_db);

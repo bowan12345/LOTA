@@ -3,6 +3,7 @@ using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using LOTA.DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Identity;
+using LOTA.Utility;
 
 namespace LOTA.Service.Service
 {
@@ -156,9 +157,64 @@ namespace LOTA.Service.Service
                  throw new InvalidOperationException($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
              }
 
+             // Delete all related records first
+             _unitOfWork.studentCourseRepository.RemoveAllByStudentId(student.Id);
+             _unitOfWork.studentScoreRepository.RemoveAllByStudentId(student.Id);
+             await _unitOfWork.SaveAsync();
+             
+             // Delete the user (UserManager.DeleteAsync will automatically remove role associations)
              var result = await _userManager.DeleteAsync(student);
              return result.Succeeded;
          }
+
+        public async Task<(int deletedCount, List<string> errors)> DeleteStudentsAsync(IEnumerable<string> ids)
+        {
+            var errors = new List<string>();
+            int deletedCount = 0;
+
+            foreach (var id in ids)
+            {
+                try
+                {
+                    var student = await _userManager.FindByIdAsync(id);
+                    if (student == null)
+                    {
+                        errors.Add($"Student not found");
+                        continue;
+                    }
+
+                    // Check if student has enrolled courses
+                   /* var enrolledCourses = student.StudentCourses?.Count ?? 0;
+                    if (enrolledCourses > 0)
+                    {
+                        errors.Add($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
+                        continue;
+                    }*/
+
+                    // Delete all related records first
+                    _unitOfWork.studentCourseRepository.RemoveAllByStudentId(student.Id);
+                    _unitOfWork.studentScoreRepository.RemoveAllByStudentId(student.Id);
+                    await _unitOfWork.SaveAsync();
+                    
+                    // Delete the user (UserManager.DeleteAsync will automatically remove role associations)
+                    var result = await _userManager.DeleteAsync(student);
+                    if (result.Succeeded)
+                    {
+                        deletedCount++;
+                    }
+                    else
+                    {
+                        errors.Add($"Failed to delete {student.FirstName} {student.LastName}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Error deleting student with ID {id}: {ex.Message}");
+                }
+            }
+
+            return (deletedCount, errors);
+        }
 
        public async Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null)
         {

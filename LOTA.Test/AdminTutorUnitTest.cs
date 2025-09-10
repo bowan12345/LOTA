@@ -15,18 +15,15 @@ namespace LOTA.Test
     public class AdminTutorUnitTest
     {
         private readonly Mock<IUnitOfWork> _mockUnitOfWork;
-        private readonly Mock<ITutorCourseRepository> _mockTutorCourseRepo;
         private readonly Mock<ITutorRepository> _mockTutorRepo;
         private readonly TutorService _service;
 
         public AdminTutorUnitTest()
         {
             _mockUnitOfWork = new Mock<IUnitOfWork>();
-            _mockTutorCourseRepo = new Mock<ITutorCourseRepository>();
             _mockTutorRepo = new Mock<ITutorRepository>();
 
             // Setup repositories in unit of work mock
-            _mockUnitOfWork.SetupGet(u => u.tutorCourseRepository).Returns(_mockTutorCourseRepo.Object);
             _mockUnitOfWork.SetupGet(u => u.tutorRepository).Returns(_mockTutorRepo.Object);
             _service = new TutorService(_mockUnitOfWork.Object);
         }
@@ -57,27 +54,7 @@ namespace LOTA.Test
 
         }
 
-        [Fact]
-        public async Task AddTutorCourseAsync_ShouldAddCoursesAndSave()
-        {
-            // Arrange
-            var tutorId = "tutor1";
-            var assignedCourses = new List<string> { "course1", "course2" };
-
-            _mockTutorCourseRepo.Setup(r => r.AddRangeAsync(It.IsAny<IEnumerable<TutorCourse>>()))
-                .ReturnsAsync(new List<TutorCourse>());
-            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
-            // Act
-            await _service.AddTutorCourseAsync(tutorId, assignedCourses);
-            // Assert
-            _mockTutorCourseRepo.Verify(r => r.AddRangeAsync(It.Is<IEnumerable<TutorCourse>>(list =>
-                list.Count() == 2 &&
-                list.All(tc => tc.TutorId == tutorId) &&
-                assignedCourses.All(ac => list.Any(tc => tc.CourseId == ac))
-            )), Times.Once);
-
-            _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
-        }
+     
 
         [Fact]
         public async Task GetTutorByIdAsync_ShouldReturnTutor_WhenExists()
@@ -102,53 +79,6 @@ namespace LOTA.Test
             Assert.Equal(tutorId, result.Id);
         }
 
-        [Fact]
-        public async Task GetTutorCoursesAsync_ShouldReturnCoursesForTutor()
-        {
-            // Arrange
-            var tutorId = "tutor1";
-            var courses = new List<TutorCourse>
-            {
-                new TutorCourse { TutorId = tutorId, CourseId = "course1" },
-                new TutorCourse { TutorId = tutorId, CourseId = "course2" }
-            };
-
-            _mockTutorCourseRepo.Setup(r => r.GetAllAsync(
-                It.IsAny<Expression<Func<TutorCourse, bool>>>(),
-                It.IsAny<string>()))
-                .ReturnsAsync(courses);
-
-            // Act
-            var result = await _service.GetTutorCoursesAsync(tutorId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
-            Assert.All(result, tc => Assert.Equal(tutorId, tc.TutorId));
-        }
-
-
-        [Fact]
-        public async Task RemoveAllTutorCoursesAsync_ShouldRemoveAndSave_WhenCoursesExist()
-        {
-            // Arrange
-            var tutorId = "tutor1";
-            var existingCourses = new List<TutorCourse>
-            {
-                new TutorCourse { TutorId = tutorId, CourseId = "course1" }
-            };
-            _mockTutorCourseRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<TutorCourse, bool>>>(), null))
-                .ReturnsAsync(existingCourses);
-            _mockTutorCourseRepo.Setup(r => r.RemoveRange(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(existingCourses.Select(c => c.Id)))));
-            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
-
-            // Act
-            await _service.RemoveAllTutorCoursesAsync(tutorId);
-
-            // Assert
-            _mockTutorCourseRepo.Verify(r => r.RemoveRange(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(existingCourses.Select(c => c.Id)))), Times.Once);
-            _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
-        }
 
 
         [Fact]

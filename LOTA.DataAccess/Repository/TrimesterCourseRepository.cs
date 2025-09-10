@@ -152,5 +152,12 @@ namespace LOTA.DataAccess.Repository
                  .OrderBy(tc => tc.Course.CourseCode)
                  .ToListAsync();
         }
+
+        public void ClearTutorFromAllCourses(string tutorId)
+        {
+            _db.TrimesterCourse
+                .Where(tc => tc.TutorId == tutorId)
+                .ExecuteUpdate(setters => setters.SetProperty(tc => tc.TutorId, (string)null));
+        }
     }
 }

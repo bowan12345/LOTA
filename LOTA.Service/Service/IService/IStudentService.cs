@@ -11,6 +11,7 @@ namespace LOTA.Service.Service.IService
         Task<StudentReturnDTO> CreateStudentAsync(StudentCreateDTO studentDto);
         Task<StudentReturnDTO> UpdateStudentAsync(StudentUpdateDTO studentDto);
         Task<bool> DeleteStudentAsync(string id);
+        Task<(int deletedCount, List<string> errors)> DeleteStudentsAsync(IEnumerable<string> ids);
         Task<bool> IsStudentEmailExistsAsync(string email, string? excludeId = null);
         Task<bool> IsStudentNoExistsAsync(string studentNo, string? excludeId = null);
 

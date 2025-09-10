@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
@@ -18,11 +19,13 @@ namespace LOTAWeb.Areas.Admin.Controllers
     {
         private readonly IStudentService _studentService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILOTAEmailSender _emailSender;
 
-        public StudentController(IStudentService studentService, UserManager<ApplicationUser> userManager)
+        public StudentController(IStudentService studentService, UserManager<ApplicationUser> userManager, ILOTAEmailSender emailSender)
         {
             _studentService = studentService;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         public async Task<IActionResult> Index(string searchTerm)
@@ -183,32 +186,26 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(string id)
         {
-            
-            var student = await _userManager.FindByIdAsync(id);
-            if (student == null)
+            try
             {
-                return Json(new { success = false, message = "Student not found" });
+                var result = await _studentService.DeleteStudentAsync(id);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Student deleted successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Student not found" });
+                }
             }
-
-            // Check if student has enrolled courses
-            var enrolledCourses = student.StudentCourses?.Count ?? 0;
-            if (enrolledCourses > 0)
+            catch (InvalidOperationException ex)
             {
-                return Json(new { success = false, message = $"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses." });
+                return Json(new { success = false, message = ex.Message });
             }
-
-            var result = await _userManager.DeleteAsync(student);
-            if (result.Succeeded)
+            catch (Exception ex)
             {
-                _userManager.RemoveFromRoleAsync(student, Roles.Role_Student).GetAwaiter().GetResult();
-                return Json(new { success = true, message = "Student deleted successfully" });
+                return Json(new { success = false, message = $"Failed to delete student: {ex.Message}" });
             }
-            else
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return Json(new { success = false, message = $"Failed to delete student: {errors}" });
-            }
-            
         }
 
         // POST: Admin/Student/DeleteSelected
@@ -220,59 +217,27 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = "No students selected for deletion" });
             }
 
-            var deletedCount = 0;
-            var errors = new List<string>();
-
-            foreach (var id in request.Ids)
+            try
             {
-                try
+                var (deletedCount, errors) = await _studentService.DeleteStudentsAsync(request.Ids);
+                
+                if (deletedCount > 0)
                 {
-                    var student = await _userManager.FindByIdAsync(id);
-                    if (student == null)
-                    {
-                        errors.Add($"Student with ID {id} not found");
-                        continue;
-                    }
-
-                    // Check if student has enrolled courses,delete all enrolled course
-                    var enrolledCourses = student.StudentCourses?.Count ?? 0;
-                    if (enrolledCourses > 0)
-                    {
-                        errors.Add($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
-                        continue;
-                    }
-
-                    var result = await _userManager.DeleteAsync(student);
-                    if (result.Succeeded)
-                    {
-                        _userManager.RemoveFromRoleAsync(student, Roles.Role_Student).GetAwaiter().GetResult();
-                        deletedCount++;
-                    }
-                    else
-                    {
-                        errors.Add($"Failed to delete {student.FirstName} {student.LastName}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
+                    var message = errors.Any() 
+                        ? $"Successfully deleted {deletedCount} students. Some errors occurred: {string.Join(", ", errors)}"
+                        : $"Successfully deleted {deletedCount} students.";
+                    
+                    return Json(new { success = true, message = message, deletedCount = deletedCount });
                 }
-                catch (Exception ex)
+                else
                 {
-                    errors.Add($"Error processing student {id}: {ex.Message}");
+                    return Json(new { success = false, message = "No students were deleted", errors = errors });
                 }
             }
-
-            if (deletedCount > 0)
+            catch (Exception ex)
             {
-                var message = $"Successfully deleted {deletedCount} student(s)";
-                if (errors.Any())
-                {
-                    message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
-                }
-                return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
+                return Json(new { success = false, message = $"Failed to delete students: {ex.Message}" });
             }
-            else
-            {
-                return Json(new { success = false, message = "No students were deleted. Errors: " + string.Join("; ", errors) });
-            }
-           
         }
 
         [HttpGet]
@@ -465,8 +430,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             continue;
                         }
 
-                        // Generate a default password
-                        var defaultPassword = "Student123!";
+                        // Generate a default password using password generator
+                        var defaultPassword = DefaultPasswords.GetStudentDefaultPassword();
 
                         // Check if email already exists
                         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -497,7 +462,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             UserName = email,
                             StudentNo = studentNo,
                             IsActive = true,
-                            EmailConfirmed = true
+                            EmailConfirmed = true,
+                            MustChangePassword = DefaultPasswords.ForcePasswordChangeOnFirstLogin
                         };
 
                         var result = await _userManager.CreateAsync(student, defaultPassword);
@@ -505,6 +471,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         {
                             //add student role
                             _userManager.AddToRoleAsync(student, Roles.Role_Student).GetAwaiter().GetResult();
+                            
+                            // Send account creation email
+                            await _emailSender.SendAccountCreationEmailAsync(student, defaultPassword, Roles.Role_Student);
+                            
                             successCount++;
                         }
                         else
@@ -541,5 +511,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
     }
 }

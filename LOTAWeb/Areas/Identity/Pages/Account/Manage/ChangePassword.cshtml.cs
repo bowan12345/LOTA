@@ -44,6 +44,18 @@ namespace LOTAWeb.Areas.Identity.Pages.Account.Manage
         public string StatusMessage { get; set; }
 
         /// <summary>
+        /// Whether password change is required (first login)
+        /// </summary>
+        [BindProperty(SupportsGet = true)]
+        public bool MustChange { get; set; } = false;
+
+        /// <summary>
+        /// Return URL after password change
+        /// </summary>
+        [BindProperty(SupportsGet = true)]
+        public string ReturnUrl { get; set; }
+
+        /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
@@ -118,8 +130,34 @@ namespace LOTAWeb.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
+            // If forced password change, clear MustChangePassword flag
+            if (MustChange && user.MustChangePassword)
+            {
+                user.MustChangePassword = false;
+                await _userManager.UpdateAsync(user);
+            }
+
             await _signInManager.RefreshSignInAsync(user);
             _logger.LogInformation("User changed their password successfully.");
+            
+            // If forced password change, redirect to appropriate area
+            if (MustChange)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains(LOTA.Utility.Roles.Role_Admin))
+                {
+                    return LocalRedirect("/Admin");
+                }
+                else if (roles.Contains(LOTA.Utility.Roles.Role_Tutor))
+                {
+                    return LocalRedirect("/Tutor");
+                }
+                else if (roles.Contains(LOTA.Utility.Roles.Role_Student))
+                {
+                    return LocalRedirect("/Student");
+                }
+                return LocalRedirect(ReturnUrl ?? "/");
+            }
             
             // logout and redirect to login page with success message
             await _signInManager.SignOutAsync();

@@ -31,7 +31,6 @@ namespace LOTA.Model
         public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
         public ICollection<LearningOutcome> LearningOutcomes { get; set; } = new List<LearningOutcome>();
         public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
-        public ICollection<TutorCourse> TutorCourses { get; set; } = new List<TutorCourse>();
 
     }
 }

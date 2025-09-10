@@ -21,7 +21,6 @@ namespace LOTA.DataAccess.Data
         public DbSet<StudentCourse> StudentCourse { get; set; }
         public DbSet<StudentAssessmentScore> StudentAssessmentScore { get; set; }
         public DbSet<StudentLOScore> StudentLOScore { get; set; }
-        public DbSet<TutorCourse> TutorCourse { get; set; }
         public DbSet<Trimester> Trimester { get; set; }
         public DbSet<TrimesterCourse> TrimesterCourse { get; set; }
 
@@ -65,18 +64,6 @@ namespace LOTA.DataAccess.Data
                 .WithOne(sc => sc.StudentAssessmentScore)
                 .HasForeignKey(sc => sc.StudentAssessmentScoreId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<TutorCourse>()
-                .HasOne(tc => tc.Tutor)
-                .WithMany(u => u.TutorCourse)
-                .HasForeignKey(tc => tc.TutorId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<TutorCourse>()
-                .HasOne(tc => tc.Course)
-                .WithMany(c => c.TutorCourses)
-                .HasForeignKey(tc => tc.CourseId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Qualification and Course relationship
             modelBuilder.Entity<Course>()
@@ -231,21 +218,6 @@ namespace LOTA.DataAccess.Data
                 }
             );
 
-            // tutors and courses
-            modelBuilder.Entity<TutorCourse>().HasData(
-                new TutorCourse
-                {
-                    Id = "TCO1001",
-                    TutorId = "TUTOR-001",
-                    CourseId = "COURSE-001"
-                },
-                new TutorCourse
-                {
-                    Id = "TCO1002",
-                    TutorId = "TUTOR-001",
-                    CourseId = "COURSE-002"
-                }
-            );
             // trimester
             modelBuilder.Entity<Trimester>().HasData(
                 new Trimester

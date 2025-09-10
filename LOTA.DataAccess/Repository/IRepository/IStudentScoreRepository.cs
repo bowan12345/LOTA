@@ -11,6 +11,12 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentAsync(string studentId, string assessmentId);
         void RemoveByCourseOfferingId(string courseOfferingId);
         void RemoveByAssessmentId(string assessmentId);
+        
+        /// <summary>
+        /// Delete all student assessment scores by student ID
+        /// </summary>
+        /// <param name="studentId">Student ID</param>
+        void RemoveAllByStudentId(string studentId);
 
     }
 }

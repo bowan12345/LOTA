@@ -24,9 +24,11 @@ namespace LOTA.Model
 
         public bool IsActive { get; set; } = true;
 
+        // check if user needs to reset password on first login
+        public bool MustChangePassword { get; set; } = false;
+
         public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
         public ICollection<StudentAssessmentScore> StudentScores { get; set; } = new List<StudentAssessmentScore>();
-        public ICollection<TutorCourse> TutorCourse { get; set; } = new List<TutorCourse>();
         public ICollection<TrimesterCourse> TrimesterCourse { get; set; } = new List<TrimesterCourse>();
     }
 }

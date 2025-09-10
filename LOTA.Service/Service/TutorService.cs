@@ -2,6 +2,7 @@
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Service.Service.IService;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,9 +15,12 @@ namespace LOTA.Service.Service
     public class TutorService : ITutorService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public TutorService(IUnitOfWork unitOfWork)
+        private readonly UserManager<ApplicationUser> _userManager;
+        
+        public TutorService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
 
         public async Task<ApplicationUser> GetTutorByEmailAsync(string email)
@@ -28,62 +32,18 @@ namespace LOTA.Service.Service
         {
             // Get only users who have TutorNo (i.e., are tutors) and include their courses
             return await _unitOfWork.tutorRepository.GetAllAsync(
-                filter: u => !string.IsNullOrEmpty(u.TutorNo),
-                includeProperties: "TutorCourse.Course"
-            );
+                filter: u => !string.IsNullOrEmpty(u.TutorNo));
         }
 
-        public async Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses)
-        {
-            
-            List<TutorCourse> tutorCourses = new List<TutorCourse>();
-            foreach (string course in AssignedCourses)
-            {
-                TutorCourse tutorCourse = new TutorCourse()
-                {
-                    // Generate unique ID
-                    Id = Guid.NewGuid().ToString(), 
-                    TutorId = TutorId,
-                    CourseId = course
-                };
-                tutorCourses.Add(tutorCourse);
-            }
-            await _unitOfWork.tutorCourseRepository.AddRangeAsync(tutorCourses);
-            await _unitOfWork.SaveAsync(); 
-        }
 
         public async Task<ApplicationUser> GetTutorByIdAsync(string id)
         {
           
             var tutors = await _unitOfWork.tutorRepository.GetAllAsync(
-                filter: u => u.Id == id,
-                includeProperties: "TutorCourse.Course"
-            );
+                filter: u => u.Id == id);
             return tutors.FirstOrDefault();
         }
 
-        public async Task<IEnumerable<TutorCourse>> GetTutorCoursesAsync(string tutorId)
-        {
-            
-            return await _unitOfWork.tutorCourseRepository.GetAllAsync(
-                filter: tc => tc.TutorId == tutorId,
-                includeProperties: "Course"
-            );
-        }
-
-        public async Task RemoveAllTutorCoursesAsync(string tutorId)
-        {
-            
-            var existingCourses = await _unitOfWork.tutorCourseRepository.GetAllAsync(
-                filter: tc => tc.TutorId == tutorId
-            );
-            
-            if (existingCourses.Any())
-            {
-                _unitOfWork.tutorCourseRepository.RemoveRange(existingCourses.Select(co=>co.Id));
-                await _unitOfWork.SaveAsync();
-            }
-        }
 
         public async Task<IEnumerable<ApplicationUser>> SearchTutorsAsync(string searchTerm)
         {
@@ -102,10 +62,36 @@ namespace LOTA.Service.Service
                 filter: u => !string.IsNullOrEmpty(u.TutorNo) && 
                             (u.FirstName != null && u.FirstName.ToLower().Contains(searchTerm) ||
                              u.LastName != null && u.LastName.ToLower().Contains(searchTerm) ||
-                             u.Email != null && u.Email.ToLower().Contains(searchTerm)),
-                includeProperties: "TutorCourse.Course"
+                             u.Email != null && u.Email.ToLower().Contains(searchTerm))
             );
         }
-          
+
+        public async Task DeleteTutorAsync(string id)
+        {
+            var tutor = await _userManager.FindByIdAsync(id);
+            if (tutor == null)
+            {
+                throw new ArgumentException("Tutor not found");
+            }
+
+            // Step 1: Clear tutor assignment from all trimester courses
+            _unitOfWork.trimesterCourseRepository.ClearTutorFromAllCourses(tutor.Id);
+            await _unitOfWork.SaveAsync();
+
+            // Step 2: Delete the tutor
+            var result = await _userManager.DeleteAsync(tutor);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to delete tutor: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
+
+        public async Task DeleteTutorsAsync(IEnumerable<string> ids)
+        {
+            foreach (var id in ids)
+            {
+                await DeleteTutorAsync(id);
+            }
+        }
     }
 }

@@ -52,6 +52,13 @@ namespace LOTA.DataAccess.Repository
                 .ExecuteDelete();
         }
 
+        public void RemoveAllByStudentId(string studentId)
+        {
+            _db.StudentAssessmentScore
+                .Where(ss => ss.StudentId == studentId)
+                .ExecuteDelete();
+        }
+
         public async Task<StudentAssessmentScore> GetStudentScoreByStudentAssessmentLOAsync(string studentId, string assessmentId, string loId)
         {
             return await _db.StudentAssessmentScore

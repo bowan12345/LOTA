@@ -22,13 +22,6 @@ namespace LOTA.Service.Service.IService
         /// <returns> a list of tutors</returns>
         Task<IEnumerable<ApplicationUser>> GetAllTutorsAsync();
 
-        /// <summary>
-        /// add assigned courses to a tutor
-        /// </summary>
-        /// <param name="TutorId"> id of tutor </param>
-        /// <param name="AssignedCourses"> a list of assigned courses </param>
-        /// <returns></returns>
-        Task AddTutorCourseAsync(string TutorId, List<string> AssignedCourses);
 
         /// <summary>
         /// get tutor info by id
@@ -37,19 +30,6 @@ namespace LOTA.Service.Service.IService
         /// <returns> an object of tutor</returns>
         Task<ApplicationUser> GetTutorByIdAsync(string id);
 
-        /// <summary>
-        /// get assigned courses for a tutor
-        /// </summary>
-        /// <param name="tutorId"> id of tutor </param>
-        /// <returns> a list of tutor courses</returns>
-        Task<IEnumerable<TutorCourse>> GetTutorCoursesAsync(string tutorId);
-
-        /// <summary>
-        /// remove all course assignments for a tutor
-        /// </summary>
-        /// <param name="tutorId"> id of tutor </param>
-        /// <returns></returns>
-        Task RemoveAllTutorCoursesAsync(string tutorId);
 
         /// <summary>
         /// search tutors by search term
@@ -57,5 +37,17 @@ namespace LOTA.Service.Service.IService
         /// <param name="searchTerm"> search term to filter tutors </param>
         /// <returns> filtered list of tutors</returns>
         Task<IEnumerable<ApplicationUser>> SearchTutorsAsync(string searchTerm);
+
+        /// <summary>
+        /// Delete a tutor and handle all related data
+        /// </summary>
+        /// <param name="id"> tutor id </param>
+        Task DeleteTutorAsync(string id);
+
+        /// <summary>
+        /// Delete multiple tutors and handle all related data
+        /// </summary>
+        /// <param name="ids"> list of tutor ids </param>
+        Task DeleteTutorsAsync(IEnumerable<string> ids);
     }
 }

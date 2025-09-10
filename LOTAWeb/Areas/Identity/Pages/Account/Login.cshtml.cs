@@ -120,10 +120,16 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User logged in.");
                     
-                    // Get user and determine redirect URL based on role
+                    // Get user and check if password change is required
                     var user = await _userManager.FindByEmailAsync(Input.Email);
                     if (user != null)
                     {
+                        // Check if user must change password
+                        if (user.MustChangePassword)
+                        {
+                            return RedirectToPage("./Manage/ChangePassword", new { ReturnUrl = returnUrl, MustChange = true });
+                        }
+                        
                         var roles = await _userManager.GetRolesAsync(user);
                         
                         // If returnUrl is not the default home page, use it

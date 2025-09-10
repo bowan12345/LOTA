@@ -4,6 +4,7 @@ using LOTA.Model.DTO.Admin;
 using LOTA.Service.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Text.Json;
 using LOTAWeb.Models;
 using ClosedXML.Excel;
@@ -20,11 +21,13 @@ namespace LOTAWeb.Areas.Admin.Controllers
     {
         private readonly ITutorService _tutorService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILOTAEmailSender _emailSender;
 
-        public TutorController(ITutorService tutorService, UserManager<ApplicationUser> userManager)
+        public TutorController(ITutorService tutorService, UserManager<ApplicationUser> userManager, ILOTAEmailSender emailSender)
         {
             _tutorService = tutorService;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         // GET: Admin/Tutor home page
@@ -202,11 +205,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 {
                     return Json(new { success = false, message = "Tutor not found" });
                 }
-
-                // Get assigned courses for this tutor
-                var assignedCourses = await _tutorService.GetTutorCoursesAsync(id);
-                var courseIds = assignedCourses.Select(tc => tc.CourseId).ToList();
-
                 var tutorData = new
                 {
                     id = tutor.Id,
@@ -215,7 +213,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     email = tutor.Email,
                     tutorNo = tutor.TutorNo,
                     isActive = tutor.IsActive,
-                    assignedCourses = courseIds
                 };
 
                 return Json(new { success = true, data = tutorData });
@@ -238,27 +235,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tutor not found" });
                 }
 
-                // Step 1: Delete all course assignments (sub-table) first
-                try
-                {
-                    await _tutorService.RemoveAllTutorCoursesAsync(id);
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Failed to remove course assignments: " + ex.Message });
-                }
-
-                // Step 2: Delete the tutor (main table)
-                var result = await _userManager.DeleteAsync(tutor);
-                if (result.Succeeded)
-                {
-                    _userManager.RemoveFromRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
-                    return Json(new { success = true, message = "Tutor deleted successfully" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-                }
+                // Use TutorService to handle deletion with proper foreign key cleanup
+                await _tutorService.DeleteTutorAsync(id);
+                return Json(new { success = true, message = "Tutor deleted successfully" });
             }
             catch (Exception ex)
             {
@@ -281,62 +260,11 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "No tutors selected for deletion" });
                 }
 
-                var deletedCount = 0;
-                var errors = new List<string>();
-
-                foreach (var id in request.Ids)
-                {
-                    try
-                    {
-                        var tutor = await _userManager.FindByIdAsync(id);
-                        if (tutor == null)
-                        {
-                            errors.Add($"Tutor with ID {id} not found");
-                            continue;
-                        }
-
-                        // Step 1: Delete all course assignments (sub-table) first
-                        try
-                        {
-                            await _tutorService.RemoveAllTutorCoursesAsync(id);
-                        }
-                        catch (Exception ex)
-                        {
-                            errors.Add($"Failed to remove course assignments for {tutor.Email}: {ex.Message}");
-                            continue;
-                        }
-
-                        // Step 2: Delete the tutor (main table)
-                        var result = await _userManager.DeleteAsync(tutor);
-                        if (result.Succeeded)
-                        {
-                            _userManager.RemoveFromRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
-                            deletedCount++;
-                        }
-                        else
-                        {
-                            errors.Add($"Failed to delete {tutor.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.Add($"Error processing tutor {id}: {ex.Message}");
-                    }
-                }
-
-                if (deletedCount > 0)
-                {
-                    var message = $"Successfully deleted {deletedCount} tutor(s)";
-                    if (errors.Any())
-                    {
-                        message += $". {errors.Count} error(s) occurred: {string.Join("; ", errors)}";
-                    }
-                    return Json(new { success = true, message = message, deletedCount, errorCount = errors.Count });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "No tutors were deleted. Errors: " + string.Join("; ", errors) });
-                }
+                // Use TutorService to handle batch deletion with proper foreign key cleanup
+                await _tutorService.DeleteTutorsAsync(request.Ids);
+                
+                var message = $"Successfully deleted {request.Ids.Count()} tutor(s)";
+                return Json(new { success = true, message = message, deletedCount = request.Ids.Count() });
             }
             catch (Exception ex)
             {
@@ -503,13 +431,20 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             LastName = tutorData.Surname,
                             TutorNo = tutorData.Email, 
                             IsActive = true,
-                            EmailConfirmed = true
+                            EmailConfirmed = true,
+                            MustChangePassword = DefaultPasswords.ForcePasswordChangeOnFirstLogin
                         };
 
-                        var result = await _userManager.CreateAsync(tutor, tutorData.Password);
+                        // Use default password if not provided in Excel
+                        var password = string.IsNullOrWhiteSpace(tutorData.Password) ? DefaultPasswords.GetTutorDefaultPassword() : tutorData.Password;
+                        var result = await _userManager.CreateAsync(tutor, password);
                         if (result.Succeeded)
                         {
                             _userManager.AddToRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
+                            
+                            // Send account creation email
+                            await _emailSender.SendAccountCreationEmailAsync(tutor, password, Roles.Role_Tutor);
+                            
                             successCount++;
                         }
                         else
@@ -664,5 +599,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                  return Json(new { success = false, message = "Error creating template file" });
              }
          }
+
     }
 } 

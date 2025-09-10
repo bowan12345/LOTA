@@ -17,5 +17,11 @@ namespace LOTA.DataAccess.Repository.IRepository
         Task<IEnumerable<TrimesterCourse>> GetLatestTrimesterCourseOfferingsAsync();
         Task<TrimesterCourse> GetTrimesterCourseWithDetailsAsync(string id);
         Task<IEnumerable<TrimesterCourse>> GetTrimesterCoursesByTutorAndTrimesterAsync(string tutorId, string trimesterId);
+        
+        /// <summary>
+        /// Clear tutor assignment from all trimester courses by tutor ID
+        /// </summary>
+        /// <param name="tutorId">Tutor ID</param>
+        void ClearTutorFromAllCourses(string tutorId);
     }
 }
