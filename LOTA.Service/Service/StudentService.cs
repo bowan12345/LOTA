@@ -141,31 +141,23 @@ namespace LOTA.Service.Service
             return MapToDTO(existingStudent);
         }
 
-        public async Task<bool> DeleteStudentAsync(string id)
+        public async Task DeleteStudentAsync(string id)
          {
-            
             var student = await _userManager.FindByIdAsync(id);
              if (student == null)
              {
-                 return false;
-             }
-
-             // Check if student has enrolled courses
-             var enrolledCourses = student.StudentCourses?.Count ?? 0;
-             if (enrolledCourses > 0)
-             {
-                 throw new InvalidOperationException($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
-             }
+                throw new InvalidOperationException("Student not found");
+            }
 
              // Delete all related records first
              _unitOfWork.studentCourseRepository.RemoveAllByStudentId(student.Id);
              _unitOfWork.studentScoreRepository.RemoveAllByStudentId(student.Id);
              await _unitOfWork.SaveAsync();
              
-             // Delete the user (UserManager.DeleteAsync will automatically remove role associations)
+             // Delete the user 
              var result = await _userManager.DeleteAsync(student);
-             return result.Succeeded;
          }
+
 
         public async Task<(int deletedCount, List<string> errors)> DeleteStudentsAsync(IEnumerable<string> ids)
         {
@@ -182,14 +174,6 @@ namespace LOTA.Service.Service
                         errors.Add($"Student not found");
                         continue;
                     }
-
-                    // Check if student has enrolled courses
-                   /* var enrolledCourses = student.StudentCourses?.Count ?? 0;
-                    if (enrolledCourses > 0)
-                    {
-                        errors.Add($"Cannot delete student '{student.FirstName} {student.LastName}' because they have enrolled courses.");
-                        continue;
-                    }*/
 
                     // Delete all related records first
                     _unitOfWork.studentCourseRepository.RemoveAllByStudentId(student.Id);

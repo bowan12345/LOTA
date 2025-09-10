@@ -188,25 +188,15 @@ namespace LOTAWeb.Areas.Admin.Controllers
         {
             try
             {
-                var result = await _studentService.DeleteStudentAsync(id);
-                if (result)
-                {
-                    return Json(new { success = true, message = "Student deleted successfully" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Student not found" });
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Json(new { success = false, message = ex.Message });
+                await _studentService.DeleteStudentAsync(id);
+                return Json(new { success = true, message = "Student deleted successfully" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Failed to delete student: {ex.Message}" });
+                return Json(new { success = false, message = $"Failed to delete student" });
             }
         }
+
 
         // POST: Admin/Student/DeleteSelected
         [HttpPost]
