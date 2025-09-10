@@ -2,6 +2,7 @@
 using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Service.Service;
+using Microsoft.AspNetCore.Identity;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace LOTA.Test
         private readonly Mock<IUnitOfWork> _mockUnitOfWork;
         private readonly Mock<ITutorRepository> _mockTutorRepo;
         private readonly TutorService _service;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public AdminTutorUnitTest()
         {
@@ -25,7 +27,7 @@ namespace LOTA.Test
 
             // Setup repositories in unit of work mock
             _mockUnitOfWork.SetupGet(u => u.tutorRepository).Returns(_mockTutorRepo.Object);
-            _service = new TutorService(_mockUnitOfWork.Object);
+            _service = new TutorService(_mockUnitOfWork.Object, _userManager);
         }
 
 
@@ -38,7 +40,7 @@ namespace LOTA.Test
                 new ApplicationUser { Id = "1", FirstName = "David" },
                 new ApplicationUser { Id = "2", FirstName = "Jhon" }
             });
-            var service = new TutorService(mockUnitOfWork.Object);
+            var service = new TutorService(mockUnitOfWork.Object, _userManager);
 
             //act
             var results = await service.GetAllTutorsAsync();
