@@ -374,11 +374,18 @@
         const container = document.getElementById('learningOutcomesContainer');
         
         if (courseData && courseData.learningOutcomes && courseData.learningOutcomes.length > 0) {
+            // Sort learning outcomes by name in ascending order
+            const sortedLOs = courseData.learningOutcomes.sort((a, b) => {
+                const nameA = (a.loName || a.LOName || a.name || a.Name || '').toLowerCase();
+                const nameB = (b.loName || b.LOName || b.name || b.Name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
             let html = '';
-            courseData.learningOutcomes.forEach(lo => {
+            sortedLOs.forEach(lo => {
                 html += `
                     <div class="mb-2 p-2 border rounded bg-light">
-                        <h6 class="mb-1 fw-semibold text-primary">${lo.loName || lo.LOName}</h6>
+                        <h6 class="mb-1 fw-semibold text-primary">${lo.loName || lo.LOName || lo.name || lo.Name}</h6>
                         <p class="mb-0 small text-muted">${lo.description || lo.Description || 'No description available'}</p>
                     </div>
                 `;
