@@ -235,7 +235,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tutor not found" });
                 }
 
-                // Use TutorService to handle deletion with proper foreign key cleanup
                 await _tutorService.DeleteTutorAsync(id);
                 return Json(new { success = true, message = "Tutor deleted successfully" });
             }
@@ -260,7 +259,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     return Json(new { success = false, message = "No tutors selected for deletion" });
                 }
 
-                // Use TutorService to handle batch deletion with proper foreign key cleanup
                 await _tutorService.DeleteTutorsAsync(request.Ids);
                 
                 var message = $"Successfully deleted {request.Ids.Count()} tutor(s)";
@@ -285,15 +283,14 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
                 // Validate file extension
-                var allowedExtensions = new[] { ".xlsx", ".xls", ".csv" };
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                 {
-                    return Json(new { success = false, message = "Please upload a valid Excel file (.xlsx or .xls or .csv)" });
+                    return Json(new { success = false, message = "Please upload a valid Excel file (.xlsx or .xls)" });
                 }
 
                 // ClosedXML is free and open source
-
                 var tutors = new List<TutorExcelDTO>();
                 var errors = new List<string>();
                 var successCount = 0;
@@ -383,15 +380,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                                 errorCount++;
                                 continue;
                             }
-
-                            // Generate password if not provided
-                            if (string.IsNullOrWhiteSpace(password))
-                            {
-                                errors.Add($"Row {row}: Invalid email format: {password}");
-                                errorCount++;
-                                continue;
-                            }
-
                             tutors.Add(new TutorExcelDTO
                             {
                                 Surname = surname,
@@ -436,7 +424,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                         };
 
                         // Use default password if not provided in Excel
-                        var password = string.IsNullOrWhiteSpace(tutorData.Password) ? DefaultPasswords.GetTutorDefaultPassword() : tutorData.Password;
+                        var password = DefaultPasswords.GetTutorDefaultPassword();
                         var result = await _userManager.CreateAsync(tutor, password);
                         if (result.Succeeded)
                         {
@@ -515,29 +503,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
-        // Helper method to generate default password
-        private string GenerateDefaultPassword()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-          // Helper method to get course IDs by course codes
-         private async Task<List<string>> GetCourseIdsByCodes(List<string> courseCodes)
-         {
-             try
-             {
-                 // to get courses by codes and return their IDs
-                 var courseIds = new List<string>();
-                 return courseIds;
-             }
-             catch (Exception ex)
-             {
-                 Console.WriteLine($"Error getting course IDs by codes: {ex.Message}");
-                 return new List<string>();
-             }
-         }
 
          // GET: Admin/Tutor/DownloadTemplate
          [HttpGet]
@@ -555,10 +520,9 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Cell(1, 1).Value = "Surname";
                      worksheet.Cell(1, 2).Value = "FirstName";
                      worksheet.Cell(1, 3).Value = "Email";
-                     worksheet.Cell(1, 4).Value = "Password";
 
                      // Style headers
-                     var headerRange = worksheet.Range(1, 1, 1, 4);
+                     var headerRange = worksheet.Range(1, 1, 1, 3);
                      headerRange.Style.Font.Bold = true;
                      headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
                      headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
@@ -568,12 +532,10 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Cell(2, 1).Value = "Smith";
                      worksheet.Cell(2, 2).Value = "John";
                      worksheet.Cell(2, 3).Value = "john.smith@example.com";
-                     worksheet.Cell(2, 4).Value = "Password123!";
 
                      worksheet.Cell(3, 1).Value = "Johnson";
                      worksheet.Cell(3, 2).Value = "Jane";
                      worksheet.Cell(3, 3).Value = "jane.johnson@example.com";
-                     worksheet.Cell(3, 4).Value = "Password123!";
 
                      // Auto-fit columns
                      worksheet.Columns().AdjustToContents();
@@ -582,7 +544,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                      worksheet.Column(1).Width = 15; // Surname
                      worksheet.Column(2).Width = 15; // FirstName
                      worksheet.Column(3).Width = 25; // Email
-                     worksheet.Column(4).Width = 15; // Password
 
                      // Create the file stream
                      var stream = new MemoryStream();

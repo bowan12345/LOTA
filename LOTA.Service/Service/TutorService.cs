@@ -74,11 +74,11 @@ namespace LOTA.Service.Service
                 throw new ArgumentException("Tutor not found");
             }
 
-            // Step 1: Clear tutor assignment from all trimester courses
+            // Clear tutor assignment from all trimester courses
             _unitOfWork.trimesterCourseRepository.ClearTutorFromAllCourses(tutor.Id);
             await _unitOfWork.SaveAsync();
 
-            // Step 2: Delete the tutor
+            //Delete the tutor
             var result = await _userManager.DeleteAsync(tutor);
             if (!result.Succeeded)
             {
