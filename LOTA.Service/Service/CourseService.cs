@@ -8,6 +8,7 @@ using ClosedXML.Excel;
 using System.Data;
 using Microsoft.IdentityModel.Tokens;
 using Azure.Core;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LOTA.Service.Service
 {
@@ -22,8 +23,16 @@ namespace LOTA.Service.Service
 
         public async Task<CourseReturnDTO> CreateCourseAsync(CourseCreateDTO courseDTO)
         {
-            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
-            // Service layer business logic processing
+            if (string.IsNullOrEmpty(courseDTO.QualificationId))
+            {
+                throw new NullReferenceException("Qualification is empty");
+            }
+            // Verify qualification exists
+            var qualification = await _unitOfWork.qualificationRepository.GetByIdAsync(courseDTO.QualificationId);
+            if (qualification == null)
+            {
+                throw new NullReferenceException("Selected qualification does not exist");
+            }
             // Generate new course ID
             var courseId = Guid.NewGuid().ToString();
             
@@ -158,120 +167,138 @@ namespace LOTA.Service.Service
 
         public async Task UpdateCourse(CourseUpdateDTO courseDTO)
         {
-          
-            try
+            if (string.IsNullOrEmpty(courseDTO.QualificationId))
             {
-                if (courseDTO == null)
-                {
-                    throw new NullReferenceException("Course is empty");
-                }
-                var course = await _unitOfWork.courseRepository.GetByIdAsync(courseDTO.Id);
-                if (course == null)
-                {
-                    throw new NullReferenceException("Course not found");
-                }
-                var courseCode = await _unitOfWork.courseRepository.GetCourseByCodeAsync(courseDTO.CourseCode);
-                if (courseCode != null && courseCode.Id != course.Id) 
-                {
-                    throw new NullReferenceException("Course code has already existed");
-                }
-                if (!string.IsNullOrEmpty(courseDTO.CourseCode))
-                {
-                    course.CourseCode = courseDTO.CourseCode;
-                }
-                if (!string.IsNullOrEmpty(courseDTO.CourseName))
-                {
-                    course.CourseName = courseDTO.CourseName;
-                }
-                if (!string.IsNullOrEmpty(courseDTO.QualificationId))
-                {
-                    course.QualificationId = courseDTO.QualificationId;
-                }
-                if (!string.IsNullOrEmpty(courseDTO.Description))
-                {
-                    course.Description = courseDTO.Description;
-                }
-                course.UpdatedDate = DateTime.Now;
+                throw new NullReferenceException("Qualification is empty");
+            }
+            // Verify qualification exists
+            var qualification = await _unitOfWork.qualificationRepository.GetByIdAsync(courseDTO.QualificationId);
+            if (qualification == null)
+            {
+                throw new NullReferenceException("Selected qualification does not exist");
+            }
 
-                // Get existing learning outcomes
-                var existingLearningOutcomes = await _unitOfWork.learningOutcomeRepository.GetAllAsync(lo => lo.CourseId == courseDTO.Id);
+            if (courseDTO == null)
+            {
+                throw new NullReferenceException("Course is empty");
+            }
+            var course = await _unitOfWork.courseRepository.GetByIdAsync(courseDTO.Id);
+            if (course == null)
+            {
+                throw new NullReferenceException("Course not found");
+            }
+            var courseCode = await _unitOfWork.courseRepository.GetCourseByCodeAsync(courseDTO.CourseCode);
+            if (courseCode != null && courseCode.Id != course.Id) 
+            {
+                throw new NullReferenceException("Course code has already existed");
+            }
+            if (!string.IsNullOrEmpty(courseDTO.CourseCode))
+            {
+                course.CourseCode = courseDTO.CourseCode;
+            }
+            if (!string.IsNullOrEmpty(courseDTO.CourseName))
+            {
+                course.CourseName = courseDTO.CourseName;
+            }
+            if (!string.IsNullOrEmpty(courseDTO.QualificationId))
+            {
+                course.QualificationId = courseDTO.QualificationId;
+            }
+            if (!string.IsNullOrEmpty(courseDTO.Description))
+            {
+                course.Description = courseDTO.Description;
+            }
+            course.UpdatedDate = DateTime.Now;
+
+            // Get existing learning outcomes
+            var existingLearningOutcomes = await _unitOfWork.learningOutcomeRepository.GetAllAsync(lo => lo.CourseId == courseDTO.Id);
                
-                // Process learning outcomes update - update existing ones or add new ones
-                if (courseDTO.LearningOutcomes != null && courseDTO.LearningOutcomes.Count > 0)
-                {
-                    // Filter out empty or invalid learning outcomes
-                    var validLearningOutcomes = courseDTO.LearningOutcomes
-                        .Where(lo => !string.IsNullOrWhiteSpace(lo.LOName) && !string.IsNullOrWhiteSpace(lo.Description))
-                        .ToList();
-
-                    if (validLearningOutcomes.Count <= 0)
-                    {
-                        return;
-                    }
-                    // Get existing learning outcomes
-                    var existingLearningOutcomesDict = existingLearningOutcomes.ToDictionary(lo => lo.Id);
-                        
-                    // Process each learning outcome
-                    foreach (var loDTO in validLearningOutcomes)
-                    {
-                        if (!string.IsNullOrWhiteSpace(loDTO.Id) && existingLearningOutcomesDict.ContainsKey(loDTO.Id))
-                        {
-                            // Update existing learning outcome
-                            var existingLO = existingLearningOutcomesDict[loDTO.Id];
-                            existingLO.LOName = loDTO.LOName;
-                            existingLO.Description = loDTO.Description;
-                            existingLO.UpdatedDate = DateTime.Now;
-                            _unitOfWork.learningOutcomeRepository.Update(existingLO);
-                        }
-                        else
-                        {
-                            // Add new learning outcome
-                            var newLearningOutcome = new LearningOutcome()
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                LOName = loDTO.LOName,
-                                Description = loDTO.Description,
-                                CourseId = courseDTO.Id,
-                                CreatedDate = DateTime.Now,
-                                UpdatedDate = DateTime.Now
-                            };
-                            await _unitOfWork.learningOutcomeRepository.AddAsync(newLearningOutcome);
-                        }
-                    }
-                    // Remove learning outcomes that are no longer in the list
-                    var updatedLearningOutcomeIds = validLearningOutcomes.Where(lo => !string.IsNullOrWhiteSpace(lo.Id)).Select(lo => lo.Id).ToHashSet();
-                    var learningOutcomesToRemove = existingLearningOutcomes.Where(lo => !updatedLearningOutcomeIds.Contains(lo.Id)).ToList();
-                    if (learningOutcomesToRemove.Any())
-                    {
-                        _unitOfWork.learningOutcomeRepository.RemoveRange(learningOutcomesToRemove.Select(lo => lo.Id));
-                    }
-                }
-                else
-                {
-                    // Remove all learning outcomes if no learning outcomes are provided
-                    if (existingLearningOutcomes.Any())
-                    {
-                        _unitOfWork.learningOutcomeRepository.RemoveRange(existingLearningOutcomes.Select(lo=>lo.Id));
-                    }
-                }
-
-                _unitOfWork.courseRepository.Update(course);
-                await _unitOfWork.SaveAsync();
-            }
-            catch (Exception ex)
+            // Process learning outcomes update - update existing ones or add new ones
+            if (courseDTO.LearningOutcomes != null && courseDTO.LearningOutcomes.Count > 0)
             {
-                throw new Exception(ex.Message);
+                // Filter out empty or invalid learning outcomes
+                var validLearningOutcomes = courseDTO.LearningOutcomes
+                    .Where(lo => !string.IsNullOrWhiteSpace(lo.LOName) && !string.IsNullOrWhiteSpace(lo.Description))
+                    .ToList();
+
+                if (validLearningOutcomes.Count <= 0)
+                {
+                    return;
+                }
+                // Get existing learning outcomes
+                var existingLearningOutcomesDict = existingLearningOutcomes.ToDictionary(lo => lo.Id);
+                        
+                // Process each learning outcome
+                foreach (var loDTO in validLearningOutcomes)
+                {
+                    if (!string.IsNullOrWhiteSpace(loDTO.Id) && existingLearningOutcomesDict.ContainsKey(loDTO.Id))
+                    {
+                        // Update existing learning outcome
+                        var existingLO = existingLearningOutcomesDict[loDTO.Id];
+                        existingLO.LOName = loDTO.LOName;
+                        existingLO.Description = loDTO.Description;
+                        existingLO.UpdatedDate = DateTime.Now;
+                        _unitOfWork.learningOutcomeRepository.Update(existingLO);
+                    }
+                    else
+                    {
+                        // Add new learning outcome
+                        var newLearningOutcome = new LearningOutcome()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            LOName = loDTO.LOName,
+                            Description = loDTO.Description,
+                            CourseId = courseDTO.Id,
+                            CreatedDate = DateTime.Now,
+                            UpdatedDate = DateTime.Now
+                        };
+                        await _unitOfWork.learningOutcomeRepository.AddAsync(newLearningOutcome);
+                    }
+                }
+                // Remove learning outcomes that are no longer in the list
+                var updatedLearningOutcomeIds = validLearningOutcomes.Where(lo => !string.IsNullOrWhiteSpace(lo.Id)).Select(lo => lo.Id).ToHashSet();
+                var learningOutcomesToRemove = existingLearningOutcomes.Where(lo => !updatedLearningOutcomeIds.Contains(lo.Id)).ToList();
+                if (learningOutcomesToRemove.Any())
+                {
+                    _unitOfWork.learningOutcomeRepository.RemoveRange(learningOutcomesToRemove.Select(lo => lo.Id));
+                }
             }
+            else
+            {
+                // Remove all learning outcomes if no learning outcomes are provided
+                if (existingLearningOutcomes.Any())
+                {
+                    _unitOfWork.learningOutcomeRepository.RemoveRange(existingLearningOutcomes.Select(lo=>lo.Id));
+                }
+            }
+
+            _unitOfWork.courseRepository.Update(course);
+            await _unitOfWork.SaveAsync();
            
         }
 
-        public async Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream)
+        public async Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream, string qualificationId)
         {
             var errors = new List<string>();
             var successCount = 0;
 
             try
             {
+                // Validate qualification ID
+                if (string.IsNullOrEmpty(qualificationId))
+                {
+                    errors.Add("Qualification is required");
+                    return (0, errors);
+                }
+
+                // Verify qualification exists
+                var qualification = await _unitOfWork.qualificationRepository.GetByIdAsync(qualificationId);
+                if (qualification == null)
+                {
+                    errors.Add("Selected qualification does not exist");
+                    return (0, errors);
+                }
+
                 using var workbook = new XLWorkbook(fileStream);
                 var worksheet = workbook.Worksheet(1); // Get first worksheet
                 var rows = worksheet.RowsUsed().Skip(1); // Skip header row
@@ -311,7 +338,7 @@ namespace LOTA.Service.Service
                             CourseName = courseName,
                             CourseCode = courseCode,
                             Description = "",
-                            QualificationId = null,
+                            QualificationId = qualificationId,
                             IsActive = true,
                             CreatedDate = DateTime.Now,
                             UpdatedDate = DateTime.Now

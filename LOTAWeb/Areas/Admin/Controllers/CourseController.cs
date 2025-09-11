@@ -278,15 +278,22 @@ namespace LOTAWeb.Areas.Admin.Controllers
         /// Upload Excel file to import courses
         /// </summary>
         /// <param name="file">Excel file</param>
+        /// <param name="qualificationId">Qualification ID to assign to all courses</param>
         /// <returns>JSON result with import status</returns>
         [HttpPost]
-        public async Task<IActionResult> UploadExcel(IFormFile file)
+        public async Task<IActionResult> UploadExcel(IFormFile file, string qualificationId)
         {
             try
             {
                 if (file == null || file.Length == 0)
                 {
                     return Json(new { success = false, message = "Please select a file to upload" });
+                }
+
+                // Validate qualification ID
+                if (string.IsNullOrEmpty(qualificationId))
+                {
+                    return Json(new { success = false, message = "Please select a qualification before uploading" });
                 }
 
                 // Validate file extension
@@ -344,7 +351,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 }
 
 
-                var (successCount, errors) = await _courseService.ImportCoursesFromExcelAsync(stream);
+                var (successCount, errors) = await _courseService.ImportCoursesFromExcelAsync(stream, qualificationId);
 
                 var message = $"Successfully imported {successCount} courses.";
                 if (errors.Count > 0)

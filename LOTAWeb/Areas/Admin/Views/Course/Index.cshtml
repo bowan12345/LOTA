@@ -241,18 +241,18 @@
                 <form id="addCourseForm">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label for="courseName" class="form-label">Course Name</label>
+                            <label for="courseName" class="form-label">Course Name</label><span class="text-danger">*</span>
                             <input type="text" class="form-control" id="courseName" name="courseName" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="courseCode" class="form-label">Course Code</label>
+                            <label for="courseCode" class="form-label">Course Code</label><span class="text-danger">*</span>
                             <input type="text" class="form-control" id="courseCode" name="courseCode" required>
                         </div>
 
                         <div class="col-12">
-                            <label for="qualificationId" class="form-label">Qualification</label>
+                            <label for="qualificationId" class="form-label">Qualification</label><span class="text-danger">*</span>
                             <select class="form-select" id="qualificationId" name="qualificationId">
-                                <option value="">Select Qualification (Optional)</option>
+                                <option value="">Select Qualification</option>
                                 <!-- Qualifications will be loaded dynamically -->
                             </select>
                         </div>
@@ -260,7 +260,7 @@
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter course description..."></textarea>
                         </div>
-                                                 <div class="col-12">
+                             <div class="col-12">
                              <label class="form-label">Learning Outcomes</label>
                              <div id="learningOutcomesContainer">
                                  <!-- Learning outcomes will be added here dynamically -->
@@ -305,18 +305,18 @@
                     <input type="hidden" id="editCourseId" name="courseId">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label for="editCourseName" class="form-label">Course Name</label>
+                            <label for="editCourseName" class="form-label">Course Name</label><span class="text-danger">*</span>
                             <input type="text" class="form-control" id="editCourseName" name="courseName" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="editCourseCode" class="form-label">Course Code</label>
+                            <label for="editCourseCode" class="form-label">Course Code</label><span class="text-danger">*</span>
                             <input type="text" class="form-control" id="editCourseCode" name="courseCode" required>
                         </div>
 
                         <div class="col-12">
-                            <label for="editQualificationId" class="form-label">Qualification</label>
+                            <label for="editQualificationId" class="form-label">Qualification</label><span class="text-danger">*</span>
                             <select class="form-select" id="editQualificationId" name="qualificationId">
-                                <option value="">Select Qualification (Optional)</option>
+                                <option value="">Select Qualification</option>
                                 <!-- Qualifications will be loaded dynamically -->
                             </select>
                         </div>
@@ -367,7 +367,15 @@
             <div class="modal-body">
                 <form id="uploadExcelForm">
                     <div class="mb-3">
-                        <label for="excelFile" class="form-label">Select Excel File</label>
+                        <label for="uploadQualificationId" class="form-label">Select Qualification <span class="text-danger">*</span></label>
+                        <select class="form-select" id="uploadQualificationId" name="qualificationId" required>
+                            <option value="">Please select a qualification</option>
+                            <!-- Qualifications will be loaded dynamically -->
+                        </select>
+                        <div class="form-text">All courses in the Excel file will be assigned to this qualification</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Select Excel File <span class="text-danger">*</span></label>
                         <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls" required>
                         <div class="form-text">Supported formats: .xlsx, .xls</div>
                     </div>
@@ -492,16 +500,20 @@
      function populateQualificationDropdowns(qualifications) {
          const addDropdown = document.getElementById('qualificationId');
          const editDropdown = document.getElementById('editQualificationId');
+         const uploadDropdown = document.getElementById('uploadQualificationId');
          
          const options = qualifications.map(qualification => 
-             `<option value="${qualification.id}">${qualification.qualificationName} (${qualification.qualificationType || 'N/A'})</option>`
+             `<option value="${qualification.id}">Level ${qualification.level || 'N/A'} (${qualification.qualificationType || 'N/A'}) - ${qualification.qualificationName}</option>`
          ).join('');
          
          if (addDropdown) {
-             addDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>' + options;
+             addDropdown.innerHTML = '<option value="">Select Qualification</option>' + options;
          }
          if (editDropdown) {
-             editDropdown.innerHTML = '<option value="">Select Qualification (Optional)</option>' + options;
+             editDropdown.innerHTML = '<option value="">Select Qualification</option>' + options;
+         }
+         if (uploadDropdown) {
+             uploadDropdown.innerHTML = '<option value="">Please select a qualification</option>' + options;
          }
      }
  
@@ -913,7 +925,15 @@
 
     function uploadExcel() {
         const fileInput = document.getElementById('excelFile');
+        const qualificationSelect = document.getElementById('uploadQualificationId');
         const file = fileInput.files[0];
+        const qualificationId = qualificationSelect.value;
+        
+        // Validate qualification selection
+        if (!qualificationId) {
+            showError('Please select a qualification before uploading');
+            return;
+        }
         
         if (!file) {
             showError('Please select a file to upload');
@@ -937,6 +957,7 @@
         // Create FormData
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('qualificationId', qualificationId);
         
         // Get anti-forgery token
         const token = document.querySelector('input[name="__RequestVerificationToken"]');

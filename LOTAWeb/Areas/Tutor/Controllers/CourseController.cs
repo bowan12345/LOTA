@@ -122,7 +122,7 @@ namespace LOTAWeb.Areas.Tutor.Controllers
                 courseUpdateDTO.CourseCode = string.Empty;
                 courseUpdateDTO.CourseName = string.Empty;
                 courseUpdateDTO.QualificationId = string.Empty;
-                // Call Service layer to handle business logic
+                // update course
                 await _courseService.UpdateCourse(courseUpdateDTO);
 
                 return Json(new { success = true, message = "Course updated successfully" });

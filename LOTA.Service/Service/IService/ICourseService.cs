@@ -75,8 +75,9 @@ namespace LOTA.Service.Service.IService
         /// Import courses from Excel file
         /// </summary>
         /// <param name="fileStream">Excel file stream</param>
+        /// <param name="qualificationId">Qualification ID to assign to all courses</param>
         /// <returns>Import result with success count and errors</returns>
-        Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream);
+        Task<(int successCount, List<string> errors)> ImportCoursesFromExcelAsync(Stream fileStream, string qualificationId);
 
         /// <summary>
         /// Generate Excel template for course import

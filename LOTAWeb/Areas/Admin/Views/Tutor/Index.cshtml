@@ -110,7 +110,7 @@
                         {
                             foreach (var tutor in Model)
                             {
-                                                                        <tr class="tutor-row" data-tutor-id="@tutor.Id">
+                                <tr class="tutor-row" data-tutor-id="@tutor.Id">
                                     <td class="text-nowrap">
                                         <input type="checkbox" class="form-check-input tutor-checkbox" value="@tutor.Id" onchange="updateBatchActions()">
                                     </td>
@@ -207,15 +207,15 @@
                             <input type="text" class="form-control" id="lastName" name="lastName" >
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Email</label><span class="text-danger">*</span>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label">Password</label><span class="text-danger">*</span>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <label for="confirmPassword" class="form-label">Confirm Password</label><span class="text-danger">*</span>
                             <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                         </div>
 
@@ -261,7 +261,7 @@
                             <input type="text" class="form-control" id="editLastName" name="lastName" >
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="editEmail" class="form-label">Email</label>
+                            <label for="editEmail" class="form-label">Email</label><span class="text-danger">*</span>
                             <input type="email" class="form-control" id="editEmail" name="email" required>
                         </div>
                         <div class="col-12 col-md-6">
@@ -305,7 +305,7 @@
                          <div class="modal-body">
                  <form id="uploadExcelForm">
                      <div class="mb-3">
-                         <label for="excelFile" class="form-label">Select Excel File</label>
+                        <label for="excelFile" class="form-label">Select Excel File</label><span class="text-danger">*</span>
                          <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls" required>
                          <div class="form-text">Supported formats: .xlsx, .xls</div>
                      </div>

@@ -23,7 +23,8 @@ namespace LOTA.Model.DTO.Admin
         [StringLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string Description { get; set; }
 
-        public string? QualificationId { get; set; }
+        [Required(ErrorMessage = "Qualification is required")]
+        public string QualificationId { get; set; }
 
         public ICollection<LearningOutcomeCreateDTO> LearningOutcomes { get; set; } = new List<LearningOutcomeCreateDTO>();
     }

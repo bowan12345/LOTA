@@ -24,7 +24,30 @@
                         {
                             <span class="badge bg-primary ms-2">@Model.Count()</span>
                         }
+                        <span class="badge bg-info ms-2" id="searchBadge" style="display: none;">
+                            <i class="fas fa-search me-1"></i>
+                            <span id="searchTermText"></span>
+                        </span>
                     </h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-md-end gap-2">
+                        <div class="d-flex" style="max-width: 300px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="searchInput" 
+                                       placeholder="name or code...">
+                                <button type="button" class="btn btn-outline-secondary border-start-0" title="Search" onclick="performSearch()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger border-start-0" title="Clear Search" onclick="clearSearch()" id="clearSearchBtn" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,7 +138,7 @@
                         }
                         else
                         {
-                            <tr>
+                            <tr id="noCoursesRow">
                                 <td colspan="7" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-graduation-cap fa-2x mb-3"></i>
@@ -474,6 +497,150 @@
             clearEditLearningOutcomes();
         });
     }
+    
+    // Client-side search functionality
+    let allCourses = []; // Store all courses for searching
+    let currentSearchTerm = '';
+    
+    // Initialize search functionality
+    function initializeSearch() {
+        // Store all course data for searching
+        const courseRows = document.querySelectorAll('.course-row');
+        allCourses = Array.from(courseRows).map(row => {
+            const courseName = row.cells[0].textContent.trim();
+            const courseCode = row.cells[1].textContent.trim();
+            return {
+                element: row,
+                courseName: courseName,
+                courseCode: courseCode,
+                searchText: `${courseName} ${courseCode}`.toLowerCase()
+            };
+        });
+        
+        // Set up search input event listeners
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+            
+            // Auto-search after 300ms of no typing (debounced search)
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch();
+                }, 300);
+            });
+        }
+    }
+    
+    // Perform client-side search
+    function performSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        currentSearchTerm = searchTerm;
+        
+        // Update search badge
+        updateSearchBadge(searchTerm);
+        
+        // Update clear button visibility
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (searchTerm.length > 0) {
+            clearBtn.style.display = 'block';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+        
+        // Filter courses
+        let visibleCount = 0;
+        allCourses.forEach(course => {
+            if (searchTerm === '' || course.searchText.includes(searchTerm)) {
+                course.element.style.display = '';
+                visibleCount++;
+            } else {
+                course.element.style.display = 'none';
+            }
+        });
+        
+        // Update no results message
+        updateNoResultsMessage(searchTerm, visibleCount);
+        
+        // Update course count badge
+        updateCourseCountBadge(visibleCount);
+    }
+    
+    // Clear search
+    function clearSearch() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.value = '';
+        performSearch();
+        searchInput.focus();
+    }
+    
+    // Update search badge
+    function updateSearchBadge(searchTerm) {
+        const searchBadge = document.getElementById('searchBadge');
+        const searchTermText = document.getElementById('searchTermText');
+        
+        if (searchTerm.length > 0) {
+            searchTermText.textContent = `"${searchTerm}"`;
+            searchBadge.style.display = 'inline-block';
+        } else {
+            searchBadge.style.display = 'none';
+        }
+    }
+    
+    // Update no results message
+    function updateNoResultsMessage(searchTerm, visibleCount) {
+        const noCoursesRow = document.getElementById('noCoursesRow');
+        if (!noCoursesRow) return;
+        
+        if (visibleCount === 0 && searchTerm.length > 0) {
+            // Show no search results message
+            noCoursesRow.style.display = '';
+            noCoursesRow.innerHTML = `
+                <td colspan="7" class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-search fa-2x mb-3"></i>
+                        <p class="mb-0">No courses found for "${searchTerm}"</p>
+                        <small>Try a different search term or <a href="javascript:void(0)" onclick="clearSearch()" class="text-decoration-none">clear search</a></small>
+                    </div>
+                </td>
+            `;
+        } else if (visibleCount === 0 && searchTerm.length === 0) {
+            // Show original no courses message
+            noCoursesRow.style.display = '';
+            noCoursesRow.innerHTML = `
+                <td colspan="7" class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="fas fa-graduation-cap fa-2x mb-3"></i>
+                        <p class="mb-0">No courses assigned to you yet</p>
+                        <small>Contact your administrator to get assigned to courses</small>
+                    </div>
+                </td>
+            `;
+        } else {
+            // Hide no results message when there are visible results
+            noCoursesRow.style.display = 'none';
+        }
+    }
+    
+    // Update course count badge
+    function updateCourseCountBadge(visibleCount) {
+        const courseCountBadge = document.querySelector('.badge.bg-primary');
+        if (courseCountBadge) {
+            courseCountBadge.textContent = visibleCount;
+        }
+    }
+    
+    // Initialize search functionality when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSearch();
+    });
 </script>
 
 <style>
@@ -553,6 +720,22 @@
         background: #a8a8a8;
     }
     
+    /* Search box styling */
+    .input-group-sm .form-control {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .input-group-sm .input-group-text {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .input-group-sm .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
     /* Responsive breakpoint optimization */
     @@media (max-width: 1200px) {
         .responsive-table {
@@ -611,6 +794,11 @@
         
         .card-header .col-md-6 {
             width: 100%;
+        }
+        
+        /* Search box takes full width on small screens */
+        .input-group {
+            max-width: 100% !important;
         }
     }
     
