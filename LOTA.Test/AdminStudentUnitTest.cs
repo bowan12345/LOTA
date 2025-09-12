@@ -193,9 +193,10 @@ namespace LOTA.Test
             _mockUserManager.Setup(um => um.DeleteAsync(user))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var result = await _service.DeleteStudentAsync("1");
+            await _service.DeleteStudentAsync("1");
 
-            Assert.True(result);
+            var student = await _service.GetStudentByIdAsync("1");
+            Assert.Null(student);
         }
 
 
