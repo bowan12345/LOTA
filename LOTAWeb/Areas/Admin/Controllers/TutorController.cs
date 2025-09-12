@@ -154,6 +154,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                 tutor.FirstName = tutorUpdateDTO.FirstName;
                 tutor.LastName = tutorUpdateDTO.LastName;
                 tutor.Email = tutorUpdateDTO.Email;
+                tutor.UserName = tutorUpdateDTO.Email;
+                tutor.NormalizedUserName = tutorUpdateDTO.Email;
                 tutor.TutorNo = tutorUpdateDTO.Email;
 
                 // Update password if provided

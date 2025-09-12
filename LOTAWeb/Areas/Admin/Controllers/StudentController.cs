@@ -146,6 +146,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
             existingStudent.LastName = studentDto.LastName;
             existingStudent.Email = studentDto.Email;
             existingStudent.UserName = studentDto.Email;
+            existingStudent.NormalizedUserName = studentDto.Email;
             existingStudent.StudentNo = studentDto.StudentNo;
             existingStudent.IsActive = studentDto.IsActive;
 
