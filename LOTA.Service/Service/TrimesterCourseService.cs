@@ -200,6 +200,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<TrimesterCourseReturnDTO>> GetTrimesterCoursesByTutorAndTrimesterAsync(string tutorId, string trimesterId)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             var trimesterCourses = await _unitOfWork.trimesterCourseRepository.GetTrimesterCoursesByTutorAndTrimesterAsync(tutorId, trimesterId);
             return trimesterCourses.Select(MapToReturnDTO);
         }

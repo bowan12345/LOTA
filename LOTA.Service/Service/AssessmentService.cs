@@ -310,6 +310,7 @@ namespace LOTA.Service.Service
 
         public async Task<IEnumerable<AssessmentReturnDTO>> GetAllAssessmentsBuTutorIdAsync(string tutorId)
         {
+            //throw new NotImplementedException("TDD Red phase: method not implemented yet");
             //get latest trimester
             var trimester = await _unitOfWork.trimesterRepository.GetLatestTrimestersAsync();
             if (trimester == null)

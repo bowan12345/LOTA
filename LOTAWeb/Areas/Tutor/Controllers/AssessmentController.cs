@@ -38,7 +38,7 @@ namespace LOTAWeb.Areas.Tutor.Controllers
                 return RedirectToAction("Index", "Home", new { area = Roles.Role_Tutor });
             }
 
-            // Fetch assessments from the latest trimester (handled inside service layer)
+            // Fetch assessments from the latest trimester
             IEnumerable<AssessmentReturnDTO> allTutorAssessments = await _assessmentService.GetAllAssessmentsBuTutorIdAsync(currentUserId);
           
             return View(allTutorAssessments);
