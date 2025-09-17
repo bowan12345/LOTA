@@ -8,6 +8,7 @@ using LOTA.Model.DTO.Admin;
 using LOTA.Utility;
 using Microsoft.IdentityModel.Tokens;
 using LOTA.Service.Service;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace LOTAWeb.Areas.Tutor.Controllers
 {
@@ -118,10 +119,15 @@ namespace LOTAWeb.Areas.Tutor.Controllers
         {
             try
             {
-                //tutor doesnt uodate these fields
-                courseUpdateDTO.CourseCode = string.Empty;
-                courseUpdateDTO.CourseName = string.Empty;
-                courseUpdateDTO.QualificationId = string.Empty;
+                var course = await _courseService.GetCourseByIdAsync(courseUpdateDTO.Id);
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+                //tutor doesnt update these fields
+                courseUpdateDTO.CourseCode = course.CourseCode;
+                courseUpdateDTO.CourseName = course.CourseName;
+                courseUpdateDTO.QualificationId = course.QualificationId;
                 // update course
                 await _courseService.UpdateCourse(courseUpdateDTO);
 

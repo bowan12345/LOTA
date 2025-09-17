@@ -167,21 +167,6 @@ namespace LOTA.Service.Service
 
         public async Task UpdateCourse(CourseUpdateDTO courseDTO)
         {
-            if (string.IsNullOrEmpty(courseDTO.QualificationId))
-            {
-                throw new NullReferenceException("Qualification is empty");
-            }
-            // Verify qualification exists
-            var qualification = await _unitOfWork.qualificationRepository.GetByIdAsync(courseDTO.QualificationId);
-            if (qualification == null)
-            {
-                throw new NullReferenceException("Selected qualification does not exist");
-            }
-
-            if (courseDTO == null)
-            {
-                throw new NullReferenceException("Course is empty");
-            }
             var course = await _unitOfWork.courseRepository.GetByIdAsync(courseDTO.Id);
             if (course == null)
             {
@@ -204,10 +189,8 @@ namespace LOTA.Service.Service
             {
                 course.QualificationId = courseDTO.QualificationId;
             }
-            if (!string.IsNullOrEmpty(courseDTO.Description))
-            {
-                course.Description = courseDTO.Description;
-            }
+            
+            course.Description = courseDTO.Description;
             course.UpdatedDate = DateTime.Now;
 
             // Get existing learning outcomes
