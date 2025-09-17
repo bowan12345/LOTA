@@ -381,14 +381,16 @@
         }
         
         // Update description
-        const description = updatedData.Description || updatedData.description;
-        if (description) {
+        const description = updatedData.Description !== undefined ? updatedData.Description : updatedData.description;
+        if (description !== undefined) {
             const descriptionCell = courseRow.cells[4]; // Description is in column 5 (0-indexed)
             if (descriptionCell) {
-                if (description.length > 50) {
+                if (description && description.length > 50) {
                     descriptionCell.innerHTML = `<span title="${description}">${description.substring(0, 50)}...</span>`;
-                } else {
+                } else if (description && description.length > 0) {
                     descriptionCell.textContent = description;
+                } else {
+                    descriptionCell.innerHTML = '<span class="text-muted">No description</span>';
                 }
             }
         }

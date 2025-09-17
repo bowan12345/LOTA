@@ -1566,11 +1566,11 @@
             if (!tutorRow) return;
             
             // Update the displayed data
-            if (updatedData.firstName) {
-                tutorRow.cells[1].textContent = updatedData.firstName;
+            if (updatedData.firstName !== undefined) {
+                tutorRow.cells[1].textContent = updatedData.firstName || "";
             }
-            if (updatedData.lastName) {
-                tutorRow.cells[2].textContent = updatedData.lastName;
+            if (updatedData.lastName !== undefined) {
+                tutorRow.cells[2].textContent = updatedData.lastName || "";
             }
             if (updatedData.email) {
                 tutorRow.cells[3].textContent = updatedData.email;

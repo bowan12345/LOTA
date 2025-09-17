@@ -1930,13 +1930,15 @@
             }
             
             // Update description
-            if (updatedData.description) {
+            if (updatedData.description !== undefined) {
                 const descriptionCell = courseRow.cells[5];
                 if (descriptionCell) {
-                    if (updatedData.description.length > 50) {
+                    if (updatedData.description && updatedData.description.length > 50) {
                         descriptionCell.innerHTML = `<span title="${updatedData.description}">${updatedData.description.substring(0, 50)}...</span>`;
-                    } else {
+                    } else if (updatedData.description && updatedData.description.length > 0) {
                         descriptionCell.textContent = updatedData.description;
+                    } else {
+                        descriptionCell.innerHTML = '<span class="text-muted">No description</span>';
                     }
                 }
             }

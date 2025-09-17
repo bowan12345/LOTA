@@ -1054,11 +1054,11 @@
             if (!studentRow) return;
             
             // Update the displayed data
-            if (updatedData.firstName) {
-                studentRow.cells[3].textContent = updatedData.firstName;
+            if (updatedData.firstName !== undefined) {
+                studentRow.cells[3].textContent = updatedData.firstName || "";
             }
-            if (updatedData.lastName) {
-                studentRow.cells[2].textContent = updatedData.lastName;
+            if (updatedData.lastName !== undefined) {
+                studentRow.cells[2].textContent = updatedData.lastName || "";
             }
             if (updatedData.email) {
                 studentRow.cells[4].textContent = updatedData.email;
