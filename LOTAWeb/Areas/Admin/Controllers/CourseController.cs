@@ -165,7 +165,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] CourseUpdateDTO courseUpdateDTO)
         {
-            // Controller layer data validation
+            // data validation
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
@@ -176,7 +176,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
             try
             {
-                // Call Service layer to handle business logic
                 await _courseService.UpdateCourse(courseUpdateDTO);
                 
                 return Json(new { success = true, message = "Course updated successfully" });

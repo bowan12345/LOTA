@@ -9,6 +9,7 @@ using System.Data;
 using Microsoft.IdentityModel.Tokens;
 using Azure.Core;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using LOTA.DataAccess.Repository;
 
 namespace LOTA.Service.Service
 {
@@ -243,6 +244,11 @@ namespace LOTA.Service.Service
                 var learningOutcomesToRemove = existingLearningOutcomes.Where(lo => !updatedLearningOutcomeIds.Contains(lo.Id)).ToList();
                 if (learningOutcomesToRemove.Any())
                 {
+                    IEnumerable<AssessmentLearningOutcome> AssessmentLOs = await _unitOfWork.assessmentRepository.GetAssessmentLOListByLOIds(learningOutcomesToRemove.Select(lo => lo.Id));
+                    if (AssessmentLOs.Any()) 
+                    {
+                        throw new InvalidOperationException($"{AssessmentLOs?.FirstOrDefault()?.LearningOutcome?.LOName ?? "LO"} is used in assessments and cannot be removed");
+                    }
                     _unitOfWork.learningOutcomeRepository.RemoveRange(learningOutcomesToRemove.Select(lo => lo.Id));
                 }
             }
@@ -251,6 +257,11 @@ namespace LOTA.Service.Service
                 // Remove all learning outcomes if no learning outcomes are provided
                 if (existingLearningOutcomes.Any())
                 {
+                    IEnumerable<AssessmentLearningOutcome> AssessmentLOs = await _unitOfWork.assessmentRepository.GetAssessmentLOListByLOIds(existingLearningOutcomes.Select(lo => lo.Id));
+                    if (AssessmentLOs.Any())
+                    {
+                        throw new InvalidOperationException($"{AssessmentLOs?.FirstOrDefault()?.LearningOutcome?.LOName ?? "LO"} is used in assessments and cannot be removed");
+                    }
                     _unitOfWork.learningOutcomeRepository.RemoveRange(existingLearningOutcomes.Select(lo=>lo.Id));
                 }
             }
@@ -668,61 +679,6 @@ namespace LOTA.Service.Service
             return courses.Select(MapToDTO);
         }
 
-        public async Task UpdateCourseDescriptionAndLOsAsync(string courseId, string description, string learningOutcomeNames, string learningOutcomeDescriptions)
-        {
-            if (string.IsNullOrEmpty(courseId))
-            {
-                throw new ArgumentException("Course ID cannot be null or empty", nameof(courseId));
-            }
-
-            // Get the course with learning outcomes
-            var course = await _unitOfWork.courseRepository.GetByIdAsync(courseId, includeProperties: "LearningOutcomes");
-            if (course == null)
-            {
-                throw new InvalidOperationException($"Course with ID {courseId} not found");
-            }
-
-            // Update description
-            course.Description = description;
-            course.UpdatedDate = DateTime.Now;
-
-            // Parse learning outcomes
-            var loNames = learningOutcomeNames?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
-            var loDescriptions = learningOutcomeDescriptions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
-
-            // Remove existing learning outcomes
-            if (course.LearningOutcomes.Any())
-            {
-                _unitOfWork.learningOutcomeRepository.RemoveRange(course.LearningOutcomes.Select(lo => lo.Id));
-            }
-
-            // Add new learning outcomes
-            for (int i = 0; i < Math.Max(loNames.Length, loDescriptions.Length); i++)
-            {
-                var loName = i < loNames.Length ? loNames[i].Trim() : "";
-                var loDescription = i < loDescriptions.Length ? loDescriptions[i].Trim() : "";
-
-                if (!string.IsNullOrEmpty(loName))
-                {
-                    var learningOutcome = new LearningOutcome
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        LOName = loName,
-                        Description = loDescription,
-                        CourseId = courseId,
-                        CreatedDate = DateTime.Now,
-                        UpdatedDate = DateTime.Now
-                    };
-
-                    await _unitOfWork.learningOutcomeRepository.AddAsync(learningOutcome);
-                }
-            }
-
-            // Update course
-            _unitOfWork.courseRepository.Update(course);
-
-            // Save changes
-            await _unitOfWork.SaveAsync();
-        }
+       
     }
 }

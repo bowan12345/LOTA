@@ -166,11 +166,11 @@ namespace LOTA.Service.Service
                 var existingLO = existingLOs.FirstOrDefault(e => e.LOId == newLO.LOId);
                     
                 if (existingLO != null)
-                    {
-                        // Update existing record - preserve the ID to maintain data relationships
-                        existingLO.Score = newLO.Score;
-                        _unitOfWork.assessmentRepository.UpdateAssessmentLearningOutcome(existingLO);
-                    }
+                {
+                    // Update existing record - preserve the ID to maintain data relationships
+                    existingLO.Score = newLO.Score;
+                    _unitOfWork.assessmentRepository.UpdateAssessmentLearningOutcome(existingLO);
+                }
                 else
                 {
                     // Add new record for newly added learning outcome
@@ -197,7 +197,7 @@ namespace LOTA.Service.Service
                 if (!hasScores.Any())
                 {
                     // Only remove if no related scores exist
-                    _unitOfWork.assessmentRepository.RemoveLearningOutcomeById(loId);
+                    _unitOfWork.assessmentRepository.RemoveAssessmentLearningOutcomeById(loId);
                 }
                 else
                 {

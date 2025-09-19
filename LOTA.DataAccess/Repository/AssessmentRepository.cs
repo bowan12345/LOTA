@@ -39,14 +39,21 @@ namespace LOTA.DataAccess.Repository
             return await query.ToListAsync();
         }
 
+        public async Task<IEnumerable<AssessmentLearningOutcome>> GetAssessmentLOListByLOIds(IEnumerable<string> LOIds)
+        {
+            return await _db.AssessmentLearningOutcome
+              .Where(c => LOIds.Contains(c.LOId))
+              .ToListAsync();
+        }
+
         public void RemoveLearningOutcomesByAssessmentIdAsync(string? assessmentId)
         {
             _db.AssessmentLearningOutcome.Where(e => e.AssessmentId == assessmentId).ExecuteDelete();
         }
 
-        public void RemoveLearningOutcomeById(string? learningOutcomeId)
+        public void RemoveAssessmentLearningOutcomeById(string? assessmentLearningOutcomeId)
         {
-            _db.AssessmentLearningOutcome.Where(e => e.Id == learningOutcomeId).ExecuteDelete();
+            _db.AssessmentLearningOutcome.Where(e => e.Id == assessmentLearningOutcomeId).ExecuteDelete();
         }
 
         public void UpdateAssessmentLearningOutcome(AssessmentLearningOutcome learningOutcome)
