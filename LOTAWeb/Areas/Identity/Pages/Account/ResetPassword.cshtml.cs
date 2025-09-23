@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
+using LOTA.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,9 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ResetPasswordModel(UserManager<IdentityUser> userManager)
+        public ResetPasswordModel(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -29,6 +30,7 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
         /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
+
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -71,7 +73,7 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
 
         }
 
-        public IActionResult OnGet(string code = null)
+        public async Task<IActionResult> OnGetAsync(string code = null)
         {
             if (code == null)
             {
@@ -83,6 +85,7 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
                 {
                     Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))
                 };
+
                 return Page();
             }
         }
@@ -97,14 +100,26 @@ namespace LOTAWeb.Areas.Identity.Pages.Account
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                // Don't reveal that the user does not exist
-                return RedirectToPage("./ResetPasswordConfirmation");
+                // Don't reveal that the user does not exist, but also don't show success
+                // Let the user try again with a different email
+                ModelState.AddModelError(string.Empty, "Please enter the email address that received the password reset link. If you entered the wrong email, please correct it and try again.");
+                return Page();
+            }
+
+            // Security check: Verify that the reset token is valid for this specific user
+            // This prevents users from using a reset token for one email to reset another user's password
+            var isValidToken = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", Input.Code);
+            if (!isValidToken)
+            {
+                ModelState.AddModelError(string.Empty, "The reset link is invalid or has expired. Please request a new password reset.");
+                return Page();
             }
 
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
-                return RedirectToPage("./ResetPasswordConfirmation");
+                ViewData["ResetSuccess"] = true;
+                return Page();
             }
 
             foreach (var error in result.Errors)
