@@ -323,11 +323,11 @@
                      <div class="mt-3">
                          <small class="text-muted">
                              <i class="fas fa-exclamation-triangle me-1"></i>
-                             <strong>Note:</strong> Column headers are case-sensitive. Make sure your Excel file has exactly these column names in the first row.
+                                <strong>Note:</strong> The default password will be automatically generated and sent to the email address.
                          </small>
                      </div>
                  </div>
-                                      <div class="mb-3">
+                     <div class="mb-3">
                          <a href="@Url.Action("DownloadTemplate", "Tutor", new { area = "Admin" })" class="btn btn-outline-primary btn-sm">
                              <i class="fas fa-download me-2"></i>
                              Download Template
@@ -335,9 +335,9 @@
                      </div>
                  </form>
                  </div>
-                         <div class="modal-footer flex-column flex-sm-row gap-2">
-                 <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                 <button type="button" class="btn btn-success w-100 w-sm-auto" onclick="uploadExcel()">
+                    <div class="modal-footer flex-column flex-sm-row gap-2">
+                     <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                     <button type="button" class="btn btn-success w-100 w-sm-auto" onclick="uploadExcel()">
                      <i class="fas fa-upload me-2"></i>
                      Upload & Import
                  </button>

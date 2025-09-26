@@ -72,12 +72,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] TutorCreateDTO tutorCreateDTO)
         {
-            // Validate required fields for creation
-            if (string.IsNullOrEmpty(tutorCreateDTO.Password))
-            {
-                return Json(new { success = false, message = "Password is required for creating a new tutor" });
-            }
-
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
@@ -433,7 +427,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             _userManager.AddToRoleAsync(tutor, Roles.Role_Tutor).GetAwaiter().GetResult();
                             
                             // Send account creation email
-                            await _emailSender.SendAccountCreationEmailAsync(tutor, password, Roles.Role_Tutor);
+                            await _emailSender.SendAccountCreationEmailAsync(tutor, password, Roles.Role_Tutor,null);
                             
                             successCount++;
                         }

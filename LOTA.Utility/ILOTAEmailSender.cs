@@ -14,6 +14,6 @@ namespace LOTA.Utility
         /// <param name="user">User account</param>
         /// <param name="password">Generated password</param>
         /// <param name="userType">User type (Student/Tutor)</param>
-        Task SendAccountCreationEmailAsync(ApplicationUser user, string password, string userType);
+        Task SendAccountCreationEmailAsync(ApplicationUser user, string password, string userType,string loginUrl);
     }
 }

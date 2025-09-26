@@ -4,6 +4,8 @@ using LOTA.Model;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using System;
+using Microsoft.AspNetCore.Http;
 
 namespace LOTA.Utility
 {
@@ -11,9 +13,12 @@ namespace LOTA.Utility
     {
         private readonly SmtpOptions _smtpOptions;
 
-        public EmailSender(IOptions<SmtpOptions> smtpOptions)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public EmailSender(IOptions<SmtpOptions> smtpOptions, IHttpContextAccessor httpContextAccessor)
         {
             _smtpOptions = smtpOptions.Value;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
@@ -67,10 +72,28 @@ namespace LOTA.Utility
         /// <param name="user">User account</param>
         /// <param name="password">Generated password</param>
         /// <param name="userType">User type (Student/Tutor)</param>
-        public async Task SendAccountCreationEmailAsync(ApplicationUser user, string password, string userType)
+        /// <param name="loginUrl">Login page URL</param>
+        public async Task SendAccountCreationEmailAsync(ApplicationUser user, string password, string userType, string loginUrl = null)
         {
             try
             {
+                // Generate dynamic login URL if not provided
+                if (string.IsNullOrEmpty(loginUrl))
+                {
+                    var httpContext = _httpContextAccessor.HttpContext;
+                    if (httpContext != null)
+                    {
+                        var scheme = httpContext.Request.Scheme;
+                        var host = httpContext.Request.Host;
+                        loginUrl = $"{scheme}://{host}/Identity/Account/Login";
+                    }
+                    else
+                    {
+                        // Fallback if HttpContext is not available
+                        loginUrl = "/Identity/Account/Login";
+                    }
+                }
+
                 var subject = $"Welcome to LOTA - Your {userType} Account Has Been Created";
                 var htmlMessage = $@"
                     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
@@ -88,7 +111,10 @@ namespace LOTA.Utility
                             <p style='margin: 0; color: #856404;'><strong>Important:</strong> You must change your password on your first login for security reasons.</p>
                         </div>
                         
-                        <p>You can now log in to the LOTA system using the credentials above.</p>
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{loginUrl}' style='background-color: #198754; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Login to LOTA</a>
+                        </div>
+                        
                         <p>If you have any questions or need assistance, please contact the system administrator.</p>
                         
                         <hr style='margin: 30px 0; border: none; border-top: 1px solid #dee2e6;'>

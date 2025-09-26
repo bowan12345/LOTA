@@ -50,18 +50,22 @@
                 <div class="card-header bg-white border-0 py-2">
                     <h5 class="card-title mb-0 fw-bold">
                         <i class="fas fa-filter text-primary me-2"></i>
-                        Select Trimester & Course
+                        Select Course
                     </h5>
                 </div>
                 <div class="card-body py-2">
                     <div class="row">
                         <div class="col-md-6">
-                            <label for="trimesterSelect" class="form-label fw-semibold mb-1">Trimester</label>
-                            <select id="trimesterSelect" class="form-select" onchange="loadTrimesterData()">
+                            <label class="form-label fw-semibold mb-1">Current Trimester</label>
+                            <div id="trimesterDisplay" class="form-control bg-light text-dark fw-bold d-flex align-items-center">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                <span id="selectedTrimesterName">Loading...</span>
+                            </div>
+                            <select id="trimesterSelect" class="form-select d-none" onchange="loadTrimesterData()">
                                 <option value="">-- Select a Trimester --</option>
                                 @foreach (var trimester in Model.Trimesters)
                                 {
-                                    <option value="@trimester.TrimesterId" 
+                                    <option value="@trimester.TrimesterId"
                                             data-trimester-name="@trimester.TrimesterName"
                                             data-trimester-number="@trimester.TrimesterNumber"
                                             data-academic-year="@trimester.AcademicYear">
@@ -127,7 +131,7 @@
 <!-- Hidden data for JavaScript -->
 <script>
     const studentData = @Html.Raw(Json.Serialize(Model));
-    
+
 </script>
 
 <script>
@@ -136,19 +140,19 @@
         const courseOfferingColumn = document.getElementById('courseOfferingColumn');
         const courseOfferingSelect = document.getElementById('courseOfferingSelect');
         const resultsCard = document.getElementById('resultsCard');
-        
+
         if (trimesterSelect.value === '') {
             courseOfferingColumn.style.display = 'none';
             resultsCard.style.display = 'none';
             return;
         }
-        
+
         // Show course offering column
         courseOfferingColumn.style.display = 'block';
-        
+
         // Clear and populate course offering dropdown
         courseOfferingSelect.innerHTML = '<option value="">-- Select a Course --</option>';
-        
+
         const selectedTrimester = studentData.trimesters.find(t => t.trimesterId === trimesterSelect.value);
         if (selectedTrimester && selectedTrimester.courseOfferings) {
             selectedTrimester.courseOfferings.forEach(course => {
@@ -160,108 +164,108 @@
                 courseOfferingSelect.appendChild(option);
             });
         }
-        
+
         // Hide results card
         resultsCard.style.display = 'none';
     }
-    
+
     function loadCourseOfferingData() {
         const trimesterSelect = document.getElementById('trimesterSelect');
         const courseOfferingSelect = document.getElementById('courseOfferingSelect');
         const resultsCard = document.getElementById('resultsCard');
         const resultsContent = document.getElementById('resultsContent');
-        
+
         if (courseOfferingSelect.value === '') {
             resultsCard.style.display = 'none';
             return;
         }
-        
+
         // Show results card
         resultsCard.style.display = 'block';
-        
+
         // Find the selected course offering data
         const selectedTrimester = studentData.trimesters.find(t => t.trimesterId === trimesterSelect.value);
         const selectedCourse = selectedTrimester.courseOfferings.find(c => c.courseOfferingId === courseOfferingSelect.value);
-        
+
         if (selectedCourse) {
             displayCourseResults(selectedCourse);
         }
     }
-    
+
     function displayCourseResults(courseData) {
         const resultsContent = document.getElementById('resultsContent');
-        
-        
+
+
         let html = `
-            <div class="mb-4">
-                <h6 class="fw-bold text-dark mb-3">
-                    <i class="fas fa-graduation-cap me-2"></i>
-                    ${courseData.courseCode} - ${courseData.courseName}
-                </h6>
-            </div>
-        `;
-        
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        ${courseData.courseCode} - ${courseData.courseName}
+                    </h6>
+                </div>
+            `;
+
         // Display assessments
         if (courseData.assessments && courseData.assessments.length > 0) {
             html += '<div class="row">';
-            
+
             courseData.assessments.forEach((assessment, index) => {
                 html += `
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-header bg-success text-white">
-                                <h6 class="card-title mb-0">
-                                    <strong>${assessment.assessmentName}</strong>
-                                    <small class="ms-2">(${assessment.assessmentType})</small>
-                                </h6>
-                                <small class="text-light">${assessment.assessmentScore.toFixed(1)}/${assessment.maxAssessmentScore.toFixed(1)}</small>
-                            </div>
-                            <div class="card-body p-0">
-                                ${displayLearningOutcomes(assessment.learningOutcomes)}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="card-title mb-0">
+                                        <strong>${assessment.assessmentName}</strong>
+                                        <small class="ms-2">(${assessment.assessmentType})</small>
+                                    </h6>
+                                    <small class="text-light">${assessment.assessmentScore.toFixed(1)}/${assessment.maxAssessmentScore.toFixed(1)}</small>
+                                </div>
+                                <div class="card-body p-0">
+                                    ${displayLearningOutcomes(assessment.learningOutcomes)}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
             });
-            
+
             html += '</div>';
-            
+
             // Display retake summary
             html += displayRetakeSummary(courseData.assessments);
         } else {
             html += `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    No assessments found for this course.
-                </div>
-            `;
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No assessments found for this course.
+                    </div>
+                `;
         }
-        
+
         resultsContent.innerHTML = html;
     }
-    
+
     function displayRetakeSummary(assessments) {
         // Calculate total score and max total score
         let totalScore = 0;
         let maxTotalScore = 0;
-        
+
         assessments.forEach(assessment => {
             totalScore += assessment.assessmentScore || 0;
             maxTotalScore += assessment.maxAssessmentScore || 0;
         });
-        
+
         // Calculate overall percentage
         const overallPercentage = maxTotalScore > 0 ? (totalScore / maxTotalScore) * 100 : 0;
-        
+
         // Collect all learning outcomes that need retake
         const retakeLOsMap = new Map();
-        
+
         assessments.forEach(assessment => {
             if (assessment.learningOutcomes) {
                 assessment.learningOutcomes.forEach(lo => {
                     if (lo.needsRetake || lo.loPercentage < 50) {
                         const loKey = lo.learningOutcomeName;
-                        
+
                         if (!retakeLOsMap.has(loKey)) {
                             retakeLOsMap.set(loKey, {
                                 loName: lo.learningOutcomeName,
@@ -270,7 +274,7 @@
                                 isRetake: lo.isRetake
                             });
                         }
-                        
+
                         const retakeLO = retakeLOsMap.get(loKey);
                         retakeLO.failedAssessments.push({
                             assessmentName: assessment.assessmentName,
@@ -278,12 +282,12 @@
                             score: lo.loScore,
                             maxScore: lo.maxLOScore
                         });
-                        
+
                         // Update lowest percentage
                         if (lo.loPercentage < retakeLO.lowestPercentage) {
                             retakeLO.lowestPercentage = lo.loPercentage;
                         }
-                        
+
                         // Update retake status if any assessment has retake
                         if (lo.isRetake) {
                             retakeLO.isRetake = true;
@@ -292,140 +296,171 @@
                 });
             }
         });
-        
+
         // Convert map to array and sort by LO name
         const retakeLOs = Array.from(retakeLOsMap.values()).sort((a, b) => {
             const nameA = a.loName || '';
             const nameB = b.loName || '';
             return nameA.localeCompare(nameB);
         });
-        
+
         // Debug: Log the retake LOs data
         console.log('Retake LOs Map:', retakeLOsMap);
         console.log('Retake LOs Array:', retakeLOs);
-        
-        // Check if overall score is below 50% - need to resit entire course (no message needed)
+
+        // Check if overall score is below 50% - need to resit entire course
         if (overallPercentage < 50) {
             return '';
         }
-        
+
         // If overall score >= 50% but some LOs need retake
         if (retakeLOs.length > 0) {
             let html = `
-                <div class="mt-4">
-                    <div class="card border-warning">
-                        <div class="card-header bg-danger text-white">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <strong>Learning Outcomes Requiring Retake</strong>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="list-group list-group-flush">
-            `;
-            
+                    <div class="mt-4">
+                        <div class="card border-warning">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Learning Outcomes Requiring Retake</strong>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                `;
+
             retakeLOs.forEach(lo => {
                 const retakeBadge = lo.isRetake ? '<span class="badge bg-warning ms-2">Retake</span>' : '';
                 const assessmentCount = lo.failedAssessments.length;
-                const assessmentNames = lo.failedAssessments.map(a => 
+                const assessmentNames = lo.failedAssessments.map(a =>
                     `<span class="badge bg-secondary me-1">${a.assessmentName}</span>`
                 ).join('');
-                
+
                 html += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${lo.loName || 'Unknown'}</strong>
-                            ${retakeBadge}
-                            <br><small class="text-muted">Failed in:</small> ${assessmentNames}
-                        </div>
-                        <span class="badge bg-danger rounded-pill">${assessmentCount}</span>
-                    </div>
-                `;
-            });
-            
-            html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${lo.loName || 'Unknown'}</strong>
+                                ${retakeBadge}
+                                <br><small class="text-muted">Failed in:</small> ${assessmentNames}
                             </div>
-                            <hr class="my-3">
-                            <div class="mt-3 p-3 bg-light rounded">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-info-circle text-info me-2"></i>
-                                    <div>
-                                        <strong class="text-dark">The above Learning Outcomes require retake to pass the course.</strong>
+                            <span class="badge bg-danger rounded-pill">${assessmentCount}</span>
+                        </div>
+                    `;
+            });
+
+            html += `
+                                </div>
+                                <hr class="my-3">
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle text-info me-2"></i>
+                                        <div>
+                                            <strong class="text-dark">The above Learning Outcomes require retake to pass the course.</strong>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-            
+                `;
+
             return html;
         }
-        
-        // If overall score >= 50% AND all LOs >= 50% - course passed 
+
+        // If overall score >= 50% AND all LOs >= 50% - course passed
         return '';
     }
-    
+
     function displayLearningOutcomes(learningOutcomes) {
-        
+
         if (!learningOutcomes || learningOutcomes.length === 0) {
             return '<p class="text-muted">No learning outcomes found for this assessment.</p>';
         }
-        
+
         // Sort learning outcomes by name
         const sortedLOs = learningOutcomes.sort((a, b) => {
             const nameA = a.learningOutcomeName || '';
             const nameB = b.learningOutcomeName || '';
             return nameA.localeCompare(nameB);
         });
-        
+
         let html = '<div class="table-responsive"><table class="table table-sm table-borderless mb-0">';
         html += `
-            <thead class="table-light">
-                <tr>
-                    <th class="border-0">Learning Outcome</th>
-                    <th class="text-center border-0">Score</th>
-                    <th class="text-center border-0">Percentage</th>
-                    <th class="text-center border-0">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
-        
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0">Learning Outcome</th>
+                        <th class="text-center border-0">Score</th>
+                        <th class="text-center border-0">Percentage</th>
+                        <th class="text-center border-0">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
         sortedLOs.forEach(lo => {
-            
+
             const percentageColor = getPercentageColor(lo.loPercentage);
             const retakeBadge = lo.isRetake ? '<span class="badge bg-warning ms-1">Retake</span>' : '';
-            
+
             html += `
-                <tr>
-                    <td>
-                        <strong>${lo.learningOutcomeName}</strong>
-                        ${retakeBadge}
-                    </td>
-                    <td class="text-center">${lo.loScore.toFixed(1)}/${lo.maxLOScore.toFixed(1)}</td>
-                    <td class="text-center">
-                        <span class="badge ${percentageColor}">${lo.loPercentage.toFixed(1)}%</span>
-                    </td>
-                    <td class="text-center">
-                        ${getStatusIcon(lo.loPercentage)}
-                    </td>
-                </tr>
-            `;
+                    <tr>
+                        <td>
+                            <strong>${lo.learningOutcomeName}</strong>
+                            ${retakeBadge}
+                        </td>
+                        <td class="text-center">${lo.loScore.toFixed(1)}/${lo.maxLOScore.toFixed(1)}</td>
+                        <td class="text-center">
+                            <span class="badge ${percentageColor}">${lo.loPercentage.toFixed(1)}%</span>
+                        </td>
+                        <td class="text-center">
+                            ${getStatusIcon(lo.loPercentage)}
+                        </td>
+                    </tr>
+                `;
         });
-        
+
         html += '</tbody></table></div>';
         return html;
     }
-    
+
     function getPercentageColor(percentage) {
         if (percentage >= 80) return 'bg-success';
         if (percentage >= 50) return 'bg-warning';
         return 'bg-danger';
     }
-    
+
     function getStatusIcon(percentage) {
         if (percentage >= 50) return '<i class="fas fa-check-circle text-success"></i>';
         return '<i class="fas fa-times-circle text-danger"></i>';
+    }
+
+    // Initialize page - auto-select latest trimester
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeLatestTrimester();
+    });
+
+    function initializeLatestTrimester() {
+        const trimesterSelect = document.getElementById('trimesterSelect');
+        const trimesterDisplay = document.getElementById('trimesterDisplay');
+        const selectedTrimesterName = document.getElementById('selectedTrimesterName');
+
+        if (trimesterSelect.options.length <= 1) {
+            selectedTrimesterName.textContent = 'No trimesters available';
+            trimesterDisplay.className = 'form-control bg-warning text-dark fw-bold d-flex align-items-center';
+            return;
+        }
+
+        // Find the latest trimester (last option in the select)
+        const latestOption = trimesterSelect.options[trimesterSelect.options.length - 1];
+        const latestTrimesterName = latestOption.getAttribute('data-trimester-name');
+
+        // Set the display with better formatting
+        selectedTrimesterName.textContent = latestTrimesterName;
+        trimesterDisplay.className = 'form-control bg-light text-dark fw-bold d-flex align-items-center';
+
+        // Set the select value to the latest trimester
+        trimesterSelect.value = latestOption.value;
+
+        // Trigger the load function to populate courses
+        loadTrimesterData();
     }
 </script>

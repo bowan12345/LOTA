@@ -464,7 +464,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             _userManager.AddToRoleAsync(student, Roles.Role_Student).GetAwaiter().GetResult();
                             
                             // Send account creation email
-                            await _emailSender.SendAccountCreationEmailAsync(student, defaultPassword, Roles.Role_Student);
+                            await _emailSender.SendAccountCreationEmailAsync(student, defaultPassword, Roles.Role_Student,null);
                             
                             successCount++;
                         }
