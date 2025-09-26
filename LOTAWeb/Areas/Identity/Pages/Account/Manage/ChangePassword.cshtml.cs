@@ -129,6 +129,13 @@ namespace LOTAWeb.Areas.Identity.Pages.Account.Manage
                 }
                 return Page();
             }
+            // Check if the new password is the same as the current password
+            var isSamePassword = await _userManager.CheckPasswordAsync(user, Input.NewPassword);
+            if (isSamePassword)
+            {
+                ModelState.AddModelError(string.Empty, "New password cannot be the same as the current one.");
+                return Page();
+            }
 
             // If forced password change, clear MustChangePassword flag
             if (MustChange && user.MustChangePassword)
