@@ -404,8 +404,8 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     try
                     {
                         var studentNo = row.Cell("A").Value.ToString()?.Trim();
-                        var lastName = row.Cell("B").Value.ToString()?.Trim();
-                        var firstName = row.Cell("C").Value.ToString()?.Trim();
+                        var firstName = row.Cell("B").Value.ToString()?.Trim();
+                        var lastName = row.Cell("C").Value.ToString()?.Trim();
                         var email = row.Cell("D").Value.ToString()?.Trim();
 
                         // Validate required fields
