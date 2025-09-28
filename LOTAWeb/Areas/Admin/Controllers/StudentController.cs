@@ -171,6 +171,7 @@ namespace LOTAWeb.Areas.Admin.Controllers
                     var errors = string.Join(", ", passwordResult.Errors.Select(e => e.Description));
                     return Json(new { success = false, message = $"Failed to update password: {errors}" });
                 }
+                existingStudent.MustChangePassword = false;
             }
 
             var result = await _userManager.UpdateAsync(existingStudent);

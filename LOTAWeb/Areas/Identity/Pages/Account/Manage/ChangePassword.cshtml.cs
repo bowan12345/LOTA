@@ -119,6 +119,21 @@ namespace LOTAWeb.Areas.Identity.Pages.Account.Manage
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
+            // Check if the old password correct
+            var isCorrectoldPassword = await _userManager.CheckPasswordAsync(user, Input.OldPassword);
+            if (!isCorrectoldPassword)
+            {
+                ModelState.AddModelError(string.Empty, "Current password is not correct.");
+                return Page();
+            }
+
+            // Check if the new password is the same as the current password
+            var isSamePassword = await _userManager.CheckPasswordAsync(user, Input.NewPassword);
+            if (isSamePassword)
+            {
+                ModelState.AddModelError(string.Empty, "New password cannot be the same as the current one.");
+                return Page();
+            }
 
             var changePasswordResult = await _userManager.ChangePasswordAsync(user, Input.OldPassword, Input.NewPassword);
             if (!changePasswordResult.Succeeded)
@@ -129,14 +144,7 @@ namespace LOTAWeb.Areas.Identity.Pages.Account.Manage
                 }
                 return Page();
             }
-            // Check if the new password is the same as the current password
-            var isSamePassword = await _userManager.CheckPasswordAsync(user, Input.NewPassword);
-            if (isSamePassword)
-            {
-                ModelState.AddModelError(string.Empty, "New password cannot be the same as the current one.");
-                return Page();
-            }
-
+           
             // If forced password change, clear MustChangePassword flag
             if (MustChange && user.MustChangePassword)
             {
