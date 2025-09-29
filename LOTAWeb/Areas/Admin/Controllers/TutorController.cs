@@ -339,7 +339,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                             var surname = worksheet.Cell(row, GetColumnIndex(headers, "Surname")).Value.ToString()?.Trim();
                             var firstName = worksheet.Cell(row, GetColumnIndex(headers, "FirstName")).Value.ToString()?.Trim();
                             var email = worksheet.Cell(row, GetColumnIndex(headers, "Email")).Value.ToString()?.Trim();
-                            var password = worksheet.Cell(row, GetColumnIndex(headers, "Password")).Value.ToString()?.Trim();
 
                             // Skip empty rows
                             if (string.IsNullOrWhiteSpace(surname) && string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(email))
@@ -381,7 +380,6 @@ namespace LOTAWeb.Areas.Admin.Controllers
                                 Surname = surname,
                                 FirstName = firstName,
                                 Email = email,
-                                Password = password,
                             });
                         }
                         catch (Exception ex)
