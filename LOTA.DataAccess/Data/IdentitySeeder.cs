@@ -31,10 +31,10 @@ namespace LOTA.DataAccess.Data
             }
 
             // 2. initial admin account read from configuration on Azure app setting
-            string adminEmail = configuration?["Admin:Email"] ?? "admin@weltec.ac.nz";
-            string adminPassword = configuration?["Admin:Password"] ?? "Admin123!"; 
+            string adminEmail = configuration?["Admin_Email"] ?? "admin@weltec.ac.nz";
+            string adminPassword = configuration?["Admin_Password"] ?? "Admin123!"; 
             //read force reset switch on Azure app setting
-            bool forceReset = bool.TryParse(configuration?["Admin:ForceReset"], out bool resetValue) && resetValue;
+            bool forceReset = bool.TryParse(configuration?["Admin_ForceReset"], out bool resetValue) && resetValue;
             // if force reset is true, then delete all previous admin account data 
             if (forceReset)
             {
@@ -53,8 +53,8 @@ namespace LOTA.DataAccess.Data
                     UserName = adminEmail,
                     Email = adminEmail,
                     EmailConfirmed = true,
-                    FirstName = configuration?["Admin:FirstName"] ?? "Admin",
-                    LastName = configuration?["Admin:LastName"] ?? "Weltec",
+                    FirstName = configuration?["Admin_FirstName"] ?? "Admin",
+                    LastName = configuration?["Admin_LastName"] ?? "Weltec",
                     IsActive = true,
                     SecurityStamp = Guid.NewGuid().ToString()
                 };
