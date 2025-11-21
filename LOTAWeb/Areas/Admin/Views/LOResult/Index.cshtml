@@ -1386,10 +1386,46 @@
             // Student info columns - handle both cases
             const studentName = student.StudentName || student.studentName;
             const studentNo = student.StudentNo || student.studentNo;
-            const totalScore = student.TotalScore || student.totalScore || 0;
             const maxTotalScore = student.MaxTotalScore || student.maxTotalScore || 0;
-            const totalPercentage = student.TotalPercentage || student.totalPercentage || 0;
-            const overallPassed = student.OverallPassed || student.overallPassed || false;
+            
+            // Recalculate total score - use historicalScores for calculation when retakeLOScore > 0 and historicalScores exist
+            let recalculatedTotalScore = 0;
+            let hasRetakeWithHistory = false; // Flag to indicate if we should use recalculated score
+            const studentAssessments = student.Assessments || student.assessments || [];
+            
+            sortedAssessments.forEach(assessment => {
+                const assessmentId = assessment.AssessmentId || assessment.assessmentId;
+                const studentAssessment = studentAssessments.find(a => {
+                    const aId = a.AssessmentId || a.assessmentId;
+                    return aId === assessmentId;
+                });
+                
+                if (studentAssessment) {
+                    const learningOutcomes = studentAssessment.LearningOutcomes || studentAssessment.learningOutcomes || [];
+                    learningOutcomes.forEach(lo => {
+                        const retakeLOScore = lo.retakeLOScore || lo.RetakeLOScore || 0;
+                        const historicalScores = lo.historicalScores || lo.HistoricalScores || [];
+                        const maxLOScore = lo.maxLOScore || lo.MaxLOScore || 0;
+                        
+                        // If retakeLOScore > 0 and historicalScores exist, use historicalScores for calculation
+                        if (retakeLOScore > 0 && historicalScores.length > 0) {
+                            hasRetakeWithHistory = true;
+                            // Use the first historical score (most recent) for calculation
+                            const historicalScore = historicalScores[0].Score || historicalScores[0].score || 0;
+                            recalculatedTotalScore += historicalScore;
+                        } else {
+                            // Use retakeLOScore if available for display, otherwise use loScore for calculation
+                            const loScore = retakeLOScore > 0 ? retakeLOScore : (lo.loScore || lo.LOScore || 0);
+                            recalculatedTotalScore += loScore;
+                        }
+                    });
+                }
+            });
+            
+            // Use recalculated total score if retake scores with historical scores exist, otherwise use original total score
+            const totalScore = hasRetakeWithHistory ? recalculatedTotalScore : (student.TotalScore || student.totalScore || 0);
+            const totalPercentage = maxTotalScore > 0 ? ((totalScore / maxTotalScore) * 100) : (student.TotalPercentage || student.totalPercentage || 0);
+            const overallPassed = totalPercentage >= 50;
             
             let rowHtml = `
                 <td class="text-center">
@@ -1399,7 +1435,6 @@
             `;
             
             // Assessment columns with LO scores
-            const studentAssessments = student.Assessments || student.assessments || [];
             sortedAssessments.forEach(assessment => {
                 const assessmentId = assessment.AssessmentId || assessment.assessmentId;
                 const studentAssessment = studentAssessments.find(a => {
@@ -1457,14 +1492,17 @@
          let html = '<div class="d-flex flex-row justify-content-center align-items-center gap-0" style="width: 100%;">';
          
              sortedLOs.forEach(lo => {
-        const loScore = lo.LOScore || lo.loScore || 0;
-        const maxLOScore = lo.MaxLOScore || lo.maxLOScore || 0;
-        const loPercentage = lo.LOPercentage || lo.loPercentage || 0;
-        const loPassed = lo.LOPassed || lo.loPassed || false;
-        const isRetake = lo.IsRetake || lo.isRetake || false;
-        const retakePassed = lo.RetakePassed || lo.retakePassed || false;
-        const retakeFailed = lo.RetakeFailed || lo.retakeFailed || false;
-        const historicalScores = lo.HistoricalScores || lo.historicalScores || [];
+            // Check retakeLOScore (support both camelCase and PascalCase)
+            const retakeLOScore = lo.retakeLOScore || lo.RetakeLOScore || 0;
+            const loScore = retakeLOScore > 0 ? retakeLOScore : (lo.loScore || lo.LOScore || 0);
+            const maxLOScore = lo.maxLOScore || lo.MaxLOScore || 0;
+            // Recalculate percentage and pass status when using retakeLOScore
+            const loPercentage = maxLOScore > 0 ? ((loScore / maxLOScore) * 100) : (lo.LOPercentage || lo.loPercentage || 0);
+            const loPassed = loPercentage >= 50;
+            const isRetake = lo.IsRetake  || false;
+            const retakePassed = lo.retakePassed || false;
+            const retakeFailed = lo.retakeFailed || false;
+            const historicalScores = lo.historicalScores || [];
         
 
         
@@ -1586,12 +1624,29 @@
                  
                  learningOutcomes.forEach(lo => {
                      const loName = lo.LearningOutcomeName || lo.learningOutcomeName || `LO${lo.LearningOutcomeId || lo.learningOutcomeId}`;
-                     const loPassed = lo.LOPassed || lo.loPassed || false;
-                     const loScore = lo.LOScore || lo.loScore || 0;
+                     // Check retakeLOScore (support both camelCase and PascalCase)
+                     const retakeLOScore = lo.retakeLOScore || lo.RetakeLOScore || 0;
+                     const historicalScores = lo.historicalScores || lo.HistoricalScores || [];
                      const maxLOScore = lo.MaxLOScore || lo.maxLOScore || 0;
-                     const loPercentage = lo.LOPercentage || lo.loPercentage || 0;
+                     
+                     // If retakeLOScore > 0 and historicalScores exist, use historicalScores for calculation
+                     // Otherwise, use retakeLOScore for display or loScore as fallback
+                     let calculationScore;
+                     if (retakeLOScore > 0 && historicalScores.length > 0) {
+                         // Use the first historical score (most recent) for calculation
+                         calculationScore = historicalScores[0].Score || historicalScores[0].score || 0;
+                     } else {
+                         // Use retakeLOScore if available, otherwise use loScore
+                         calculationScore = retakeLOScore > 0 ? retakeLOScore : (lo.loScore || lo.LOScore || 0);
+                     }
+                     
+                     // Use retakeLOScore for display if available
+                     const loScore = retakeLOScore > 0 ? retakeLOScore : (lo.loScore || lo.LOScore || 0);
+                     // Recalculate percentage and pass status when using retakeLOScore
+                     const loPercentage = maxLOScore > 0 ? ((loScore / maxLOScore) * 100) : (lo.LOPercentage || lo.loPercentage || 0);
+                     const loPassed = loPercentage >= 50;
                      const isRetake = lo.IsRetake || lo.isRetake || false;
-                     const originalScore = lo.OriginalScore || lo.originalScore || loScore;
+                     const originalScore = lo.OriginalScore || lo.originalScore || (lo.loScore || lo.LOScore || 0);
                      const originalMaxScore = lo.OriginalMaxScore || lo.originalMaxScore || maxLOScore;
                      
                      if (!allLOs.has(loName)) {
@@ -1611,7 +1666,8 @@
                      }
                      
                      const overallLO = allLOs.get(loName);
-                     overallLO.totalScore += loScore;
+                     // Use calculationScore (historicalScores if available) for total score calculation
+                     overallLO.totalScore += calculationScore;
                      overallLO.totalMaxScore += maxLOScore;
                      
                                   if (isRetake) {

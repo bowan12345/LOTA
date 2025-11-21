@@ -49,6 +49,7 @@ namespace LOTA.Model.DTO.Admin
         public string LearningOutcomeName { get; set; }
         public string AssessmentLearningOutcomeId { get; set; }
         public decimal LOScore { get; set; }
+        public decimal RetakeLOScore { get; set; }
         public decimal MaxLOScore { get; set; }
         public decimal LOPercentage { get; set; }
         public bool LOPassed { get; set; }

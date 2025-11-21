@@ -522,7 +522,7 @@ namespace LOTA.Service.Service
                                     
                                     if (displayScore != null)
                                     {
-                                        loResult.LOScore = displayScore.Score;
+                                        loResult.LOScore = activeScore?.Score?? 0;
                                         loResult.LOPercentage = Math.Round((displayScore.Score / assessmentLO.Score) * 100, 2);
                                         loResult.LOPassed = loResult.LOPercentage >= 50;
                                         loResult.NeedsRetake = !loResult.LOPassed;
@@ -530,6 +530,10 @@ namespace LOTA.Service.Service
                                         // Set retake related information
                                         if (retakeScore != null)
                                         {
+                                            loResult.RetakeLOScore = retakeScore.Score;
+                                            loResult.LOPercentage = Math.Round((retakeScore.Score / assessmentLO.Score) * 100, 2);
+                                            loResult.LOPassed = loResult.LOPercentage >= 50;
+                                            loResult.NeedsRetake = !loResult.LOPassed;
                                             loResult.IsRetake = true;
                                             loResult.RetakeDate = retakeScore.RetakeDate;
                                             var retakePercentage = Math.Round((retakeScore.Score / assessmentLO.Score) * 100, 2);
@@ -660,7 +664,7 @@ namespace LOTA.Service.Service
                                 {
                                     AssessmentId = assessment.AssessmentId,
                                     AssessmentName = assessment.AssessmentName,
-                                    LOScore = lo.LOScore,
+                                    LOScore =lo.LOScore,
                                     MaxLOScore = lo.MaxLOScore,
                                     LOPercentage = lo.LOPercentage
                                 });
