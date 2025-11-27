@@ -142,7 +142,7 @@
                                                 @if (!string.IsNullOrEmpty(course.Description))
                                                 {
                                                     <span title="@course.Description">
-                                                        @(course.Description.Length > 50 ? course.Description.Substring(0, 50) + "..." : course.Description)
+                                                        @(course.Description.Length > 15 ? course.Description.Substring(0, 15) + "..." : course.Description)
                                                     </span>
                                                 }
                                                 else
@@ -558,8 +558,9 @@
      }
      
            function addEditLearningOutcome() {
-          editLoCounter++;
-          const container = document.getElementById('editLearningOutcomesContainer');
+              editLoCounter++;
+              const container = document.getElementById('editLearningOutcomesContainer');
+            
           
           // Create table if it doesn't exist
           if (!container.querySelector('.lo-table')) {
@@ -659,12 +660,30 @@
       }
  
      function saveCourse() {
-                         // Get form data
+        // Get form element
+        const form = document.getElementById('addCourseForm');
+        
+        // Validate form using HTML5 validation (triggers required attribute)
+        if (!form.checkValidity()) {
+            // Find invalid fields and trigger validation messages
+            const invalidFields = form.querySelectorAll(':invalid');
+            if (invalidFields.length > 0) {
+                invalidFields.forEach(field => {
+                    field.classList.add('is-invalid');
+                    // Trigger browser's native validation message
+                    field.reportValidity();
+                });
+            }
+            return;
+        }
+        
+        // Get form data
         const courseName = document.getElementById('courseName').value;
         const courseCode = document.getElementById('courseCode').value;
         const qualificationId = document.getElementById('qualificationId').value;
         const description = document.getElementById('description').value;
         const learningOutcomes = getLearningOutcomesData('learningOutcomesContainer');
+        
        
        // Validate required fields
        if (!courseName || !courseCode) {
@@ -802,7 +821,24 @@
     }
 
     function updateCourse() {
-                         // Get form data
+        // Get form element
+        const form = document.getElementById('editCourseForm');
+        
+        // Validate form using HTML5 validation (triggers required attribute)
+        if (!form.checkValidity()) {
+            // Find invalid fields and trigger validation messages
+            const invalidFields = form.querySelectorAll(':invalid');
+            if (invalidFields.length > 0) {
+                invalidFields.forEach(field => {
+                    field.classList.add('is-invalid');
+                    // Trigger browser's native validation message
+                    field.reportValidity();
+                });
+            }
+            return;
+        }
+        
+        // Get form data
         const courseId = document.getElementById('editCourseId').value;
         const courseName = document.getElementById('editCourseName').value;
         const courseCode = document.getElementById('editCourseCode').value;
@@ -810,6 +846,7 @@
         const description = document.getElementById('editDescription').value;
         const learningOutcomes = getLearningOutcomesData('editLearningOutcomesContainer');
        
+        
        // Validate required fields
        if (!courseName || !courseCode) {
            showError('Please fill in all required fields!');

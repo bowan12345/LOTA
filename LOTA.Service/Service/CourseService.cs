@@ -207,7 +207,7 @@ namespace LOTA.Service.Service
 
                 if (validLearningOutcomes.Count <= 0)
                 {
-                    return;
+                    throw new NullReferenceException("LOName and Description cannot be empty");
                 }
                 // Get existing learning outcomes
                 var existingLearningOutcomesDict = existingLearningOutcomes.ToDictionary(lo => lo.Id);
