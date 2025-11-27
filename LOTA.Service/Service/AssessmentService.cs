@@ -33,7 +33,7 @@ namespace LOTA.Service.Service
             {
                 assessmentsWithDetails.Add(MapToReturnDTO(assessment, assessment.TrimesterCourse, assessment.Trimester, assessment.AssessmentType));
             }
-            
+            assessmentsWithDetails.OrderBy(a => a.CreatedBy).ToList();
             return assessmentsWithDetails;
         }
 
@@ -251,7 +251,7 @@ namespace LOTA.Service.Service
             {
                 assessmentsWithDetails.Add(MapToReturnDTO(assessment, assessment.TrimesterCourse, assessment.Trimester, assessment.AssessmentType));
             }
-            
+            assessmentsWithDetails.OrderBy(a => a.CreatedBy).ToList();
             return assessmentsWithDetails;
         }
 

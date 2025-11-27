@@ -8,6 +8,7 @@ namespace LOTA.Model.DTO.Admin
         public string AssessmentName { get; set; }
         public decimal MaxAssessmentScore { get; set; }
         public decimal Weight { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public List<AssessmentLOWithScoreDTO> AssessmentLearningOutcomes { get; set; } = new List<AssessmentLOWithScoreDTO>();
     }
 

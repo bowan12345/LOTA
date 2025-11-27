@@ -40,6 +40,7 @@ namespace LOTA.Model.DTO.Admin
         public decimal MaxAssessmentScore { get; set; }
         public bool AssessmentPassed { get; set; }
         public decimal Weight { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public List<LearningOutcomeResultDTO> LearningOutcomes { get; set; } = new List<LearningOutcomeResultDTO>();
     }
 

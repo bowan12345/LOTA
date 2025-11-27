@@ -89,7 +89,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var assessment in courseGroup.OrderBy(a => a.AssessmentName))
+                                                @foreach (var assessment in courseGroup.OrderBy(a => a.CreatedDate))
                                                 {
                                                     <tr class="assessment-row">
                                                         <td class="border-0 px-3">
@@ -272,6 +272,35 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Disable wheel event on number inputs to prevent scrolling from changing values
+            function disableWheelOnNumberInputs() {
+                document.querySelectorAll('input[type="number"]').forEach(input => {
+                    // Check if event listener already exists to avoid duplicates
+                    if (!input.hasAttribute('data-wheel-disabled')) {
+                        input.addEventListener('wheel', function(e) {
+                            if (document.activeElement === this) {
+                                e.preventDefault();
+                            }
+                        }, { passive: false });
+                        input.setAttribute('data-wheel-disabled', 'true');
+                    }
+                });
+            }
+            
+            // Disable wheel on number inputs initially
+            disableWheelOnNumberInputs();
+            
+            // Also disable wheel for dynamically added number inputs using MutationObserver
+            const observer = new MutationObserver(function() {
+                disableWheelOnNumberInputs();
+            });
+            
+            // Start observing the document body for changes
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
             loadLatestTrimesterCourseOfferings();
             loadAssessmentTypes();
 

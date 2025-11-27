@@ -1261,11 +1261,14 @@
 
     // Generate assessment columns for table header
     function generateAssessmentColumns(assessments) {
-        // Sort assessments alphabetically by name
+        // Sort assessments by creation date (ascending)
         const sortedAssessments = [...assessments].sort((a, b) => {
-            const nameA = (a.AssessmentName || a.assessmentName || '').toLowerCase();
-            const nameB = (b.AssessmentName || b.assessmentName || '').toLowerCase();
-            return nameA.localeCompare(nameB);
+            const dateA = a.CreatedDate || a.createdDate || new Date(0);
+            const dateB = b.CreatedDate || b.createdDate || new Date(0);
+            // Convert to Date objects if they are strings
+            const dateObjA = dateA instanceof Date ? dateA : new Date(dateA);
+            const dateObjB = dateB instanceof Date ? dateB : new Date(dateB);
+            return dateObjA.getTime() - dateObjB.getTime();
         });
         
         const mainHeaderRow = document.querySelector('#mainHeaderRow');
@@ -1370,11 +1373,14 @@
 
     // Populate results table
     function populateResultsTable(students, assessments) {
-        // Sort assessments alphabetically to match header
+        // Sort assessments by creation date (ascending) to match header
         const sortedAssessments = [...assessments].sort((a, b) => {
-            const nameA = (a.AssessmentName || a.assessmentName || '').toLowerCase();
-            const nameB = (b.AssessmentName || b.assessmentName || '').toLowerCase();
-            return nameA.localeCompare(nameB);
+            const dateA = a.CreatedDate || a.createdDate || new Date(0);
+            const dateB = b.CreatedDate || b.createdDate || new Date(0);
+            // Convert to Date objects if they are strings
+            const dateObjA = dateA instanceof Date ? dateA : new Date(dateA);
+            const dateObjB = dateB instanceof Date ? dateB : new Date(dateB);
+            return dateObjA.getTime() - dateObjB.getTime();
         });
         
         const tbody = document.getElementById('resultsTableBody');

@@ -72,6 +72,7 @@ namespace LOTA.DataAccess.Repository
                     AssessmentName = a.AssessmentName,
                     MaxAssessmentScore = a.Score,
                     Weight = a.Weight,
+                    CreatedDate = a.CreatedDate,
                     AssessmentLearningOutcomes = a.AssessmentLearningOutcomes.Select(alo => new AssessmentLOWithScoreDTO
                     {
                         Id = alo.Id,

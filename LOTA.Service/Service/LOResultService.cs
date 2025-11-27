@@ -234,6 +234,7 @@ namespace LOTA.Service.Service
                         AssessmentType = assessment.AssessmentType?.AssessmentTypeName ?? "Unknown",
                         MaxAssessmentScore = assessment.Score,
                         Weight = assessment.Weight,
+                        CreatedDate = assessment.CreatedDate,
                         LearningOutcomes = new List<LearningOutcomeResultDTO>()
                     };
 
@@ -476,6 +477,7 @@ namespace LOTA.Service.Service
                             AssessmentName = assessment.AssessmentName,
                             MaxAssessmentScore = assessment.MaxAssessmentScore,
                             Weight = assessment.Weight,
+                            CreatedDate = assessment.CreatedDate,
                             LearningOutcomes = new List<LearningOutcomeResultDTO>()
                         };
 
@@ -691,6 +693,7 @@ namespace LOTA.Service.Service
                             AssessmentName = assessment.AssessmentName,
                             MaxAssessmentScore = assessment.MaxAssessmentScore,
                             Weight = assessment.Weight,
+                            CreatedDate = assessment.CreatedDate,
                             AssessmentScore = 0,
                             AssessmentPassed = false,
                             LearningOutcomes = new List<LearningOutcomeResultDTO>()
@@ -1023,6 +1026,7 @@ namespace LOTA.Service.Service
                                 // 50% pass threshold
                                 AssessmentPassed = (studentAssessmentScore.TotalScore / assessment.Score) >= 0.5m,
                                 Weight = assessment.Weight,
+                                CreatedDate = assessment.CreatedDate,
                                 LearningOutcomes = new List<LearningOutcomeResultDTO>()
                             };
                             
