@@ -41,6 +41,7 @@ namespace LOTA.Model.DTO.Admin
         public bool AssessmentPassed { get; set; }
         public decimal Weight { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public string? Status { get; set; } // Values: "NotAttended" 
         public List<LearningOutcomeResultDTO> LearningOutcomes { get; set; } = new List<LearningOutcomeResultDTO>();
     }
 

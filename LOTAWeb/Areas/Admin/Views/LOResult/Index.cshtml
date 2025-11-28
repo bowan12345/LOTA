@@ -454,16 +454,15 @@
            background-color: transparent;
            box-shadow: none;
            text-align: center;
-           min-height: 3rem;
+           height: 70px;
            display: flex;
            flex-direction: column;
            align-items: center;
-           justify-content: center;
-           gap: 0.2rem;
+           justify-content: flex-start;
+           gap: 0;
            flex: 1;
            min-width: 80px;
            max-width: 120px;
-           height: 100%;
        }
     
          /* Center align LO score data */
@@ -471,24 +470,28 @@
          font-weight: 700;
          color: #212529;
          font-size: 0.75rem;
-         line-height: 1.1;
+         line-height: 1.2;
          text-align: center;
          width: 100%;
          display: flex;
          justify-content: center;
          align-items: center;
+         height: 20px;
+         margin-bottom: 2px;
      }
      
      .lo-percentage-detailed {
          font-weight: 500;
          color: #6c757d;
          font-size: 0.65rem;
-         line-height: 1.1;
+         line-height: 1.2;
          text-align: center;
          width: 100%;
          display: flex;
          justify-content: center;
          align-items: center;
+         height: 18px;
+         margin-bottom: 2px;
      }
      
      .lo-status-detailed {
@@ -502,27 +505,54 @@
          display: flex;
          justify-content: center;
          align-items: center;
+         height: 20px;
+         margin-top: 2px;
      }
      
      /* Center align all LO data cells */
      .assessment-column {
          text-align: center;
+         position: relative;
+         vertical-align: top;
+     }
+     
+     .assessment-loScores-container {
+         display: block;
+         position: relative;
+         width: 100%;
+     }
+     
+     /* Ensure all LO score rows align horizontally across all assessment columns */
+     .assessment-column .d-flex.flex-row {
+         align-items: flex-start;
+     }
+     
+     .assessment-status-badge {
+         font-size: 0.75rem;
+         padding: 0.25rem 0.5rem;
+         border-radius: 0.25rem;
+         font-weight: 600;
+         white-space: nowrap;
+         text-align: center;
+         z-index: 10;
      }
      
      .assessment-column .lo-item-detailed {
          display: flex;
          flex-direction: column;
          align-items: center;
-         justify-content: center;
+         justify-content: flex-start;
          text-align: center;
          width: 100%;
+         height: 70px;
      }
      
      /* Ensure LO data is centered in assessment columns */
      .assessment-column .d-flex.flex-row {
          justify-content: center;
-         align-items: center;
+         align-items: flex-start;
          width: 100%;
+         min-height: 70px;
      }
      
      /* Center align individual LO items */
@@ -530,9 +560,16 @@
          display: flex;
          flex-direction: column;
          align-items: center;
-         justify-content: center;
+         justify-content: flex-start;
          text-align: center;
          width: 100%;
+         height: 70px;
+     }
+     
+     /* Ensure all LO score rows align horizontally */
+     .assessment-column .d-flex.flex-row .lo-item-detailed {
+         align-self: flex-start;
+         height: 70px;
      }
      
      /* Ensure all text content in LO cells is centered */
@@ -747,7 +784,7 @@
          .assessment-column {
          min-width: 120px;
          max-width: none;
-         vertical-align: middle;
+         vertical-align: top;
          padding: 4px 6px;
          width: auto;
          position: relative;
@@ -1450,9 +1487,10 @@
                 
                 if (studentAssessment) {
                     const learningOutcomes = studentAssessment.LearningOutcomes || studentAssessment.learningOutcomes || [];
+                    const status = studentAssessment.Status || studentAssessment.status || '';
                     rowHtml += `
                         <td class="assessment-column">
-                            ${generateAssessmentLOs(learningOutcomes)}
+                            ${generateAssessmentLOs(learningOutcomes, status)}
                         </td>
                     `;
                 } else {
@@ -1487,7 +1525,7 @@
      }
      
      // Generate assessment LOs HTML
-     function generateAssessmentLOs(learningOutcomes) {
+     function generateAssessmentLOs(learningOutcomes, status = '') {
          // Sort LOs by name to match header order
          const sortedLOs = [...learningOutcomes].sort((a, b) => {
              const nameA = (a.LearningOutcomeName || a.learningOutcomeName || `LO${a.LearningOutcomeId || a.learningOutcomeId}`).toLowerCase();
@@ -1495,7 +1533,13 @@
              return nameA.localeCompare(nameB);
          });
          
-         let html = '<div class="d-flex flex-row justify-content-center align-items-center gap-0" style="width: 100%;">';
+         // Add status badge if status exists (will be placed at the bottom)
+         let statusBadge = '';
+         if (status === 'NotAttended') {
+            statusBadge = '<div class="assessment-status-badge bg-warning text-dark" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: auto;">Not Attended</div>';
+         }
+         
+         let html = '<div class="assessment-loScores-container" style="width: 100%; position: relative; min-height: 70px; padding-bottom: 30px;"><div class="d-flex flex-row justify-content-center align-items-start gap-0" style="width: 100%;">';
          
              sortedLOs.forEach(lo => {
             // Check retakeLOScore (support both camelCase and PascalCase)
@@ -1606,7 +1650,7 @@
         }
     });
          
-         html += '</div>';
+         html += '</div>' + statusBadge + '</div>';
          return html;
      }
 

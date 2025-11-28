@@ -296,5 +296,49 @@ namespace LOTA.Service.Service
             return courseOfferingDto;
         }
 
+        public async Task UpdateStudentAssessmentStatusAsync(string studentId, string assessmentId, string? status)
+        {
+            if (string.IsNullOrEmpty(studentId) || string.IsNullOrEmpty(assessmentId))
+            {
+                throw new ArgumentException("Student ID and Assessment ID are required");
+            }
+
+            // Validate status value if provided
+            if (!string.IsNullOrEmpty(status) && status != "NotAttended")
+            {
+                throw new ArgumentException("Invalid status. Valid value is: NotAttended");
+            }
+
+            // Get or create StudentAssessmentScore record
+            var existingStudentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(
+                studentId, assessmentId);
+
+            if (existingStudentAssessmentScore == null)
+            {
+                // Create new StudentAssessmentScore record with status
+                var newStudentAssessmentScore = new StudentAssessmentScore
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    StudentId = studentId,
+                    AssessmentId = assessmentId,
+                    TotalScore = 0,
+                    IsActive = true,
+                    Status = status,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                await _unitOfWork.studentScoreRepository.AddAsync(newStudentAssessmentScore);
+            }
+            else
+            {
+                // Update existing record
+                existingStudentAssessmentScore.Status = status;
+                existingStudentAssessmentScore.UpdatedDate = DateTime.UtcNow;
+                _unitOfWork.studentScoreRepository.Update(existingStudentAssessmentScore);
+            }
+
+            await _unitOfWork.SaveAsync();
+        }
+
     }
 }

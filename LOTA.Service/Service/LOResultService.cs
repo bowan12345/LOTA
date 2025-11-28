@@ -227,6 +227,9 @@ namespace LOTA.Service.Service
 
                 foreach (var assessment in courseAssessments)
                 {
+                    // Get student assessment score first to get status
+                    var existStudentAssessmentScore = await _unitOfWork.studentScoreRepository.GetStudentScoreByStudentAssessmentAsync(studentId, assessment.Id);
+                    
                     var assessmentResult = new AssessmentResultDTO
                     {
                         AssessmentId = assessment.Id,
@@ -235,6 +238,7 @@ namespace LOTA.Service.Service
                         MaxAssessmentScore = assessment.Score,
                         Weight = assessment.Weight,
                         CreatedDate = assessment.CreatedDate,
+                        Status = existStudentAssessmentScore?.Status,
                         LearningOutcomes = new List<LearningOutcomeResultDTO>()
                     };
 
@@ -471,6 +475,9 @@ namespace LOTA.Service.Service
                 {
                     foreach (var assessment in assessmentsWithLOs)
                     {
+                        // Find the specific assessment score for this assessment to get status
+                        var existStudentAssessmentScore = studentAssessmentScores.FirstOrDefault(s => s.AssessmentId == assessment.AssessmentId);
+                        
                         var assessmentResult = new AssessmentResultDTO
                         {
                             AssessmentId = assessment.AssessmentId,
@@ -478,6 +485,7 @@ namespace LOTA.Service.Service
                             MaxAssessmentScore = assessment.MaxAssessmentScore,
                             Weight = assessment.Weight,
                             CreatedDate = assessment.CreatedDate,
+                            Status = existStudentAssessmentScore?.Status,
                             LearningOutcomes = new List<LearningOutcomeResultDTO>()
                         };
 
@@ -696,6 +704,7 @@ namespace LOTA.Service.Service
                             CreatedDate = assessment.CreatedDate,
                             AssessmentScore = 0,
                             AssessmentPassed = false,
+                            Status = null, // No student score means no status
                             LearningOutcomes = new List<LearningOutcomeResultDTO>()
                         };
 
@@ -1027,6 +1036,7 @@ namespace LOTA.Service.Service
                                 AssessmentPassed = (studentAssessmentScore.TotalScore / assessment.Score) >= 0.5m,
                                 Weight = assessment.Weight,
                                 CreatedDate = assessment.CreatedDate,
+                                Status = studentAssessmentScore.Status,
                                 LearningOutcomes = new List<LearningOutcomeResultDTO>()
                             };
                             

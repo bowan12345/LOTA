@@ -135,6 +135,26 @@ namespace LOTAWeb.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateStudentAssessmentStatus([FromBody] UpdateStudentAssessmentStatusDTO request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.StudentId) || string.IsNullOrEmpty(request.AssessmentId))
+                {
+                    return Json(new { success = false, message = "Student ID and Assessment ID are required" });
+                }
+
+                await _loScoreService.UpdateStudentAssessmentStatusAsync(request.StudentId, request.AssessmentId, request.Status);
+                
+                return Json(new { success = true, message = "Status updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentAssessmentStatus");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
     }
 }

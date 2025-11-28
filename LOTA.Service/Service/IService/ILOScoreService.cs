@@ -9,5 +9,6 @@ namespace LOTA.Service.Service.IService
         Task<CourseOfferingDetailsDTO> GetCourseOfferingDetailsByCourseOfferingId(string courseOfferingId);
         Task BatchSaveStudentLOScoresAsync(string studentId, string assessmentId, List<LOScoreCreateDTO> loScores);
         Task BatchSaveAllStudentsLOScoresAsync(AllStudentsLOScoresBatchSaveDTO batchSaveDTO);
+        Task UpdateStudentAssessmentStatusAsync(string studentId, string assessmentId, string? status);
     }
 }

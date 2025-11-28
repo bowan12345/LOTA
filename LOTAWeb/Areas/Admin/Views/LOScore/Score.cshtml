@@ -136,9 +136,9 @@
                                                     </td>
                                                     @foreach (var alo in assessment.AssessmentLearningOutcomes.OrderBy(alo => alo.LearningOutcome.LOName))
                                                     {
-                                                        var studentScore = Model.StudentAssessmentScores
+                                                        var stuScore = Model.StudentAssessmentScores
                                                             .FirstOrDefault(ss => ss.StudentId == student.StudentId && ss.AssessmentId == assessment.Id);
-                                                        var loScore = studentScore?.StudentLOScores?.FirstOrDefault(ls => ls.AssessmentLearningOutcomeId == alo.Id);
+                                                        var loScore = stuScore?.StudentLOScores?.FirstOrDefault(ls => ls.AssessmentLearningOutcomeId == alo.Id);
                                                         var isRetake = loScore?.IsRetake ?? false;
                                                         var scoreValue = loScore?.Score ?? 0;
                                                         var scoreId = loScore?.Id ?? "";
@@ -181,10 +181,29 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-center">
+                                                        <div class="btn-group" role="group">
                                                         <button class="btn btn-sm btn-outline-primary" 
-                                                                onclick="saveStudentScores('@student.StudentId', '@assessment.Id')">
+                                                                    onclick="saveStudentScores('@student.StudentId', '@assessment.Id')"
+                                                                    title="Save Scores">
                                                             <i class="fas fa-save"></i>
                                                         </button>
+                                                            @{
+                                                                var studentScore = Model.StudentAssessmentScores
+                                                                    .FirstOrDefault(ss => ss.StudentId == student.StudentId && ss.AssessmentId == assessment.Id);
+                                                                var currentStatus = studentScore?.Status ?? "";
+                                                                var isNotAttended = currentStatus == "NotAttended";
+                                                            }
+                                                            <button class="btn btn-sm @(isNotAttended ? "btn-warning" : "btn-outline-warning") status-btn" 
+                                                                    onclick="toggleNotAttendedStatus('@student.StudentId', '@assessment.Id', @isNotAttended.ToString().ToLower())"
+                                                                    title="@(isNotAttended ? "Mark as Attended" : "Mark as Not Attended")"
+                                                                    data-status="@currentStatus">
+                                                                <i class="fas fa-user-slash"></i>
+                                                                @if (isNotAttended)
+                                                                {
+                                                                    <span class="ms-1">Not Attended</span>
+                                                                }
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             }
@@ -546,6 +565,32 @@
                 throw new Error(result.message || 'Failed to save scores');
             }
             
+            // Clear NotAttended status when saving scores
+            if (result.success) {
+                try {
+                    const statusTokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (statusTokenElement) {
+                        const statusRequestData = {
+                            studentId: studentId,
+                            assessmentId: assessmentId,
+                            status: null // Clear NotAttended status
+                        };
+                        
+                        await fetch('@Url.Action("UpdateStudentAssessmentStatus", "LOScore", new { area = "Admin" })', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': statusTokenElement.value
+                            },
+                            body: JSON.stringify(statusRequestData)
+                        });
+                    }
+                } catch (statusError) {
+                    console.warn('Failed to clear NotAttended status:', statusError);
+                    // Don't throw - this is not critical
+                }
+            }
+            
             // Update original values after successful save
             scoreInputs.forEach(input => {
                 input.setAttribute('data-original-value', input.value);
@@ -848,6 +893,123 @@
             timer: 3000,
             timerProgressBar: true
         });
+    }
+
+    // Toggle Not Attended status
+    async function toggleNotAttendedStatus(studentId, assessmentId, isCurrentlyNotAttended) {
+        const newStatus = isCurrentlyNotAttended ? null : "NotAttended";
+        const statusText = isCurrentlyNotAttended ? "Attended" : "Not Attended";
+        
+        // If setting to NotAttended, clear all scores to 0
+        if (newStatus === "NotAttended") {
+            const row = document.querySelector(`tr[data-student-id="${studentId}"][data-assessment-id="${assessmentId}"]`);
+            if (row) {
+                const scoreInputs = row.querySelectorAll('.lo-score-input');
+                scoreInputs.forEach(input => {
+                    // Skip retake scores - they cannot be edited
+                    const isRetake = input.getAttribute('data-is-retake') === 'true';
+                    if (!isRetake) {
+                        input.value = '0';
+                        updateTotalScore(input);
+                    }
+                });
+            }
+        }
+        
+        try {
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!tokenElement) {
+                throw new Error('Anti-forgery token not found');
+            }
+            
+            const requestData = {
+                studentId: studentId,
+                assessmentId: assessmentId,
+                status: newStatus
+            };
+            
+            const response = await fetch('@Url.Action("UpdateStudentAssessmentStatus", "LOScore", new { area = "Admin" })', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': tokenElement.value
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // If setting to NotAttended, also clear scores in database
+                if (newStatus === "NotAttended") {
+                    try {
+                        const row = document.querySelector(`tr[data-student-id="${studentId}"][data-assessment-id="${assessmentId}"]`);
+                        const scoreInputs = row.querySelectorAll('.lo-score-input');
+                        const loScores = [];
+                        
+                        scoreInputs.forEach(input => {
+                            const isRetake = input.getAttribute('data-is-retake') === 'true';
+                            if (!isRetake) {
+                                const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
+                                loScores.push({
+                                    studentId: studentId,
+                                    assessmentId: assessmentId,
+                                    assessmentLearningOutcomeId: assessmentLearningOutcomeId,
+                                    score: 0,
+                                    trimesterId: '@Model.TrimesterCourse.Trimester.Id',
+                                    isActive: true,
+                                    isRetake: false
+                                });
+                            }
+                        });
+                        
+                        if (loScores.length > 0) {
+                            const clearScoresResponse = await fetch('@Url.Action("BatchSaveStudentLOScores", "LOScore", new { area = "Admin" })', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'RequestVerificationToken': tokenElement.value
+                                },
+                                body: JSON.stringify({
+                                    studentId: studentId,
+                                    assessmentId: assessmentId,
+                                    loScores: loScores
+                                })
+                            });
+                            
+                            if (!clearScoresResponse.ok) {
+                                console.warn('Failed to clear scores in database');
+                            }
+                        }
+                    } catch (clearError) {
+                        console.warn('Error clearing scores:', clearError);
+                        // Continue even if clearing scores fails
+                    }
+                }
+                
+                showSuccessMessage(`Assessment status updated to: ${statusText}`);
+                
+                // Save current tab before reloading
+                const currentTab = document.querySelector('.tab-pane.active');
+                if (currentTab) {
+                    const currentAssessmentId = currentTab.id.replace('content-', '');
+                    localStorage.setItem('lastActiveTab', currentAssessmentId);
+                }
+                
+                // Reload page to show updated status
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showErrorMessage(result.message || 'Failed to update status');
+            }
+        } catch (error) {
+            showErrorMessage('Error updating status: ' + error.message);
+        }
     }
 
 

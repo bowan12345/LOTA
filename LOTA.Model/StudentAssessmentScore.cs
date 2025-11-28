@@ -29,6 +29,9 @@ namespace LOTA.Model
 
         public bool IsActive { get; set; } = true;
 
+        [MaxLength(50)]
+        public string? Status { get; set; } // Values: "NotAttended" 
+
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
