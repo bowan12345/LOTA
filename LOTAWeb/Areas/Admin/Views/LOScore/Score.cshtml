@@ -160,8 +160,7 @@
                                                                            max="@alo.Score" 
                                                                            step="0.01"
                                                                            style="width: 110px; height: 40px; font-size: 15px; @(isRetake ? "background-color: #f8f9fa;" : "")"
-                                                                           @(isRetake ? "readonly disabled" : "")
-                                                                           @(isRetake ? "" : "onchange=\"validateScore(this)\"")>
+                                                                           onchange="validateScore(this)">
                                                                     @if (isRetake)
                                                                     {
                                                                         <span class="badge bg-warning text-dark retake-badge-overlay" 
@@ -352,7 +351,6 @@
     
     .retake-input {
         background-color: #f8f9fa !important;
-        cursor: not-allowed;
     }
     
     .retake-badge-overlay {
@@ -456,12 +454,6 @@
         });
         
         scoreInputs.forEach(input => {
-            // Skip retake scores - they cannot be edited
-            const isRetake = input.getAttribute('data-is-retake') === 'true';
-            if (isRetake) {
-                return; // Skip this input
-            }
-            
             const value = parseFloat(input.value);
             const maxScore = parseFloat(input.getAttribute('data-lo-score'));
             
@@ -500,15 +492,9 @@
         const loScores = [];
         
         scoreInputs.forEach(input => {
-            // Skip retake scores - they cannot be edited
-            const isRetake = input.getAttribute('data-is-retake') === 'true';
-            if (isRetake) {
-                console.log(`Skipping retake score for LO: ${input.getAttribute('data-lo-id')}`);
-                return; // Skip this input
-            }
-            
             const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
             const score = parseFloat(input.value) || 0;
+            const isRetake = input.getAttribute('data-is-retake') === 'true';
             
             loScores.push({
                 studentId: studentId,
@@ -517,13 +503,13 @@
                 score: score,
                 trimesterId: '@Model.TrimesterCourse.Trimester.Id',
                 isActive: true,
-                isRetake: false
+                isRetake: isRetake
             });
         });
         
         // Check if there are any scores to save
         if (loScores.length === 0) {
-            throw new Error('No editable scores found. All scores may be retake data.');
+            throw new Error('No scores found to save.');
         }
         
         try {
@@ -644,12 +630,6 @@
                 const scoreInputs = row.querySelectorAll('.lo-score-input');
                 
                 scoreInputs.forEach(input => {
-                    // Skip retake scores - they cannot be edited
-                    const isRetake = input.getAttribute('data-is-retake') === 'true';
-                    if (isRetake) {
-                        return; // Skip this input
-                    }
-                    
                     const value = parseFloat(input.value);
                     const maxScore = parseFloat(input.getAttribute('data-lo-score'));
                     
@@ -728,6 +708,7 @@
                     scoreInputs.forEach(input => {
                         const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
                         const score = parseFloat(input.value) || 0;
+                        const isRetake = input.getAttribute('data-is-retake') === 'true';
                         
                         loScores.push({
                             studentId: studentId,
@@ -736,7 +717,7 @@
                             score: score,
                             trimesterId: '@Model.TrimesterCourse.Trimester.Id',
                             isActive: true,
-                            isRetake: false
+                            isRetake: isRetake
                         });
                     });
                     
@@ -906,12 +887,8 @@
             if (row) {
                 const scoreInputs = row.querySelectorAll('.lo-score-input');
                 scoreInputs.forEach(input => {
-                    // Skip retake scores - they cannot be edited
-                    const isRetake = input.getAttribute('data-is-retake') === 'true';
-                    if (!isRetake) {
-                        input.value = '0';
-                        updateTotalScore(input);
-                    }
+                    input.value = '0';
+                    updateTotalScore(input);
                 });
             }
         }
@@ -952,19 +929,17 @@
                         const loScores = [];
                         
                         scoreInputs.forEach(input => {
+                            const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
                             const isRetake = input.getAttribute('data-is-retake') === 'true';
-                            if (!isRetake) {
-                                const assessmentLearningOutcomeId = input.getAttribute('data-lo-id');
-                                loScores.push({
-                                    studentId: studentId,
-                                    assessmentId: assessmentId,
-                                    assessmentLearningOutcomeId: assessmentLearningOutcomeId,
-                                    score: 0,
-                                    trimesterId: '@Model.TrimesterCourse.Trimester.Id',
-                                    isActive: true,
-                                    isRetake: false
-                                });
-                            }
+                            loScores.push({
+                                studentId: studentId,
+                                assessmentId: assessmentId,
+                                assessmentLearningOutcomeId: assessmentLearningOutcomeId,
+                                score: 0,
+                                trimesterId: '@Model.TrimesterCourse.Trimester.Id',
+                                isActive: true,
+                                isRetake: isRetake
+                            });
                         });
                         
                         if (loScores.length > 0) {
@@ -1023,6 +998,13 @@
          scoreInputs.forEach(input => {
              const currentValue = input.value;
              input.setAttribute('data-original-value', currentValue);
+             
+             // Prevent wheel event from changing score
+             input.addEventListener('wheel', function(e) {
+                 if (document.activeElement === this) {
+                     e.preventDefault();
+                 }
+             }, { passive: false });
          });
          
          // Update total scores for all students

@@ -3,16 +3,20 @@ using LOTA.DataAccess.Repository.IRepository;
 using LOTA.Model;
 using LOTA.Model.DTO.Admin;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using LOTA.Utility;
 
 namespace LOTA.Service.Service
 {
     public class LOScoreService : ILOScoreService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LOScoreService(IUnitOfWork unitOfWork)
+        public LOScoreService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<CourseOfferingAssessmentDTO> GetCourseOfferingWithAssessmentsAsync(string courseOfferingId)
@@ -86,10 +90,14 @@ namespace LOTA.Service.Service
             {
                 throw new InvalidOperationException($"Assessment not found");
             }
-            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
-            if (hasRetake)
+            //only admin can update scores after retaking
+            if (!_httpContextAccessor.HttpContext.User.IsInRole(Roles.Role_Admin))
             {
-                throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
+                var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
+                if (hasRetake)
+                {
+                    throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
+                }
             }
            
             // Validate LO scores before saving
@@ -161,7 +169,7 @@ namespace LOTA.Service.Service
                     existingLOScore.Score = loScore.Score;
                     existingLOScore.UpdatedDate = DateTime.UtcNow;
                     existingLOScore.IsActive = true;
-                    existingLOScore.IsRetake = false;
+                    //existingLOScore.IsRetake = false;
 
                     _unitOfWork.studentLOScoreRepository.Update(existingLOScore);
                 }
@@ -216,11 +224,17 @@ namespace LOTA.Service.Service
             {
                 throw new InvalidOperationException($"Assessment not found");
             }
-            var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
-            if (hasRetake)
+
+            //only admin can update scores after retaking
+            if (!_httpContextAccessor.HttpContext.User.IsInRole(Roles.Role_Admin)) 
             {
-                throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
+                var hasRetake = await _unitOfWork.studentLOScoreRepository.ExistsRetakeByCourseOfferingIdAsync(assessmentEntity.CourseOfferingId);
+                if (hasRetake)
+                {
+                    throw new InvalidOperationException("This course offering contains retake records and can no longer be edited.");
+                }
             }
+            
             // Validate all LO scores before saving
             foreach (var studentScore in batchSaveDTO.StudentScores)
             {
