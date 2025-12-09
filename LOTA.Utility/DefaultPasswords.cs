@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;
 
 namespace LOTA.Utility
 {
@@ -132,27 +133,98 @@ namespace LOTA.Utility
         private static string EnsurePasswordComplexity(string password, bool includeSpecialChars)
         {
             var chars = password.ToCharArray();
-            var hasLower = chars.Any(c => char.IsLower(c));
-            var hasUpper = chars.Any(c => char.IsUpper(c));
-            var hasDigit = chars.Any(c => char.IsDigit(c));
-            var hasSpecial = includeSpecialChars && chars.Any(c => SpecialChars.Contains(c));
+            var usedIndices = new HashSet<int>();
+            
+            // Check what's missing and replace at different positions
+            if (!chars.Any(c => char.IsLower(c)))
+            {
+                var index = GetUnusedIndex(chars.Length, usedIndices);
+                chars[index] = LowercaseChars[Random.Shared.Next(LowercaseChars.Length)];
+                usedIndices.Add(index);
+            }
+            if (!chars.Any(c => char.IsUpper(c)))
+            {
+                var index = GetUnusedIndex(chars.Length, usedIndices);
+                chars[index] = UppercaseChars[Random.Shared.Next(UppercaseChars.Length)];
+                usedIndices.Add(index);
+            }
+            if (!chars.Any(c => char.IsDigit(c)))
+            {
+                var index = GetUnusedIndex(chars.Length, usedIndices);
+                chars[index] = DigitChars[Random.Shared.Next(DigitChars.Length)];
+                usedIndices.Add(index);
+            }
+            if (includeSpecialChars && !chars.Any(c => SpecialChars.Contains(c)))
+            {
+                var index = GetUnusedIndex(chars.Length, usedIndices);
+                chars[index] = SpecialChars[Random.Shared.Next(SpecialChars.Length)];
+                usedIndices.Add(index);
+            }
 
-            // If missing required character types, randomly replace some characters
-            if (!hasLower)
+            // Verify all requirements are met, if not, retry with a different approach
+            var finalPassword = new string(chars);
+            var hasLower = finalPassword.Any(c => char.IsLower(c));
+            var hasUpper = finalPassword.Any(c => char.IsUpper(c));
+            var hasDigit = finalPassword.Any(c => char.IsDigit(c));
+            var hasSpecial = !includeSpecialChars || finalPassword.Any(c => SpecialChars.Contains(c));
+
+            // If still missing requirements, use a more aggressive replacement strategy
+            if (!hasLower || !hasUpper || !hasDigit || !hasSpecial)
             {
-                chars[Random.Shared.Next(chars.Length)] = LowercaseChars[Random.Shared.Next(LowercaseChars.Length)];
+                return EnsurePasswordComplexityAggressive(finalPassword, includeSpecialChars);
             }
-            if (!hasUpper)
+
+            return finalPassword;
+        }
+
+        /// <summary>
+        /// Get an unused index for character replacement
+        /// </summary>
+        private static int GetUnusedIndex(int length, HashSet<int> usedIndices)
+        {
+            int attempts = 0;
+            int index;
+            do
             {
-                chars[Random.Shared.Next(chars.Length)] = UppercaseChars[Random.Shared.Next(UppercaseChars.Length)];
-            }
-            if (!hasDigit)
+                index = Random.Shared.Next(length);
+                attempts++;
+                // If we've tried many times and still can't find an unused index, use any index
+                if (attempts > 10)
+                {
+                    break;
+                }
+            } while (usedIndices.Contains(index));
+            
+            return index;
+        }
+
+        /// <summary>
+        /// Aggressive password complexity enforcement - ensures all requirements are met
+        /// </summary>
+        private static string EnsurePasswordComplexityAggressive(string password, bool includeSpecialChars)
+        {
+            var chars = password.ToCharArray();
+            var requirements = new List<(bool needed, char[] charSet)>();
+            
+            // Check what's needed
+            if (!chars.Any(c => char.IsLower(c)))
+                requirements.Add((true, LowercaseChars));
+            if (!chars.Any(c => char.IsUpper(c)))
+                requirements.Add((true, UppercaseChars));
+            if (!chars.Any(c => char.IsDigit(c)))
+                requirements.Add((true, DigitChars));
+            if (includeSpecialChars && !chars.Any(c => SpecialChars.Contains(c)))
+                requirements.Add((true, SpecialChars));
+
+            // Replace characters starting from the end to avoid overwriting prefix
+            int replaceIndex = chars.Length - 1;
+            foreach (var (needed, charSet) in requirements)
             {
-                chars[Random.Shared.Next(chars.Length)] = DigitChars[Random.Shared.Next(DigitChars.Length)];
-            }
-            if (includeSpecialChars && !hasSpecial)
-            {
-                chars[Random.Shared.Next(chars.Length)] = SpecialChars[Random.Shared.Next(SpecialChars.Length)];
+                if (needed && replaceIndex >= 0)
+                {
+                    chars[replaceIndex] = charSet[Random.Shared.Next(charSet.Length)];
+                    replaceIndex--;
+                }
             }
 
             return new string(chars);
