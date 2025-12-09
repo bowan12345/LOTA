@@ -856,12 +856,10 @@
            height: 100%;
        }
      
-     .needs-resit-badge {
+     .needs-resit-badge,
+     .course-status-badge {
          font-size: 0.75rem;
          font-weight: 600;
-         color: #dc3545;
-         background-color: #f8d7da;
-         border: 1px solid #f5c6cb;
          border-radius: 0.25rem;
          padding: 0.2rem 0.4rem;
          margin-top: 0.25rem;
@@ -871,6 +869,18 @@
          text-align: center;
          width: 100%;
          height: 100%;
+     }
+     
+     .course-status-badge.course-failed {
+         color: #dc3545;
+         background-color: #f8d7da;
+         border: 1px solid #f5c6cb;
+     }
+     
+     .course-status-badge.course-passed {
+         color: #155724;
+         background-color: #d4edda;
+         border: 1px solid #c3e6cb;
      }
      
      /* Retake status styles for LO Overview & Actions */
@@ -1503,7 +1513,7 @@
                  <td class="text-center">
                      <div class="overall-score">${formatScore(totalScore)}/${formatScore(maxTotalScore)}</div>
                      <div class="overall-percentage ${overallPassed ? 'text-success' : 'text-danger'}">${totalPercentage.toFixed(1)}%</div>
-                     ${totalPercentage < 50 ? '<div class="needs-resit-badge">Needs Resit</div>' : ''}
+                     ${totalPercentage >= 50 ? '<div class="course-status-badge course-passed">Course Passed</div>' : '<div class="course-status-badge course-failed">Course Failed</div>'}
                  </td>
              `;
 
@@ -1933,13 +1943,22 @@
           let allValid = true;
           
           inputs.forEach(input => {
-              const value = parseFloat(input.value) || 0;
+              // Allow empty input, treat as invalid (required field)
+              const rawValue = input.value.trim();
+              if (rawValue === '') {
+                  input.classList.remove('is-invalid', 'is-valid');
+                  allValid = false;
+                  return;
+              }
+              
+              const value = parseFloat(rawValue);
               const maxScore = parseFloat(input.getAttribute('data-max-score'));
               
               // Reset input styling
               input.classList.remove('is-invalid', 'is-valid');
               
-              if (value === 0 || isNaN(value)) {
+              // 0 is a valid value, only check for NaN, negative, or exceeding max
+              if (isNaN(value)) {
                   input.classList.add('is-invalid');
                   allValid = false;
               } else if (value < 0) {
@@ -1949,6 +1968,7 @@
                   input.classList.add('is-invalid');
                   allValid = false;
               } else {
+                  // Valid value (including 0)
                   input.classList.add('is-valid');
               }
           });
