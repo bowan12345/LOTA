@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace LOTA.Test
 {
@@ -15,6 +16,7 @@ namespace LOTA.Test
     {
         private readonly LOScoreService _service;
         private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AdminLOScoreUnitTest()
         {
@@ -29,7 +31,7 @@ namespace LOTA.Test
             _mockUnitOfWork.Setup(u => u.studentLOScoreRepository).Returns(Mock.Of<IStudentLOScoreRepository>());
             _mockUnitOfWork.Setup(u => u.studentRepository).Returns(Mock.Of<IStudentRepository>());
 
-            _service = new LOScoreService(_mockUnitOfWork.Object);
+            _service = new LOScoreService(_mockUnitOfWork.Object, _httpContextAccessor);
         }
 
         [Fact]
