@@ -368,3 +368,7 @@ Properties/ServiceDependencies/
 serviceDependencies.json
 /LOTAWeb/Properties/ServiceDependencies/LOTAWeb20250908124701 - Web Deploy
 /LOTAWeb/Properties/serviceDependencies.LOTAWeb20250908124701 - Web Deploy.json
+
+# Local Docker secrets
+.env
+.env.local

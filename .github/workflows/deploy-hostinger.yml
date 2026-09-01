@@ -1,0 +1,31 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches: [main, master, feature_feedback1]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Deploy to Hostinger Docker Manager
+        uses: hostinger/deploy-on-vps@v2
+        with:
+          api-key: ${{ secrets.HOSTINGER_API_KEY }}
+          virtual-machine: ${{ vars.HOSTINGER_VM_ID }}
+          project-name: lota
+          docker-compose-path: docker-compose.yml
+          environment-variables: |
+            MSSQL_SA_PASSWORD=${{ secrets.MSSQL_SA_PASSWORD }}
+            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            SMTP_HOST=${{ secrets.SMTP_HOST }}
+            SMTP_PORT=${{ secrets.SMTP_PORT }}
+            SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
+            SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+            SMTP_ENABLE_SSL=true
+            SMTP_FROM=${{ secrets.SMTP_FROM }}
+            SMTP_DISPLAY_NAME=LOTA System
