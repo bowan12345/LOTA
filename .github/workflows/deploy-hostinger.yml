@@ -30,4 +30,5 @@ jobs:
             SMTP_FROM=${{ secrets.SMTP_FROM }}
             SMTP_DISPLAY_NAME=LOTA System
             DOMAIN=${{ vars.DOMAIN }}
+            DOMAIN_ALIASES=${{ vars.DOMAIN_ALIASES }}
             ACME_EMAIL=${{ secrets.ACME_EMAIL }}

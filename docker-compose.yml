@@ -34,26 +34,13 @@ services:
       - "443:443"
     environment:
       DOMAIN: ${DOMAIN:-_}
+      DOMAIN_ALIASES: ${DOMAIN_ALIASES:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
     volumes:
       - certbot_www:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
     depends_on:
       - web
-
-  certbot:
-    image: certbot/certbot
-    container_name: lota-certbot
-    restart: unless-stopped
-    environment:
-      DOMAIN: ${DOMAIN:-}
-      ACME_EMAIL: ${ACME_EMAIL:-}
-    volumes:
-      - ./nginx/certbot.sh:/certbot.sh:ro
-      - certbot_www:/var/www/certbot
-      - certbot_certs:/etc/letsencrypt
-    entrypoint: ["/bin/sh", "/certbot.sh"]
-    depends_on:
-      - nginx
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
