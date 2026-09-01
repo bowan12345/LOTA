@@ -13,6 +13,8 @@ services:
       ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=LOTA_db;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true
       Admin_Email: ${ADMIN_EMAIL}
       Admin_Password: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       Smtp__Host: ${SMTP_HOST}
       Smtp__Port: ${SMTP_PORT:-587}
       Smtp__UserName: ${SMTP_USERNAME}
