@@ -24,6 +24,37 @@ services:
       sqlserver:
         condition: service_healthy
 
+  nginx:
+    build:
+      context: ./nginx
+    container_name: lota-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-_}
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    depends_on:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    container_name: lota-certbot
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./nginx/certbot.sh:/certbot.sh:ro
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: ["/bin/sh", "/certbot.sh"]
+    depends_on:
+      - nginx
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: lota-sql
@@ -44,3 +75,5 @@ services:
 
 volumes:
   lota_sql_data:
+  certbot_www:
+  certbot_certs:
