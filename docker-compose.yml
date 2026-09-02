@@ -25,6 +25,9 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+    networks:
+      - default
+      - proxy
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -46,3 +49,8 @@ services:
 
 volumes:
   lota_sql_data:
+
+networks:
+  proxy:
+    external: true
+    name: proxy
